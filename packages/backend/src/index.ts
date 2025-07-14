@@ -4,13 +4,17 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
-import { pool } from './config/database';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3002;
+
+// Log startup
+console.log('🚀 Starting EONMeds Backend...');
+console.log('Port:', PORT);
+console.log('Environment:', process.env.NODE_ENV);
 
 // Security middleware
 app.use(helmet());
@@ -32,72 +36,84 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Request logging middleware
+// Logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// Import routes
-import authRoutes from './routes/auth.routes';
-import patientRoutes from './routes/patients.routes';
-import userRoutes from './routes/users.routes';
-import webhookRoutes from './routes/webhook.routes';
-import appointmentRoutes from './routes/appointments.routes';
-import prescriptionRoutes from './routes/prescriptions.routes';
-import paymentRoutes from './routes/payments.routes';
-import notificationRoutes from './routes/notifications.routes';
-import communicationRoutes from './routes/communications.routes';
-import auditRoutes from './routes/audit.routes';
-
-// API routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/patients', patientRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/webhooks', webhookRoutes);
-app.use('/api/v1/appointments', appointmentRoutes);
-app.use('/api/v1/prescriptions', prescriptionRoutes);
-app.use('/api/v1/payments', paymentRoutes);
-app.use('/api/v1/notifications', notificationRoutes);
-app.use('/api/v1/communications', communicationRoutes);
-app.use('/api/v1/audit', auditRoutes);
-
-// Basic route
-app.get('/', (_req, res) => {
-  res.json({ 
-    message: 'EONMeds Backend API',
-    version: '1.0.0',
-    status: 'running'
-  });
-});
-
-// Health check endpoint
-app.get('/health', async (_req, res) => {
-  const health = {
+// Health check endpoint (NO DATABASE REQUIRED)
+app.get('/health', (_req, res) => {
+  res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    database: 'unknown'
-  };
-
-  // Test database connection without crashing
-  try {
-    const { testDatabaseConnection } = await import('./config/database');
-    const dbConnected = await testDatabaseConnection();
-    health.database = dbConnected ? 'connected' : 'disconnected';
-  } catch (error) {
-    health.database = 'error';
-    console.error('Health check DB test failed:', error);
-  }
-
-  res.json(health);
+    port: PORT
+  });
 });
 
-// API test endpoint
+// Test endpoint
 app.get('/api/v1/test', (_req, res) => {
-  res.json({ 
-    message: 'API is working!',
+  res.json({
+    message: 'EONMeds API is running!',
+    version: '1.0.0',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Lazy load database-dependent routes
+let databaseConnected = false;
+
+async function loadDatabaseRoutes() {
+  try {
+    console.log('Attempting to connect to database...');
+    const { pool } = await import('./config/database');
+    
+    // Test connection
+    await pool.query('SELECT 1');
+    console.log('✅ Database connected successfully');
+    databaseConnected = true;
+    
+    // Import routes that need database
+    const authRoutes = await import('./routes/auth.routes');
+    const patientRoutes = await import('./routes/patient.routes');
+    const practitionerRoutes = await import('./routes/practitioner.routes');
+    const appointmentRoutes = await import('./routes/appointment.routes');
+    const documentRoutes = await import('./routes/document.routes');
+    const auditRoutes = await import('./routes/audit.routes');
+    const webhookRoutes = await import('./routes/webhook.routes');
+    
+    // Register routes
+    app.use('/api/v1/auth', authRoutes.default);
+    app.use('/api/v1/patients', patientRoutes.default);
+    app.use('/api/v1/practitioners', practitionerRoutes.default);
+    app.use('/api/v1/appointments', appointmentRoutes.default);
+    app.use('/api/v1/documents', documentRoutes.default);
+    app.use('/api/v1/audit', auditRoutes.default);
+    app.use('/api/v1/webhook', webhookRoutes.default);
+    
+    console.log('✅ All routes loaded successfully');
+  } catch (error) {
+    console.error('❌ Database connection failed:', error);
+    console.error('Service will continue running without database routes');
+  }
+}
+
+// Database status endpoint
+app.get('/api/v1/status', (_req, res) => {
+  res.json({
+    service: 'running',
+    database: databaseConnected ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.path} not found`,
+    database: databaseConnected ? 'connected' : 'disconnected'
   });
 });
 
@@ -105,28 +121,13 @@ app.get('/api/v1/test', (_req, res) => {
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({
-    error: {
-      message: err.message || 'Internal server error',
-      status: err.status || 500
-    }
+    error: err.message || 'Internal Server Error',
+    path: req.path
   });
 });
 
-// 404 handler
-app.use((_req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  await pool.end();
-  process.exit(0);
-});
-
-// Start server
+// Start server FIRST, then try database
 app.listen(PORT, () => {
-  // Force Railway rebuild with Babel configuration
   console.log('🚀 Server is running!');
   console.log(`📡 Listening on port ${PORT}`);
   console.log('🏥 EONMeds Backend API');
@@ -137,7 +138,14 @@ app.listen(PORT, () => {
   console.log('Database Name:', process.env.DB_NAME ? '✓ Configured' : '✗ Missing');
   console.log('JWT Secret:', process.env.JWT_SECRET ? '✓ Configured' : '✗ Missing');
   console.log('Port:', PORT);
+  
+  // Try to connect to database after server is running
+  setTimeout(() => {
+    console.log('Attempting database connection...');
+    loadDatabaseRoutes();
+  }, 2000);
+});
 
-  // Health check: http://localhost:${PORT}/health
-  // API test: http://localhost:${PORT}/api/v1/test
+export default app; 
+}); 
 }); 
