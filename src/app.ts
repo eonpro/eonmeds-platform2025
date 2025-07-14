@@ -10,6 +10,10 @@ dotenv.config();
 
 // Import routes
 import authRoutes from './routes/auth.routes';
+import patientRoutes from './routes/patients.routes';
+
+// Import Auth0 middleware
+import { handleAuthError } from './middleware/auth0';
 
 // Create Express app
 const app: Application = express();
@@ -66,6 +70,7 @@ app.get('/health', (req: Request, res: Response) => {
 // API routes
 const apiPrefix = `/api/${process.env.API_VERSION || 'v1'}`;
 app.use(`${apiPrefix}/auth`, authRoutes);
+app.use(`${apiPrefix}/patients`, patientRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -74,6 +79,9 @@ app.use((req: Request, res: Response) => {
     message: `Cannot ${req.method} ${req.path}`
   });
 });
+
+// Auth0 error handler (must come before global error handler)
+app.use(handleAuthError);
 
 // Global error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

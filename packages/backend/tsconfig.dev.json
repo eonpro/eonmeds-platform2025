@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Relax strict settings for development
+    "strict": false,
+    "noImplicitReturns": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    
+    // Speed up compilation
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo.dev"
+  },
+  "ts-node": {
+    // Skip type checking for faster startup in development
+    "transpileOnly": true,
+    "files": true,
+    "compilerOptions": {
+      // Use commonjs for ts-node
+      "module": "commonjs"
+    }
+  }
+} 

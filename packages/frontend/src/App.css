@@ -1,0 +1,51 @@
+/* Import Poppins font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* Base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #ffffff;
+  color: #111827;
+}
+
+.App {
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+/* Button styles */
+button {
+  font-family: inherit;
+}
+
+/* Link styles */
+a {
+  color: #17aa7b;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Remove default navbar styles that might conflict */
+.navbar {
+  display: none;
+}
+
+/* Utility classes */
+.text-center {
+  text-align: center;
+}
+
+.mt-8 {
+  margin-top: 2rem;
+}

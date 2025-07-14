@@ -1,0 +1,43 @@
+{
+  "title": "Panel de Control",
+  "welcome": "¡Bienvenido, {{name}}!",
+  "role": "Rol: {{role}}",
+  "widgets": {
+    "appointments": {
+      "title": "Próximas Citas",
+      "count": "{{count}} citas"
+    },
+    "prescriptions": {
+      "title": "Recetas Médicas",
+      "active": "{{count}} Activas"
+    },
+    "messages": {
+      "title": "Mensajes",
+      "unread": "{{count}} Sin Leer"
+    }
+  },
+  "quickActions": {
+    "title": "Acciones Rápidas",
+    "bookAppointment": "Reservar Cita",
+    "viewRecords": "Ver Registros",
+    "messageProvider": "Mensaje al Proveedor"
+  },
+  "recentActivity": {
+    "title": "Actividad Reciente",
+    "login": "Inicio de sesión a las {{time}}",
+    "profileSync": "Perfil sincronizado con el servidor",
+    "languagePreference": "Preferencia de idioma: {{language}}"
+  },
+  "patient": {
+    "title": "Panel del Paciente",
+    "description": "Vea sus citas, recetas médicas y registros de salud"
+  },
+  "provider": {
+    "title": "Panel del Proveedor",
+    "description": "Gestione pacientes, citas y registros médicos"
+  },
+  "admin": {
+    "title": "Panel de Administración",
+    "description": "Gestione usuarios, configuración del sistema y análisis"
+  }
+} 
