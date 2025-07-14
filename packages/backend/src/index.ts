@@ -1,3 +1,4 @@
+
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -88,12 +89,11 @@ app.use((req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`
-🚀 Server is running!
-📡 Listening on port ${PORT}
-🏥 EONMeds Backend API
+  // Force Railway rebuild with Babel configuration
+  console.log('🚀 Server is running!');
+  console.log(`📡 Listening on port ${PORT}`);
+  console.log('🏥 EONMeds Backend API');
 
-Health check: http://localhost:${PORT}/health
-API test: http://localhost:${PORT}/api/v1/test
-  `);
+  // Health check: http://localhost:${PORT}/health
+  // API test: http://localhost:${PORT}/api/v1/test
 }); 
