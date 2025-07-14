@@ -16,6 +16,9 @@ console.log('🚀 Starting EONMeds Backend...');
 console.log('Port:', PORT);
 console.log('Environment:', process.env.NODE_ENV);
 
+// Trust proxy for Railway
+app.set('trust proxy', true);
+
 // Security middleware
 app.use(helmet());
 
@@ -67,6 +70,14 @@ let databaseConnected = false;
 async function loadDatabaseRoutes() {
   try {
     console.log('Attempting to connect to database...');
+    console.log('DB Config:', {
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      ssl: process.env.DB_SSL
+    });
+    
     const { pool } = await import('./config/database');
     
     // Test connection
@@ -95,6 +106,11 @@ async function loadDatabaseRoutes() {
     console.log('✅ All routes loaded successfully');
   } catch (error) {
     console.error('❌ Database connection failed:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail
+    });
     console.error('Service will continue running without database routes');
   }
 }
