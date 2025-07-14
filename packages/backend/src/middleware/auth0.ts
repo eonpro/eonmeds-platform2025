@@ -47,6 +47,7 @@ export const checkPermission = (permission: string): RequestHandler => {
     }
 
     next();
+    return;
   };
 };
 
@@ -60,19 +61,22 @@ export const checkRole = (roles: string[]): RequestHandler => {
       return;
     }
 
-    // Auth0 stores roles in the token - we need to configure this in Auth0 Actions
+    // Get user roles from Auth0 metadata
     const userRoles = user['https://eonmeds.com/roles'] || [];
     
+    // Check if user has at least one of the required roles
     const hasRole = roles.some(role => userRoles.includes(role));
+    
     if (!hasRole) {
       res.status(403).json({ 
         error: 'Forbidden', 
-        message: `Requires one of these roles: ${roles.join(', ')}` 
+        message: 'Insufficient role privileges' 
       });
       return;
     }
 
     next();
+    return;
   };
 };
 
@@ -92,4 +96,5 @@ export const handleAuthError: ErrorRequestHandler = (err, req, res, next) => {
     return;
   }
   next(err);
+  return;
 }; 

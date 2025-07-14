@@ -23,7 +23,7 @@ export const verifyHeyFlowSignature = (
 /**
  * Handle HeyFlow webhook for patient intake forms
  */
-export const handleHeyFlowWebhook = async (req: Request, res: Response): Promise<void> => {
+export const handleHeyFlowWebhook = async (req: Request, res: Response) => {
   try {
     // Debug: Log all headers to see what HeyFlow is sending
     console.log('=== HeyFlow Webhook Received ===');
@@ -281,7 +281,7 @@ function calculateHeightInches(feet: number, inches: number): number {
 /**
  * Health check endpoint for webhooks
  */
-export const webhookHealthCheck = async (req: Request, res: Response): Promise<void> => {
+export const webhookHealthCheck = async (req: Request, res: Response) => {
   try {
     const client = await pool.connect();
     
