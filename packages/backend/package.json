@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon",
-    "build": "tsc -p tsconfig.dev.json",
+    "build": "tsc -p tsconfig.dev.json --noEmit false",
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
