@@ -5,19 +5,26 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Create PostgreSQL connection pool
-export const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'eonmeds',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD,
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
-  connectionTimeoutMillis: 10000, // Increase timeout to 10 seconds for Railway
-  ssl: process.env.DB_SSL === 'true' ? {
-    rejectUnauthorized: false
-  } : false
-});
+export const pool = process.env.DATABASE_URL 
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DATABASE_URL.includes('ssl=true') ? {
+        rejectUnauthorized: false
+      } : false
+    })
+  : new Pool({
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432'),
+      database: process.env.DB_NAME || 'eonmeds',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD,
+      max: 20, // Maximum number of clients in the pool
+      idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
+      connectionTimeoutMillis: 10000, // Increase timeout to 10 seconds for Railway
+      ssl: process.env.DB_SSL === 'true' ? {
+        rejectUnauthorized: false
+      } : false
+    });
 
 // Test database connection
 pool.on('connect', () => {
