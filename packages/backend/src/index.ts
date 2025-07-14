@@ -63,12 +63,25 @@ app.get('/', (_req, res) => {
 });
 
 // Health check endpoint
-app.get('/health', (_req, res) => {
-  res.json({
+app.get('/health', async (_req, res) => {
+  const health = {
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
+    environment: process.env.NODE_ENV || 'development',
+    database: 'unknown'
+  };
+
+  // Test database connection without crashing
+  try {
+    const { testDatabaseConnection } = await import('./config/database');
+    const dbConnected = await testDatabaseConnection();
+    health.database = dbConnected ? 'connected' : 'disconnected';
+  } catch (error) {
+    health.database = 'error';
+    console.error('Health check DB test failed:', error);
+  }
+
+  res.json(health);
 });
 
 // Basic test route
@@ -93,6 +106,13 @@ app.listen(PORT, () => {
   console.log('🚀 Server is running!');
   console.log(`📡 Listening on port ${PORT}`);
   console.log('🏥 EONMeds Backend API');
+  
+  // Log environment info for debugging
+  console.log('Environment:', process.env.NODE_ENV);
+  console.log('Database Host:', process.env.DB_HOST ? '✓ Configured' : '✗ Missing');
+  console.log('Database Name:', process.env.DB_NAME ? '✓ Configured' : '✗ Missing');
+  console.log('JWT Secret:', process.env.JWT_SECRET ? '✓ Configured' : '✗ Missing');
+  console.log('Port:', PORT);
 
   // Health check: http://localhost:${PORT}/health
   // API test: http://localhost:${PORT}/api/v1/test
