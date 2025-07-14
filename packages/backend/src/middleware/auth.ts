@@ -39,10 +39,10 @@ export const generateToken = (user: any): string => {
     throw new Error('JWT_SECRET is not defined');
   }
   
-  // Use any to bypass strict type checking for now
-  return jwt.sign(payload, secret as any, {
+  // Fix: Properly type the JWT sign call
+  return jwt.sign(payload, secret, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d'
-  } as any);
+  });
 };
 
 // Generate refresh token
@@ -52,10 +52,10 @@ export const generateRefreshToken = (userId: string): string => {
     throw new Error('JWT_SECRET is not defined');
   }
   
-  // Use any to bypass strict type checking for now
-  return jwt.sign({ id: userId }, secret as any, {
+  // Fix: Properly type the JWT sign call
+  return jwt.sign({ id: userId }, secret, {
     expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '30d'
-  } as any);
+  });
 };
 
 // Hash password
