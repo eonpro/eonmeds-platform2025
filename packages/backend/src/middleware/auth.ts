@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import ms from 'ms';
 import { query } from '../config/database';
@@ -39,10 +39,12 @@ export const generateToken = (user: any): string => {
     throw new Error('JWT_SECRET is not defined');
   }
   
-  // Fix: Properly type the JWT sign call
-  return jwt.sign(payload, secret, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d'
-  });
+  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+  const options: SignOptions = {
+    expiresIn: expiresIn as any // Type assertion to handle the StringValue type
+  };
+  
+  return jwt.sign(payload, secret, options);
 };
 
 // Generate refresh token
@@ -52,10 +54,12 @@ export const generateRefreshToken = (userId: string): string => {
     throw new Error('JWT_SECRET is not defined');
   }
   
-  // Fix: Properly type the JWT sign call
-  return jwt.sign({ id: userId }, secret, {
-    expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '30d'
-  });
+  const expiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || '30d';
+  const options: SignOptions = {
+    expiresIn: expiresIn as any // Type assertion to handle the StringValue type
+  };
+  
+  return jwt.sign({ id: userId }, secret, options);
 };
 
 // Hash password

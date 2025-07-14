@@ -23,31 +23,28 @@ export const verifyHeyFlowSignature = (
 /**
  * Handle HeyFlow webhook for patient intake forms
  */
-export const handleHeyFlowWebhook = async (req: Request, res: Response) => {
+export const handleHeyFlowWebhook = async (req: Request, res: Response): Promise<void> => {
   try {
     // Debug: Log all headers to see what HeyFlow is sending
     console.log('=== HeyFlow Webhook Received ===');
     console.log('Headers:', JSON.stringify(req.headers, null, 2));
     console.log('Body:', JSON.stringify(req.body, null, 2));
     
-    // 1. Check for webhook secret in environment
+    // 1. Verify webhook signature for security
     const webhookSecret = process.env.HEYFLOW_WEBHOOK_SECRET;
     
-    // For now, let's bypass signature verification to test
-    // TODO: Re-enable this once we know how HeyFlow sends the signature
-    const bypassSignature = true; // TEMPORARY - Remove in production
-    
-    if (!bypassSignature) {
-      // Check various possible header names HeyFlow might use
-      const signature = req.headers['x-heyflow-signature'] as string ||
-                       req.headers['x-webhook-signature'] as string ||
-                       req.headers['authorization'] as string;
+    // For development/testing, allow bypassing signature verification
+    if (process.env.NODE_ENV === 'development' && !webhookSecret) {
+      console.warn('⚠️  WEBHOOK SECRET NOT SET - Bypassing signature verification');
+    } else {
+      const signature = req.headers['x-heyflow-signature'] as string;
       
       if (!signature || !webhookSecret) {
         console.error('Missing signature or webhook secret');
         console.error('Expected secret exists:', !!webhookSecret);
         console.error('Received headers:', Object.keys(req.headers));
-        return res.status(401).json({ error: 'Unauthorized' });
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
       }
       
       const payload = JSON.stringify(req.body);
@@ -55,10 +52,9 @@ export const handleHeyFlowWebhook = async (req: Request, res: Response) => {
       
       if (!isValid) {
         console.error('Invalid webhook signature');
-        return res.status(401).json({ error: 'Invalid signature' });
+        res.status(401).json({ error: 'Invalid signature' });
+        return;
       }
-    } else {
-      console.warn('⚠️  SIGNATURE VERIFICATION BYPASSED - FOR TESTING ONLY');
     }
     
     // 2. Store raw webhook event for compliance and debugging
@@ -281,7 +277,7 @@ function calculateHeightInches(feet: number, inches: number): number {
 /**
  * Health check endpoint for webhooks
  */
-export const webhookHealthCheck = async (req: Request, res: Response) => {
+export const webhookHealthCheck = async (req: Request, res: Response): Promise<void> => {
   try {
     const client = await pool.connect();
     
