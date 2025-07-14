@@ -13,7 +13,7 @@ export const pool = new Pool({
   password: process.env.DB_PASSWORD,
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
-  connectionTimeoutMillis: 2000, // How long to wait for a connection
+  connectionTimeoutMillis: 10000, // Increase timeout to 10 seconds for Railway
   ssl: process.env.DB_SSL === 'true' ? {
     rejectUnauthorized: false
   } : false
@@ -25,8 +25,9 @@ pool.on('connect', () => {
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+  console.error('Database pool error:', err);
+  // Don't exit the process - let the service continue running
+  // This allows health checks to report the issue without crashing
 });
 
 // Helper function to test the connection

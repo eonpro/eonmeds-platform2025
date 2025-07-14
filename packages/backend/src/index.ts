@@ -1,64 +1,73 @@
 
-import express, { Application } from 'express';
+import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import morgan from 'morgan';
-import compression from 'compression';
 import dotenv from 'dotenv';
-
-// Import routes
-import authRoutes from './routes/auth.routes';
-import patientRoutes from './routes/patients.routes';
-import webhookRoutes from './routes/webhook.routes';
+import rateLimit from 'express-rate-limit';
+import { pool } from './config/database';
 
 // Load environment variables
 dotenv.config();
 
-// Create Express app
-const app: Application = express();
+const app = express();
 const PORT = process.env.PORT || 3002;
 
 // Security middleware
 app.use(helmet());
 
 // CORS configuration
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3001'],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true
+}));
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Compression
-app.use(compression());
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use('/api/', limiter);
 
-// Logging
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined'));
-}
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
-// API Routes
+// Import routes
+import authRoutes from './routes/auth.routes';
+import patientRoutes from './routes/patients.routes';
+import userRoutes from './routes/users.routes';
+import webhookRoutes from './routes/webhook.routes';
+import appointmentRoutes from './routes/appointments.routes';
+import prescriptionRoutes from './routes/prescriptions.routes';
+import paymentRoutes from './routes/payments.routes';
+import notificationRoutes from './routes/notifications.routes';
+import communicationRoutes from './routes/communications.routes';
+import auditRoutes from './routes/audit.routes';
+
+// API routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/patients', patientRoutes);
+app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/webhooks', webhookRoutes);
+app.use('/api/v1/appointments', appointmentRoutes);
+app.use('/api/v1/prescriptions', prescriptionRoutes);
+app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/communications', communicationRoutes);
+app.use('/api/v1/audit', auditRoutes);
 
-// Root endpoint
+// Basic route
 app.get('/', (_req, res) => {
-  res.json({
-    name: 'EONMeds API',
+  res.json({ 
+    message: 'EONMeds Backend API',
     version: '1.0.0',
-    status: 'running',
-    endpoints: {
-      health: '/health',
-      api: '/api/v1',
-      test: '/api/v1/test'
-    }
+    status: 'running'
   });
 });
 
@@ -84,20 +93,35 @@ app.get('/health', async (_req, res) => {
   res.json(health);
 });
 
-// Basic test route
+// API test endpoint
 app.get('/api/v1/test', (_req, res) => {
-  res.json({
-    message: 'Backend API is working!',
-    auth0Domain: process.env.AUTH0_DOMAIN ? 'configured' : 'not configured'
+  res.json({ 
+    message: 'API is working!',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    error: {
+      message: err.message || 'Internal server error',
+      status: err.status || 500
+    }
   });
 });
 
 // 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: `Cannot ${req.method} ${req.path}`
-  });
+app.use((_req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  await pool.end();
+  process.exit(0);
 });
 
 // Start server
