@@ -8,9 +8,9 @@ dotenv.config();
 export const pool = process.env.DATABASE_URL 
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.DATABASE_URL.includes('ssl=true') ? {
-        rejectUnauthorized: false
-      } : false
+      ssl: {
+        rejectUnauthorized: false  // Allow self-signed certificates
+      }
     })
   : new Pool({
       host: process.env.DB_HOST || 'localhost',
@@ -22,7 +22,7 @@ export const pool = process.env.DATABASE_URL
       idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
       connectionTimeoutMillis: 10000, // Increase timeout to 10 seconds for Railway
       ssl: process.env.DB_SSL === 'true' ? {
-        rejectUnauthorized: false
+        rejectUnauthorized: false  // Allow self-signed certificates
       } : false
     });
 
