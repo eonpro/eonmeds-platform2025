@@ -37,7 +37,7 @@ export const pool = process.env.DATABASE_URL
       } : undefined  // Changed from false to undefined when SSL is not enabled
     });
 
-// Test database connection
+// Test database connection with timeout
 pool.on('connect', () => {
   console.log('Connected to PostgreSQL database');
 });
@@ -48,14 +48,24 @@ pool.on('error', (err) => {
   // This allows health checks to report the issue without crashing
 });
 
-// Helper function to test the connection
+// Helper function to test the connection with timeout
 export async function testDatabaseConnection() {
   try {
-    const client = await pool.connect();
-    const result = await client.query('SELECT NOW()');
-    client.release();
-    console.log('Database connection test successful:', result.rows[0]);
-    return true;
+    // Set a timeout for the connection test
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timeout')), 5000)
+    );
+    
+    const connectionPromise = (async () => {
+      const client = await pool.connect();
+      const result = await client.query('SELECT NOW()');
+      client.release();
+      console.log('Database connection test successful:', result.rows[0]);
+      return true;
+    })();
+    
+    // Race between connection and timeout
+    return await Promise.race([connectionPromise, timeoutPromise]);
   } catch (error) {
     console.error('Database connection test failed:', error);
     return false;
