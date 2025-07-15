@@ -4,6 +4,17 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
+// Debug log the configuration
+console.log('Database configuration:', {
+  hasDbUrl: !!process.env.DATABASE_URL,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  hasPassword: !!process.env.DB_PASSWORD,
+  ssl: process.env.DB_SSL
+});
+
 // Create PostgreSQL connection pool
 export const pool = process.env.DATABASE_URL 
   ? new Pool({
@@ -23,7 +34,7 @@ export const pool = process.env.DATABASE_URL
       connectionTimeoutMillis: 10000, // Increase timeout to 10 seconds for Railway
       ssl: process.env.DB_SSL === 'true' ? {
         rejectUnauthorized: false  // Allow self-signed certificates
-      } : false
+      } : undefined  // Changed from false to undefined when SSL is not enabled
     });
 
 // Test database connection
