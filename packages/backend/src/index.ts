@@ -55,14 +55,15 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// Test endpoint
-app.get('/api/v1/test', (_req, res) => {
-  res.json({
-    message: 'EONMeds API is running!',
-    version: '1.0.0',
-    timestamp: new Date().toISOString()
-  });
+// API test endpoint (always available)
+app.get('/api/test', (_req, res) => {
+  res.json({ message: 'Backend API is working!' });
 });
+
+// Load webhook routes ALWAYS (no database required)
+import webhookRoutes from './routes/webhook.routes';
+app.use('/api/v1/webhook', webhookRoutes);
+console.log('✅ Webhook routes loaded (always available)');
 
 // Lazy load database-dependent routes
 let databaseConnected = false;
@@ -92,7 +93,6 @@ async function loadDatabaseRoutes() {
     const appointmentRoutes = await import('./routes/appointment.routes');
     const documentRoutes = await import('./routes/document.routes');
     const auditRoutes = await import('./routes/audit.routes');
-    const webhookRoutes = await import('./routes/webhook.routes');
     
     // Register routes
     app.use('/api/v1/auth', authRoutes.default);
@@ -101,9 +101,8 @@ async function loadDatabaseRoutes() {
     app.use('/api/v1/appointments', appointmentRoutes.default);
     app.use('/api/v1/documents', documentRoutes.default);
     app.use('/api/v1/audit', auditRoutes.default);
-    app.use('/api/v1/webhook', webhookRoutes.default);
     
-    console.log('✅ All routes loaded successfully');
+    console.log('✅ All database routes loaded successfully');
   } catch (error) {
     console.error('❌ Database connection failed:', error);
     console.error('Error details:', {

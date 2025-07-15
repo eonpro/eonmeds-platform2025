@@ -61,15 +61,35 @@ export const handleHeyFlowWebhook = async (req: Request, res: Response): Promise
     }
     */
     
-    // 2. Store raw webhook event for compliance and debugging
-    const webhookEvent = await storeWebhookEvent(req.body);
+    // Check if database is available
+    let webhookEventId = null;
     
-    // 3. Process the webhook asynchronously to respond quickly
-    // For now, we'll process synchronously but this should be moved to a queue
-    await processHeyFlowSubmission(webhookEvent.id, req.body);
+    try {
+      // Try to store in database if available
+      const webhookEvent = await storeWebhookEvent(req.body);
+      webhookEventId = webhookEvent.id;
+      
+      // Process the webhook if database is available
+      await processHeyFlowSubmission(webhookEventId, req.body);
+      
+      console.log('✅ Webhook processed and stored in database');
+    } catch (dbError) {
+      // Database not available - log to console instead
+      console.warn('⚠️  Database not available - logging webhook data to console');
+      console.log('=== WEBHOOK DATA TO PROCESS LATER ===');
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        webhook: req.body
+      }, null, 2));
+      console.log('=== END WEBHOOK DATA ===');
+    }
     
-    // 4. Acknowledge receipt quickly (< 200ms requirement)
-    res.status(200).json({ received: true, eventId: webhookEvent.id });
+    // 4. Always acknowledge receipt quickly (< 200ms requirement)
+    res.status(200).json({ 
+      received: true, 
+      eventId: webhookEventId,
+      message: webhookEventId ? 'Webhook processed successfully' : 'Webhook received (database offline)'
+    });
     
   } catch (error) {
     console.error('Webhook processing error:', error);
