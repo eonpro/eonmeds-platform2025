@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../hooks/useApi';
@@ -36,8 +36,8 @@ export const Clients: React.FC = () => {
   }, [apiClient]);
 
   // Debounced search
-  const debouncedSearch = useCallback(
-    debounce((term: string) => {
+  const debouncedSearch = useMemo(
+    () => debounce((term: string) => {
       fetchPatients(term);
     }, 300),
     [fetchPatients]
