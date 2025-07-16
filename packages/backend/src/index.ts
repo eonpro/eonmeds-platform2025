@@ -94,12 +94,55 @@ async function loadDatabaseRoutes() {
     databaseConnected = true;
     
     // Import routes that need database
-    const authRoutes = await import('./routes/auth.routes');
-    const patientRoutes = await import('./routes/patients.routes');  // Changed from patient.routes to patients.routes
-    const practitionerRoutes = await import('./routes/practitioner.routes');
-    const appointmentRoutes = await import('./routes/appointment.routes');
-    const documentRoutes = await import('./routes/document.routes');
-    const auditRoutes = await import('./routes/audit.routes');
+    let authRoutes, patientRoutes, practitionerRoutes, appointmentRoutes, documentRoutes, auditRoutes;
+    
+    try {
+      authRoutes = await import('./routes/auth.routes');
+      console.log('✓ Auth routes loaded');
+    } catch (e) {
+      console.error('Failed to load auth routes:', e);
+      throw e;
+    }
+    
+    try {
+      patientRoutes = await import('./routes/patients.routes');
+      console.log('✓ Patient routes loaded');
+    } catch (e) {
+      console.error('Failed to load patient routes:', e);
+      throw e;
+    }
+    
+    try {
+      practitionerRoutes = await import('./routes/practitioner.routes');
+      console.log('✓ Practitioner routes loaded');
+    } catch (e) {
+      console.error('Failed to load practitioner routes:', e);
+      throw e;
+    }
+    
+    try {
+      appointmentRoutes = await import('./routes/appointment.routes');
+      console.log('✓ Appointment routes loaded');
+    } catch (e) {
+      console.error('Failed to load appointment routes:', e);
+      throw e;
+    }
+    
+    try {
+      documentRoutes = await import('./routes/document.routes');
+      console.log('✓ Document routes loaded');
+    } catch (e) {
+      console.error('Failed to load document routes:', e);
+      throw e;
+    }
+    
+    try {
+      auditRoutes = await import('./routes/audit.routes');
+      console.log('✓ Audit routes loaded');
+    } catch (e) {
+      console.error('Failed to load audit routes:', e);
+      throw e;
+    }
     
     // Register routes
     app.use('/api/v1/auth', authRoutes.default);

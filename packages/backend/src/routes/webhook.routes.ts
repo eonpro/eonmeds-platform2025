@@ -13,7 +13,7 @@ router.post('/heyflow', handleHeyFlowWebhook);
 router.get('/health', webhookHealthCheck);
 
 // Test webhook endpoint
-router.get('/test', (req, res) => {
+router.get('/test', (_req, res) => {
   res.json({ 
     message: 'Webhook endpoint is working',
     timestamp: new Date().toISOString()
@@ -21,7 +21,7 @@ router.get('/test', (req, res) => {
 });
 
 // Diagnostic endpoint to check environment
-router.get('/debug/env', (req, res) => {
+router.get('/debug/env', (_req, res) => {
   res.json({
     hasDatabaseUrl: !!process.env.DATABASE_URL,
     databaseUrlLength: process.env.DATABASE_URL?.length || 0,
