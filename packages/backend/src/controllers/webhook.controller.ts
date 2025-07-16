@@ -276,16 +276,16 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     
     // Handle form-specific data based on form type
     // Check if it's a weight loss form by flowID or form name
-    if (formType.includes('weight') || getFieldValue('target_weight_lbs')) {
+    if (formType.includes('weight') || extractedData.target_weight_lbs) {
       const weightLossData = {
-        target_weight_lbs: getFieldValue('target_weight_lbs'),
-        weight_loss_timeline: getFieldValue('weight_loss_timeline'),
-        previous_weight_loss_attempts: getFieldValue('previous_weight_loss_attempts'),
-        exercise_frequency: getFieldValue('exercise_frequency'),
-        diet_restrictions: getFieldValue('diet_restrictions'),
-        diabetes_type: getFieldValue('diabetes_type'),
-        thyroid_condition: getFieldValue('thyroid_condition') === 'yes',
-        heart_conditions: getFieldValue('heart_conditions'),
+        target_weight_lbs: extractedData.target_weight_lbs || null,
+        weight_loss_timeline: extractedData.weight_loss_timeline || null,
+        previous_weight_loss_attempts: extractedData.previous_weight_loss_attempts || null,
+        exercise_frequency: extractedData.exercise_frequency || null,
+        diet_restrictions: extractedData.diet_restrictions || null,
+        diabetes_type: extractedData.diabetes_type || null,
+        thyroid_condition: extractedData.thyroid_condition === 'yes',
+        heart_conditions: extractedData.heart_conditions || null,
       };
       
       await storeWeightLossIntakeData(client, patientId, weightLossData);
