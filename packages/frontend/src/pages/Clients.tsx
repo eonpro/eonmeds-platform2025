@@ -4,6 +4,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../hooks/useApi';
 import { Patient, PatientListResponse } from '../services/patient.service';
 import { debounce } from '../utils/debounce';
+import { AddNewClientModal } from '../components/AddNewClientModal';
 import './Clients.css';
 
 export const Clients: React.FC = () => {
@@ -13,6 +14,7 @@ export const Clients: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
 
   // Fetch patients
   const fetchPatients = useCallback(async (search?: string) => {
@@ -63,6 +65,19 @@ export const Clients: React.FC = () => {
     logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
+  const handleAddNewClient = () => {
+    setShowAddModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowAddModal(false);
+  };
+
+  const handleAddSuccess = () => {
+    // Refresh the patient list
+    fetchPatients();
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -72,57 +87,53 @@ export const Clients: React.FC = () => {
     });
   };
 
-  const formatPhoneNumber = (phone: string | null) => {
-    if (!phone) return '';
-    // Remove all non-digits
+  const formatPhoneNumber = (phone: string) => {
+    if (!phone) return '-';
     const cleaned = phone.replace(/\D/g, '');
-    // Format as (XXX) XXX-XXXX
     const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
     if (match) {
-      return `${match[1]} ${match[2]} ${match[3]}`;
+      return `(${match[1]}) ${match[2]}-${match[3]}`;
     }
     return phone;
   };
 
   return (
     <div className="clients-page">
-      <div className="clients-header">
-        <div className="header-top">
-          <div className="search-container">
-            <svg className="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM19 19l-4.35-4.35" 
-                stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search for Clients"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-          </div>
-          <div className="header-actions">
-            <button className="language-toggle">En</button>
-            <button className="language-toggle inactive">Es</button>
-            <button className="logout-btn" onClick={handleLogout}>Log out</button>
-          </div>
+      <div className="page-header">
+        <h1>Welcome, Italo</h1>
+        <div className="header-actions">
+          <button 
+            className="add-new-client-btn"
+            onClick={handleAddNewClient}
+          >
+            Add New Client
+          </button>
+          <button className="logout-btn" onClick={handleLogout}>
+            Log out
+          </button>
         </div>
-        <div className="header-content">
-          <h1 className="page-title">Welcome, Italo</h1>
-          <button className="add-client-btn">Add New Client</button>
-        </div>
+      </div>
+
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Search for Clients"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
+        />
       </div>
 
       <div className="clients-table-container">
         <table className="clients-table">
           <thead>
             <tr>
-              <th>Patient ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Status</th>
-              <th>Created</th>
+              <th>PATIENT ID</th>
+              <th>NAME</th>
+              <th>EMAIL</th>
+              <th>PHONE</th>
+              <th>STATUS</th>
+              <th>CREATED</th>
             </tr>
           </thead>
           <tbody>
@@ -157,6 +168,12 @@ export const Clients: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      <AddNewClientModal
+        isOpen={showAddModal}
+        onClose={handleModalClose}
+        onSuccess={handleAddSuccess}
+      />
     </div>
   );
 }; 

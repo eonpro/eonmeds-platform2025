@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import crypto from 'crypto';
 
 // Load environment variables
 dotenv.config();
@@ -42,6 +43,12 @@ app.use('/api/', limiter);
 // Logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
+// Add request ID middleware
+app.use((req, _res, next) => {
+  req.id = crypto.randomUUID();
   next();
 });
 
@@ -132,12 +139,17 @@ app.use((req, res) => {
   });
 });
 
-// Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err);
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const errorId = crypto.randomUUID();
+  console.error(`[${errorId}] Error:`, err);
+  
   res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error',
-    path: req.path
+    error: {
+      message: err.message || 'Internal server error',
+      errorId,
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    }
   });
 });
 
