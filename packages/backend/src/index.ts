@@ -41,7 +41,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Logging middleware
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
@@ -140,7 +140,7 @@ app.use((req, res) => {
 });
 
 // Global error handler
-app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const errorId = crypto.randomUUID();
   console.error(`[${errorId}] Error:`, err);
   
