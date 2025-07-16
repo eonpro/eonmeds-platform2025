@@ -70,42 +70,42 @@ export const PatientDetail: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'intake' | 'raw'>('overview');
 
   useEffect(() => {
-    if (id && apiClient) {
-      fetchPatientData();
-    }
-  }, [id, apiClient]);
+    if (!id || !apiClient) return;
 
-  const fetchPatientData = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch patient details
-      const patientResponse = await apiClient.get<PatientDetailData>(`/api/v1/patients/${id}`);
-      setPatient(patientResponse.data);
-      
-      // Fetch intake form data
+    const fetchPatientData = async () => {
       try {
-        const intakeResponse = await apiClient.get<IntakeFormData>(`/api/v1/patients/${id}/intake`);
-        setIntakeData(intakeResponse.data);
-      } catch (intakeError) {
-        console.log('No intake data available');
+        setLoading(true);
+        
+        // Fetch patient details
+        const patientResponse = await apiClient.get<PatientDetailData>(`/api/v1/patients/${id}`);
+        setPatient(patientResponse.data);
+        
+        // Fetch intake form data
+        try {
+          const intakeResponse = await apiClient.get<IntakeFormData>(`/api/v1/patients/${id}/intake`);
+          setIntakeData(intakeResponse.data);
+        } catch (intakeError) {
+          console.log('No intake data available');
+        }
+        
+        // Fetch raw webhook data
+        try {
+          const webhookResponse = await apiClient.get(`/api/v1/patients/${id}/webhook-data`);
+          setRawWebhookData(webhookResponse.data);
+        } catch (webhookError) {
+          console.log('No raw webhook data available');
+        }
+        
+      } catch (err: any) {
+        setError(err.message || 'Failed to load patient data');
+        console.error('Error fetching patient data:', err);
+      } finally {
+        setLoading(false);
       }
-      
-      // Fetch raw webhook data
-      try {
-        const webhookResponse = await apiClient.get(`/api/v1/patients/${id}/webhook-data`);
-        setRawWebhookData(webhookResponse.data);
-      } catch (webhookError) {
-        console.log('No raw webhook data available');
-      }
-      
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch patient data');
-      console.error('Error fetching patient:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchPatientData();
+  }, [id, apiClient]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '-';
@@ -163,10 +163,6 @@ export const PatientDetail: React.FC = () => {
       </span>
     );
   };
-
-  if (!apiClient) {
-    return <div>Please log in to view patient details</div>;
-  }
 
   if (loading) {
     return (
@@ -240,27 +236,27 @@ export const PatientDetail: React.FC = () => {
               <div className="info-grid">
                 <div className="info-item">
                   <label>Full Name</label>
-                  <value>{patient.first_name} {patient.last_name}</value>
+                  <span>{patient.first_name} {patient.last_name}</span>
                 </div>
                 <div className="info-item">
                   <label>Email</label>
-                  <value>{patient.email}</value>
+                  <span>{patient.email}</span>
                 </div>
                 <div className="info-item">
                   <label>Phone</label>
-                  <value>{formatPhoneNumber(patient.phone)}</value>
+                  <span>{formatPhoneNumber(patient.phone)}</span>
                 </div>
                 <div className="info-item">
                   <label>Date of Birth</label>
-                  <value>{formatDate(patient.date_of_birth)} (Age: {calculateAge(patient.date_of_birth)})</value>
+                  <span>{formatDate(patient.date_of_birth)} (Age: {calculateAge(patient.date_of_birth)})</span>
                 </div>
                 <div className="info-item">
                   <label>Gender</label>
-                  <value>{patient.gender || '-'}</value>
+                  <span>{patient.gender || '-'}</span>
                 </div>
                 <div className="info-item">
                   <label>Form Type</label>
-                  <value>{patient.form_type?.replace('_', ' ').toUpperCase()}</value>
+                  <span>{patient.form_type?.replace('_', ' ').toUpperCase()}</span>
                 </div>
               </div>
             </div>
@@ -273,19 +269,19 @@ export const PatientDetail: React.FC = () => {
                   {patient.height_inches && (
                     <div className="info-item">
                       <label>Height</label>
-                      <value>{Math.floor(patient.height_inches / 12)}' {patient.height_inches % 12}"</value>
+                      <span>{Math.floor(patient.height_inches / 12)}' {patient.height_inches % 12}"</span>
                     </div>
                   )}
                   {patient.weight_lbs && (
                     <div className="info-item">
                       <label>Weight</label>
-                      <value>{patient.weight_lbs} lbs</value>
+                      <span>{patient.weight_lbs} lbs</span>
                     </div>
                   )}
                   {patient.bmi && (
                     <div className="info-item">
                       <label>BMI</label>
-                      <value>{patient.bmi}</value>
+                      <span>{patient.bmi}</span>
                     </div>
                   )}
                 </div>
@@ -300,19 +296,19 @@ export const PatientDetail: React.FC = () => {
                   {patient.medical_conditions && patient.medical_conditions.length > 0 && (
                     <div className="info-item">
                       <label>Medical Conditions</label>
-                      <value>{patient.medical_conditions.join(', ')}</value>
+                      <span>{patient.medical_conditions.join(', ')}</span>
                     </div>
                   )}
                   {patient.current_medications && patient.current_medications.length > 0 && (
                     <div className="info-item">
                       <label>Current Medications</label>
-                      <value>{patient.current_medications.join(', ')}</value>
+                      <span>{patient.current_medications.join(', ')}</span>
                     </div>
                   )}
                   {patient.allergies && patient.allergies.length > 0 && (
                     <div className="info-item">
                       <label>Allergies</label>
-                      <value>{patient.allergies.join(', ')}</value>
+                      <span>{patient.allergies.join(', ')}</span>
                     </div>
                   )}
                 </div>
@@ -325,20 +321,20 @@ export const PatientDetail: React.FC = () => {
               <div className="info-grid">
                 <div className="info-item">
                   <label>Submitted At</label>
-                  <value>{formatDate(patient.submitted_at)}</value>
+                  <span>{formatDate(patient.submitted_at)}</span>
                 </div>
                 <div className="info-item">
                   <label>Created in System</label>
-                  <value>{formatDate(patient.created_at)}</value>
+                  <span>{formatDate(patient.created_at)}</span>
                 </div>
                 <div className="info-item">
                   <label>Last Updated</label>
-                  <value>{formatDate(patient.updated_at)}</value>
+                  <span>{formatDate(patient.updated_at)}</span>
                 </div>
                 {patient.heyflow_submission_id && (
                   <div className="info-item">
                     <label>HeyFlow Submission ID</label>
-                    <value>{patient.heyflow_submission_id}</value>
+                    <span>{patient.heyflow_submission_id}</span>
                   </div>
                 )}
               </div>
@@ -354,14 +350,14 @@ export const PatientDetail: React.FC = () => {
                 {Object.entries(intakeData).map(([key, value]) => (
                   <div key={key} className="intake-item">
                     <label>{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</label>
-                    <value>
+                    <span>
                       {Array.isArray(value) 
                         ? value.join(', ') 
                         : typeof value === 'boolean' 
                         ? value ? 'Yes' : 'No'
                         : value?.toString() || '-'
                       }
-                    </value>
+                    </span>
                   </div>
                 ))}
               </div>
