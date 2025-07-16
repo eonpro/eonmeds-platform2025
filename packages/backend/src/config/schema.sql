@@ -177,20 +177,16 @@ CREATE TABLE hashtag_configs (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Create indexes
+-- Create indexes for performance
+CREATE INDEX idx_patients_email ON patients(email);
+CREATE INDEX idx_patients_name ON patients(last_name, first_name);
+-- CREATE INDEX idx_patients_membership_status ON patients(membership_status);
+CREATE INDEX idx_patients_status ON patients(status);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role_id);
-CREATE INDEX idx_patients_email ON patients(email);
-CREATE INDEX idx_patients_membership_status ON patients(membership_status);
-CREATE INDEX idx_patients_hashtags ON patients USING GIN(membership_hashtags);
-CREATE INDEX idx_audit_user ON audit_logs(user_id);
-CREATE INDEX idx_audit_resource ON audit_logs(resource_type, resource_id);
-CREATE INDEX idx_user_assignments_user ON user_patient_assignments(user_id, active);
-CREATE INDEX idx_user_assignments_patient ON user_patient_assignments(patient_id, active);
-CREATE INDEX idx_status_history_patient ON membership_status_history(patient_id);
-CREATE INDEX idx_patients_status ON patients(status);
 CREATE INDEX idx_webhook_events_processed ON webhook_events(processed);
-CREATE INDEX idx_webhook_events_created_at ON webhook_events(created_at);
+CREATE INDEX idx_audit_logs_user ON audit_logs(user_id);
+CREATE INDEX idx_status_history_patient ON membership_status_history(patient_id);
 
 -- Insert default roles
 INSERT INTO roles (code, name, description, permissions) VALUES

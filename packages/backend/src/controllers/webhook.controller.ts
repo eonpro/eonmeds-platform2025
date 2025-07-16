@@ -141,30 +141,86 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
   try {
     await client.query('BEGIN');
     
-    // Extract form data from HeyFlow's field structure
-    const fields = payload.fields || [];
-    const formType = payload.flowID || 'unknown';
+    // Debug: Log the payload structure
+    console.log('Processing HeyFlow submission with payload structure:');
+    console.log('- Has fields array?', Array.isArray(payload.fields));
+    console.log('- Has data object?', typeof payload.data === 'object');
+    console.log('- Payload keys:', Object.keys(payload));
     
-    // Helper function to get field value by variable name
-    const getFieldValue = (variableName: string): any => {
-      const field = fields.find((f: any) => f.variable === variableName);
-      return field?.values?.[0]?.answer || null;
-    };
+    // Extract form data - handle multiple possible formats
+    let extractedData: any = {};
     
-    // Map HeyFlow fields to patient data
+    // Format 1: Direct data object (most common for HeyFlow)
+    if (payload.data && typeof payload.data === 'object') {
+      console.log('Using Format 1: Direct data object');
+      extractedData = payload.data;
+    }
+    // Format 2: Fields array (older format)
+    else if (Array.isArray(payload.fields)) {
+      console.log('Using Format 2: Fields array');
+      const fields = payload.fields;
+      
+      // Helper function to get field value by variable name
+      const getFieldValue = (variableName: string): any => {
+        const field = fields.find((f: any) => f.variable === variableName);
+        return field?.values?.[0]?.answer || null;
+      };
+      
+      // Extract each field
+      extractedData = {
+        firstname: getFieldValue('firstname'),
+        lastname: getFieldValue('lastname'),
+        email: getFieldValue('email'),
+        PhoneNumber: getFieldValue('PhoneNumber'),
+        dob: getFieldValue('dob'),
+        gender: getFieldValue('gender'),
+        feet: getFieldValue('feet'),
+        inches: getFieldValue('inches'),
+        starting_weight: getFieldValue('starting_weight'),
+        consent_treatment: getFieldValue('consent_treatment'),
+        consent_telehealth: getFieldValue('consent_telehealth'),
+      };
+    }
+    // Format 3: Direct properties on payload
+    else if (payload.firstname || payload.email || payload.lastname) {
+      console.log('Using Format 3: Direct properties');
+      extractedData = payload;
+    }
+    // Format 4: Nested in submission object
+    else if (payload.submission && typeof payload.submission === 'object') {
+      console.log('Using Format 4: Submission object');
+      extractedData = payload.submission.data || payload.submission;
+    }
+    else {
+      // Log the entire payload for debugging
+      console.error('Unknown payload format. Full payload:', JSON.stringify(payload, null, 2));
+      throw new Error('Unable to extract data from webhook payload');
+    }
+    
+    console.log('Extracted data:', JSON.stringify(extractedData, null, 2));
+    
+    // Map HeyFlow fields to patient data with multiple possible field names
     const patientData = {
-      first_name: getFieldValue('firstname'),  // HeyFlow uses 'firstname' not 'first_name'
-      last_name: getFieldValue('lastname'),    // HeyFlow uses 'lastname' not 'last_name'
-      email: getFieldValue('email'),
-      phone: getFieldValue('PhoneNumber'),     // HeyFlow uses 'PhoneNumber' not 'phone'
-      date_of_birth: getFieldValue('dob'),     // HeyFlow uses 'dob' not 'date_of_birth'
-      gender: getFieldValue('gender'),
-      height_feet: getFieldValue('feet'),      // HeyFlow uses 'feet' not 'height_feet'
-      height_inches: getFieldValue('inches'),  // HeyFlow uses 'inches' not 'height_inches'
-      weight_lbs: getFieldValue('starting_weight'), // HeyFlow uses 'starting_weight'
-      consent_treatment: getFieldValue('consent_treatment') === 'yes' || getFieldValue('consent_treatment') === true,
-      consent_telehealth: getFieldValue('consent_telehealth') === 'yes' || getFieldValue('consent_telehealth') === true,
+      first_name: extractedData.firstname || extractedData.first_name || extractedData.firstName || null,
+      last_name: extractedData.lastname || extractedData.last_name || extractedData.lastName || null,
+      email: extractedData.email || extractedData.Email || extractedData.email_address || null,
+      phone: extractedData.PhoneNumber || extractedData.phone || extractedData.phone_number || extractedData.telefono || null,
+      date_of_birth: extractedData.dob || extractedData.date_of_birth || extractedData.dateOfBirth || extractedData.birthdate || null,
+      gender: extractedData.gender || extractedData.Gender || extractedData.sex || null,
+      height_feet: parseInt(extractedData.feet || extractedData.height_feet || 0),
+      height_inches: parseInt(extractedData.inches || extractedData.height_inches || 0),
+      weight_lbs: parseFloat(extractedData.starting_weight || extractedData.weight || extractedData.weight_lbs || 0),
+      consent_treatment: extractedData.consent_treatment === 'yes' || extractedData.consent_treatment === true || extractedData.consent_treatment === 'true',
+      consent_telehealth: extractedData.consent_telehealth === 'yes' || extractedData.consent_telehealth === true || extractedData.consent_telehealth === 'true',
     };
+    
+    // Validate required fields
+    if (!patientData.email) {
+      throw new Error('Missing required field: email');
+    }
+    
+    // Get form type from various possible locations
+    const formType = payload.flowID || payload.formType || payload.form_type || payload.type || 'unknown';
     
     // Create patient record with auto-generated patient_id
     const patientResult = await client.query(
