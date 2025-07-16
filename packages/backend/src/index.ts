@@ -95,7 +95,7 @@ async function loadDatabaseRoutes() {
     
     // Import routes that need database
     const authRoutes = await import('./routes/auth.routes');
-    const patientRoutes = await import('./routes/patient.routes');
+    const patientRoutes = await import('./routes/patients.routes');  // Changed from patient.routes to patients.routes
     const practitionerRoutes = await import('./routes/practitioner.routes');
     const appointmentRoutes = await import('./routes/appointment.routes');
     const documentRoutes = await import('./routes/document.routes');
