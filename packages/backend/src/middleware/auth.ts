@@ -171,4 +171,7 @@ export const optionalAuth = async (
 
   // Use regular authenticate but don't fail
   authenticate(req, res, () => next()).catch(() => next());
-}; 
+};
+
+// Export alias for backward compatibility
+export const authenticateToken = authenticate; 
