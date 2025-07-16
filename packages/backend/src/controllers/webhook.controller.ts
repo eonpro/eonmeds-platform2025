@@ -31,7 +31,7 @@ export const handleHeyFlowWebhook = async (req: Request, res: Response): Promise
     console.log('Body:', JSON.stringify(req.body, null, 2));
     
     // 1. Verify webhook signature for security
-    const webhookSecret = process.env.HEYFLOW_WEBHOOK_SECRET;
+    // const webhookSecret = process.env.HEYFLOW_WEBHOOK_SECRET;
     
     // TEMPORARY: Skip signature verification for HeyFlow testing
     console.warn('⚠️  TEMPORARILY BYPASSING SIGNATURE VERIFICATION FOR TESTING');
@@ -147,6 +147,17 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     console.log('- Has data object?', typeof payload.data === 'object');
     console.log('- Payload keys:', Object.keys(payload));
     
+    // Helper function to get field value by variable name
+    const getFieldValue = (variableName: string): any => {
+      // If we have a fields array
+      if (Array.isArray(payload.fields)) {
+        const field = payload.fields.find((f: any) => f.variable === variableName);
+        return field?.values?.[0]?.answer || null;
+      }
+      // Otherwise return null
+      return null;
+    };
+    
     // Extract form data - handle multiple possible formats
     let extractedData: any = {};
     
@@ -158,15 +169,8 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     // Format 2: Fields array (older format)
     else if (Array.isArray(payload.fields)) {
       console.log('Using Format 2: Fields array');
-      const fields = payload.fields;
       
-      // Helper function to get field value by variable name
-      const getFieldValue = (variableName: string): any => {
-        const field = fields.find((f: any) => f.variable === variableName);
-        return field?.values?.[0]?.answer || null;
-      };
-      
-      // Extract each field
+      // Extract each field using the helper function
       extractedData = {
         firstname: getFieldValue('firstname'),
         lastname: getFieldValue('lastname'),
@@ -358,7 +362,7 @@ function calculateHeightInches(feet: number, inches: number): number {
 /**
  * Health check endpoint for webhooks
  */
-export const webhookHealthCheck = async (req: Request, res: Response): Promise<void> => {
+export const webhookHealthCheck = async (_req: Request, res: Response): Promise<void> => {
   try {
     const client = await pool.connect();
     
