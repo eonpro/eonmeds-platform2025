@@ -75,6 +75,7 @@ export const handleHeyFlowWebhook = async (req: Request, res: Response): Promise
       console.log('✅ Webhook processed and stored in database');
     } catch (dbError) {
       // Database not available - log to console instead
+      console.error('Database error in webhook:', dbError);
       console.warn('⚠️  Database not available - logging webhook data to console');
       console.log('=== WEBHOOK DATA TO PROCESS LATER ===');
       console.log(JSON.stringify({
