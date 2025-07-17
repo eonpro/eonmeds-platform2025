@@ -317,7 +317,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       ]
     );
     
-    const patientId = patientResult.rows[0].id;
+    const patientRecordId = result.rows[0].id;
     
     // Handle form-specific data based on form type
     // Check if it's a weight loss form by flowID or form name
@@ -333,7 +333,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         heart_conditions: extractedData.heart_conditions || null,
       };
       
-      await storeWeightLossIntakeData(client, patientId, weightLossData);
+      await storeWeightLossIntakeData(client, patientRecordId, weightLossData);
     }
     
     // Mark webhook as processed
