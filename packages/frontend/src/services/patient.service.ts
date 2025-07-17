@@ -58,7 +58,7 @@ class PatientService {
       console.error('Error fetching patients:', error);
       throw error;
     }
-  },
+  }
 
   async getPatientById(id: string): Promise<Patient> {
     try {
@@ -72,7 +72,7 @@ class PatientService {
       console.error('Error fetching patient:', error);
       throw error;
     }
-  },
+  }
 
   async createPatient(patientData: Partial<Patient>): Promise<Patient> {
     try {
