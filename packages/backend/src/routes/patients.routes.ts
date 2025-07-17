@@ -174,11 +174,23 @@ router.get('/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     console.log('Fetching patient with ID:', id);
     
-    // Simple query with basic fields only
-    const result = await pool.query(
-      'SELECT * FROM patients WHERE id = $1 OR patient_id = $1 LIMIT 1',
-      [id]
-    );
+    // Check if id is a UUID or patient_id format
+    const isUuid = id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    
+    let result;
+    if (isUuid) {
+      // Search by UUID id
+      result = await pool.query(
+        'SELECT * FROM patients WHERE id = $1::uuid LIMIT 1',
+        [id]
+      );
+    } else {
+      // Search by patient_id (string)
+      result = await pool.query(
+        'SELECT * FROM patients WHERE patient_id = $1 LIMIT 1',
+        [id]
+      );
+    }
     
     if (result.rows.length === 0) {
       console.log('No patient found for ID:', id);
