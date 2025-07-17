@@ -18,7 +18,6 @@ export const Clients: React.FC = () => {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousPatientCountRef = useRef<number>(0);
   const [newPatientNotification, setNewPatientNotification] = useState<string | null>(null);
-  const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date());
 
   // Fetch patients
   const fetchPatients = useCallback(async (search?: string, showLoading = true) => {
@@ -47,7 +46,6 @@ export const Clients: React.FC = () => {
       
       previousPatientCountRef.current = newPatients.length;
       setPatients(newPatients);
-      setLastUpdateTime(new Date());
     } catch (err: any) {
       console.error('Error fetching patients:', err);
     } finally {
