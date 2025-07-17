@@ -25,6 +25,24 @@
   color: #333;
 }
 
+.info-item a.google-maps-link {
+  color: #3b82f6;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s;
+}
+
+.info-item a.google-maps-link:hover {
+  text-decoration: underline;
+  color: #2563eb;
+}
+
+.info-item .map-icon {
+  margin-left: 5px;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
 .header-content {
   display: flex;
   align-items: center;

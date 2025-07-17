@@ -264,10 +264,20 @@ export const PatientProfile: React.FC = () => {
                   <p>
                     {patient.address ? (
                       <>
-                        {patient.address}<br />
-                        {patient.city && patient.state && patient.zip && 
-                          `${patient.city}, ${patient.state} ${patient.zip}`
-                        }
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            `${patient.address} ${patient.city || ''} ${patient.state || ''} ${patient.zip || ''}`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="google-maps-link"
+                        >
+                          {patient.address}<br />
+                          {patient.city && patient.state && patient.zip && 
+                            `${patient.city}, ${patient.state} ${patient.zip}`
+                          }
+                          <span className="map-icon">🗺️</span>
+                        </a>
                       </>
                     ) : (
                       'Not provided'
