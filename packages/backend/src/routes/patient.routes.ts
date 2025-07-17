@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
   try {
     const { 
       page = '1', 
-      limit = '25', 
+      limit = '100',  // Increased default limit
       search = '', 
       status = '',
       sortBy = 'created_at',
@@ -40,12 +40,13 @@ router.get('/', async (req, res) => {
       paramCount++;
     }
     
+    // REMOVED status filter to show ALL patients
     // Filter by status
-    if (status) {
-      whereConditions.push(`status = $${paramCount}`);
-      queryParams.push(status);
-      paramCount++;
-    }
+    // if (status) {
+    //   whereConditions.push(`status = $${paramCount}`);
+    //   queryParams.push(status);
+    //   paramCount++;
+    // }
     
     const whereClause = whereConditions.length > 0 
       ? `WHERE ${whereConditions.join(' AND ')}` 
@@ -64,6 +65,7 @@ router.get('/', async (req, res) => {
         patient_id,
         first_name,
         last_name,
+        CONCAT(first_name, ' ', last_name) as name,
         email,
         phone,
         date_of_birth,
@@ -80,6 +82,8 @@ router.get('/', async (req, res) => {
     
     const patientsResult = await pool.query(patientsQuery, queryParams);
     
+    console.log(`Returning ${patientsResult.rows.length} patients out of ${totalCount} total`);
+    
     res.json({
       patients: patientsResult.rows,
       pagination: {
@@ -92,6 +96,51 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Error fetching patients:', error);
     res.status(500).json({ error: 'Failed to fetch patients' });
+  }
+});
+
+// Get all patients from today (debug endpoint)
+router.get('/today', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        id,
+        patient_id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        status,
+        created_at,
+        heyflow_submission_id
+      FROM patients
+      WHERE created_at >= CURRENT_DATE
+      ORDER BY created_at DESC
+    `);
+    
+    // Also get webhook events from today
+    const webhookResult = await pool.query(`
+      SELECT 
+        id,
+        created_at,
+        processed,
+        error_message,
+        payload
+      FROM webhook_events
+      WHERE created_at >= CURRENT_DATE
+      ORDER BY created_at DESC
+    `);
+    
+    res.json({
+      patients_today: result.rows.length,
+      patients: result.rows,
+      webhooks_today: webhookResult.rows.length,
+      webhooks: webhookResult.rows,
+      current_time: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error fetching today\'s data:', error);
+    res.status(500).json({ error: 'Failed to fetch today\'s data' });
   }
 });
 
