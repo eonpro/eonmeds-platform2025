@@ -174,13 +174,38 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
-    const patient = await PatientService.getPatientById(id);
+    // Direct query instead of using PatientService
+    const query = `
+      SELECT 
+        id,
+        patient_id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        date_of_birth,
+        gender,
+        status,
+        created_at,
+        updated_at as last_activity,
+        form_type,
+        height_inches,
+        weight_lbs,
+        bmi,
+        medical_conditions,
+        current_medications,
+        allergies
+      FROM patients
+      WHERE patient_id = $1 OR id = $1
+    `;
     
-    if (!patient) {
+    const result = await pool.query(query, [id]);
+    
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Patient not found' });
     }
     
-    res.json(patient);
+    res.json(result.rows[0]);
   } catch (error) {
     console.error('Error fetching patient:', error);
     res.status(500).json({ error: 'Failed to fetch patient' });
