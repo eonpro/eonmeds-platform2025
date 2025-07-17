@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "CI=true npm ci --include=dev && npm run build:prod"
+buildCommand = "npm install --force && CI=true npm run build"
 
 [deploy]
 startCommand = "npx serve -s build -l $PORT"

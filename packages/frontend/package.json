@@ -31,10 +31,8 @@
     "start": "PORT=3001 react-scripts start",
     "start:prod": "serve -s build -l $PORT",
     "build": "react-scripts build",
-    "build:prod": "CI=true react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "install:prod": "npm ci --include=dev || npm install"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
@@ -56,5 +54,8 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.17.20"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

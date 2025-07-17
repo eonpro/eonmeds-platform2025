@@ -1,14 +1,20 @@
 {
-  "phases": {
-    "install": {
-      "cmds": [
-        "npm ci || npm install"
-      ]
-    },
-    "build": {
-      "cmds": [
-        "npm run build"
-      ]
+  "providers": ["node"],
+  "buildPlan": {
+    "phases": {
+      "setup": {
+        "nixPkgs": ["nodejs-20_x", "npm-10_x"]
+      },
+      "install": {
+        "cmds": [
+          "npm install --force"
+        ]
+      },
+      "build": {
+        "cmds": [
+          "CI=true npm run build"
+        ]
+      }
     }
   },
   "start": {
