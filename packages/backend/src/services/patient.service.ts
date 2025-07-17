@@ -45,8 +45,6 @@ export class PatientService {
     search?: string,
     status?: string
   ): Promise<{ patients: PatientListItem[]; total: number }> {
-    const client = await pool.connect();
-    
     try {
       let whereClause = 'WHERE 1=1';
       const params: any[] = [];
@@ -77,7 +75,7 @@ export class PatientService {
         FROM patients 
         ${whereClause}
       `;
-      const countResult = await client.query(countQuery, params);
+      const countResult = await pool.query(countQuery, params);
       const total = parseInt(countResult.rows[0].total);
 
       // Get patients
@@ -104,14 +102,15 @@ export class PatientService {
       `;
       
       params.push(limit, offset);
-      const result = await client.query(query, params);
+      const result = await pool.query(query, params);
       
       return {
         patients: result.rows,
         total
       };
-    } finally {
-      client.release();
+    } catch (error) {
+      console.error('Error in getPatientList:', error);
+      throw error;
     }
   }
 
@@ -119,8 +118,6 @@ export class PatientService {
    * Get patient details by ID
    */
   static async getPatientById(patientId: string): Promise<Patient | null> {
-    const client = await pool.connect();
-    
     try {
       const query = `
         SELECT 
@@ -154,15 +151,16 @@ export class PatientService {
         WHERE patient_id = $1 OR id = $1
       `;
       
-      const result = await client.query(query, [patientId]);
+      const result = await pool.query(query, [patientId]);
       
       if (result.rows.length === 0) {
         return null;
       }
       
       return result.rows[0];
-    } finally {
-      client.release();
+    } catch (error) {
+      console.error('Error in getPatientById:', error);
+      throw error;
     }
   }
 

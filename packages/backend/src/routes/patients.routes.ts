@@ -5,6 +5,26 @@ import { pool } from '../config/database';
 
 const router = Router();
 
+// Test endpoint to check database connectivity
+router.get('/test-db', async (req: Request, res: Response) => {
+  try {
+    // Use direct query instead of pool.connect()
+    const result = await pool.query('SELECT COUNT(*) as count FROM patients');
+    res.json({ 
+      success: true, 
+      patientCount: result.rows[0].count,
+      message: 'Database connection working'
+    });
+  } catch (error) {
+    console.error('Database test error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      details: error
+    });
+  }
+});
+
 // Get all patients (list view)
 // TEMPORARY: Removing auth for testing
 router.get('/', async (req: Request, res: Response) => {
