@@ -5,7 +5,7 @@ import { LoginButton } from '../components/auth/LoginButton';
 import '../App.css';
 
 export const Home: React.FC = () => {
-  const { isAuthenticated, loginWithRedirect, logout, user } = useAuth0();
+  const { isAuthenticated, user } = useAuth0();
 
   return (
     <div className="home-container">
