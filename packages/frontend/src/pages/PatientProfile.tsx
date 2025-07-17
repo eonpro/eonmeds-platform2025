@@ -244,10 +244,15 @@ export const PatientProfile: React.FC = () => {
                 <div className="info-item">
                   <label>ADDRESS</label>
                   <p>
-                    {patient.address_line1 || 'Not provided'}
-                    {patient.address_line2 && <><br />{patient.address_line2}</>}
-                    {patient.city && patient.state && patient.zip_code && (
-                      <><br />{patient.city}, {patient.state} {patient.zip_code}</>
+                    {patient.address ? (
+                      <>
+                        {patient.address}<br />
+                        {patient.city && patient.state && patient.zip_code && 
+                          `${patient.city}, ${patient.state} ${patient.zip_code}`
+                        }
+                      </>
+                    ) : (
+                      'Not provided'
                     )}
                   </p>
                 </div>

@@ -365,8 +365,13 @@ router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
       SELECT p.*, 
         we.payload as webhook_data
       FROM patients p
-      LEFT JOIN webhook_events we ON p.heyflow_submission_id = we.webhook_id
+      LEFT JOIN webhook_events we ON (
+        p.heyflow_submission_id = we.webhook_id 
+        OR p.heyflow_submission_id = we.payload->>'id'
+        OR p.email = we.payload->'fields'->>'email'
+      )
       WHERE p.id::text = $1 OR p.patient_id = $1
+      LIMIT 1
     `, [id]);
     
     if (patientResult.rows.length === 0) {
@@ -377,30 +382,106 @@ router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
     const webhookData = patient.webhook_data || {};
     const fields = webhookData.fields || {};
     
-    // For now, return a simple HTML that can be printed as PDF
+    // Helper function to format field names
+    const formatFieldName = (fieldName) => {
+      return fieldName
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/_/g, ' ')
+        .replace(/\?/g, '')
+        .trim()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    };
+    
+    // Helper function to safely get field value
+    const getFieldValue = (value) => {
+      if (!value || value === '') return 'Not provided';
+      if (value === '✔') return 'Yes';
+      if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+      return value;
+    };
+    
+    // Generate comprehensive HTML
     const html = `
     <!DOCTYPE html>
     <html>
     <head>
       <title>Weight Loss Intake Form - ${patient.first_name} ${patient.last_name}</title>
       <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        h1 { color: #333; }
-        .section { margin-bottom: 30px; }
-        .field { margin-bottom: 10px; }
-        .label { font-weight: bold; color: #666; }
-        .value { margin-left: 10px; }
+        body { 
+          font-family: Arial, sans-serif; 
+          margin: 40px; 
+          line-height: 1.6;
+          color: #333;
+        }
+        h1 { 
+          color: #2c3e50;
+          border-bottom: 3px solid #3498db;
+          padding-bottom: 10px;
+        }
+        h2 { 
+          color: #34495e;
+          margin-top: 30px;
+          border-bottom: 1px solid #ecf0f1;
+          padding-bottom: 5px;
+        }
+        .section { 
+          margin-bottom: 30px;
+          background-color: #f9f9f9;
+          padding: 15px;
+          border-radius: 5px;
+        }
+        .field { 
+          margin-bottom: 12px;
+          display: flex;
+          flex-wrap: wrap;
+        }
+        .label { 
+          font-weight: bold; 
+          color: #555;
+          min-width: 200px;
+          margin-right: 10px;
+        }
+        .value { 
+          color: #222;
+          flex: 1;
+        }
+        .header-info {
+          background-color: #3498db;
+          color: white;
+          padding: 20px;
+          margin: -40px -40px 30px -40px;
+          text-align: center;
+        }
+        .header-info h1 {
+          color: white;
+          border: none;
+          margin: 0;
+        }
+        .timestamp {
+          text-align: center;
+          color: #7f8c8d;
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #ecf0f1;
+        }
       </style>
     </head>
     <body>
-      <h1>Weight Loss Intake Form</h1>
+      <div class="header-info">
+        <h1>Weight Loss Intake Form</h1>
+        <p>Patient ID: ${patient.patient_id}</p>
+      </div>
+      
       <div class="section">
         <h2>Patient Information</h2>
         <div class="field"><span class="label">Name:</span> <span class="value">${patient.first_name} ${patient.last_name}</span></div>
         <div class="field"><span class="label">Email:</span> <span class="value">${patient.email}</span></div>
         <div class="field"><span class="label">Phone:</span> <span class="value">${patient.phone || 'Not provided'}</span></div>
-        <div class="field"><span class="label">Date of Birth:</span> <span class="value">${patient.date_of_birth || 'Not provided'}</span></div>
+        <div class="field"><span class="label">Date of Birth:</span> <span class="value">${patient.date_of_birth || fields.dob || 'Not provided'}</span></div>
         <div class="field"><span class="label">Gender:</span> <span class="value">${patient.gender || 'Not provided'}</span></div>
+        <div class="field"><span class="label">18+ Confirmation:</span> <span class="value">${getFieldValue(fields['18+ Disclosure : By submitting this form. I certify that I am over 18 years of age and that the date of birth provided in this form is legitimate and it belongs to me.'])}</span></div>
       </div>
       
       <div class="section">
@@ -412,22 +493,79 @@ router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
       </div>
       
       <div class="section">
-        <h2>Address</h2>
+        <h2>Contact Information</h2>
         <div class="field"><span class="label">Address:</span> <span class="value">${patient.address || fields.address || 'Not provided'}</span></div>
         <div class="field"><span class="label">City:</span> <span class="value">${patient.city || fields['address [city]'] || 'Not provided'}</span></div>
         <div class="field"><span class="label">State:</span> <span class="value">${patient.state || fields['address [state]'] || 'Not provided'}</span></div>
         <div class="field"><span class="label">ZIP:</span> <span class="value">${patient.zip || fields['address [zip]'] || 'Not provided'}</span></div>
+        <div class="field"><span class="label">Latitude:</span> <span class="value">${fields['address [latitude]'] || 'Not provided'}</span></div>
+        <div class="field"><span class="label">Longitude:</span> <span class="value">${fields['address [longitude]'] || 'Not provided'}</span></div>
       </div>
       
       <div class="section">
-        <h2>Medical History</h2>
-        <div class="field"><span class="label">Medical Conditions:</span> <span class="value">${fields['Do you have any medical conditions or chronic illnesses?'] || 'None reported'}</span></div>
-        <div class="field"><span class="label">Mental Health:</span> <span class="value">${fields['Have you been diagnosed with any mental health condition?'] || 'None reported'}</span></div>
-        <div class="field"><span class="label">Surgeries:</span> <span class="value">${fields['Have you ever undergone any surgeries or medical procedures?'] || 'None reported'}</span></div>
+        <h2>Medical History Questions</h2>
+        <div class="field"><span class="label">Blood Pressure:</span> <span class="value">${getFieldValue(fields['Blood Pressure'])}</span></div>
+        <div class="field"><span class="label">Medical Conditions:</span> <span class="value">${getFieldValue(fields['Do you have any medical conditions or chronic illnesses?'])}</span></div>
+        <div class="field"><span class="label">Mental Health Conditions:</span> <span class="value">${getFieldValue(fields['Have you been diagnosed with any mental health condition?'])}</span></div>
+        <div class="field"><span class="label">Surgeries/Procedures:</span> <span class="value">${getFieldValue(fields['Have you ever undergone any surgeries or medical procedures?'])}</span></div>
+        <div class="field"><span class="label">Type 2 Diabetes:</span> <span class="value">${getFieldValue(fields['Do you have a personal history of type 2 diabetes?'])}</span></div>
+        <div class="field"><span class="label">Thyroid Cancer:</span> <span class="value">${getFieldValue(fields['Do you have a personal history of medullary thyroid cancer?'])}</span></div>
+        <div class="field"><span class="label">Multiple Endocrine Neoplasia:</span> <span class="value">${getFieldValue(fields['Do you have a personal history of multiple endocrine neoplasia type-2?'])}</span></div>
+        <div class="field"><span class="label">Gastroparesis:</span> <span class="value">${getFieldValue(fields['Do you have a personal history of gastroparesis (delayed stomach emptying)?'])}</span></div>
+        <div class="field"><span class="label">Pregnant/Breastfeeding:</span> <span class="value">${getFieldValue(fields['Are you pregnant or breast feeding?'])}</span></div>
       </div>
       
       <div class="section">
-        <p><small>Form submitted on: ${new Date(webhookData.createdAt || patient.created_at).toLocaleDateString()}</small></p>
+        <h2>Chronic Conditions</h2>
+        <div class="field"><span class="label">Diagnosed Conditions:</span> <span class="value">${getFieldValue(fields['Have you been diagnosed with any of the following conditions?'])}</span></div>
+        <div class="field"><span class="label">Chronic Diseases:</span> <span class="value">${getFieldValue(fields['Chronic Diseases: Do you have a history of any of the following?'])}</span></div>
+        <div class="field"><span class="label">Family History:</span> <span class="value">${getFieldValue(fields['Have you or any of your family members ever been diagnosed with any of the following conditions?'])}</span></div>
+      </div>
+      
+      <div class="section">
+        <h2>Lifestyle & Activity</h2>
+        <div class="field"><span class="label">Daily Physical Activity:</span> <span class="value">${getFieldValue(fields['What is your usual level of daily physical activity?'])}</span></div>
+        <div class="field"><span class="label">How Life Would Change:</span> <span class="value">${getFieldValue(fields['How would your life change by losing weight?'])}</span></div>
+      </div>
+      
+      <div class="section">
+        <h2>Medication History</h2>
+        <div class="field"><span class="label">GLP-1 Medication History:</span> <span class="value">${getFieldValue(fields['Are you currently taking, or have you ever taken, a GLP-1 medication?'])}</span></div>
+        <div class="field"><span class="label">Side Effects:</span> <span class="value">${getFieldValue(fields['Do you usually present side effects when starting a new medication?'])}</span></div>
+        <div class="field"><span class="label">Personalized Treatment Interest:</span> <span class="value">${getFieldValue(fields['Would you be interested in your provider considering a personalized treatment plan to help you manage these side effects?'])}</span></div>
+      </div>
+      
+      <div class="section">
+        <h2>Marketing & Consent</h2>
+        <div class="field"><span class="label">How did you hear about us?:</span> <span class="value">${getFieldValue(fields['How did you hear about us?'])}</span></div>
+        <div class="field"><span class="label">State of Residence:</span> <span class="value">${getFieldValue(fields['Select the state you live in'])}</span></div>
+        <div class="field"><span class="label">Marketing Consent:</span> <span class="value">${getFieldValue(fields['Marketing Consent'])}</span></div>
+        <div class="field"><span class="label">Terms Agreement:</span> <span class="value">${getFieldValue(fields['By clicking this box, I acknowledge that I have read, understood, and agree to the Terms of Use, and I acknowledge the Privacy Policy, Informed Telemedicine Consent, and the Cancellation Policy. If you live in Florida, you also accept the Florida Weight Loss Consumer Bill of Rights and the Florida Consent.'])}</span></div>
+      </div>
+      
+      <div class="section">
+        <h2>Marketing Attribution</h2>
+        <div class="field"><span class="label">UTM Source:</span> <span class="value">${fields.utm_source || 'Not provided'}</span></div>
+        <div class="field"><span class="label">UTM Medium:</span> <span class="value">${fields.utm_medium || 'Not provided'}</span></div>
+        <div class="field"><span class="label">UTM Campaign:</span> <span class="value">${fields.utm_campaign || 'Not provided'}</span></div>
+        <div class="field"><span class="label">UTM Content:</span> <span class="value">${fields.utm_content || 'Not provided'}</span></div>
+        <div class="field"><span class="label">UTM Term:</span> <span class="value">${fields.utm_term || 'Not provided'}</span></div>
+        <div class="field"><span class="label">UTM ID:</span> <span class="value">${fields.utm_id || 'Not provided'}</span></div>
+      </div>
+      
+      <div class="section">
+        <h2>All Form Fields</h2>
+        ${Object.entries(fields).filter(([key]) => !key.startsWith('utm_') && !key.startsWith('address')).map(([key, value]) => `
+          <div class="field">
+            <span class="label">${formatFieldName(key)}:</span> 
+            <span class="value">${getFieldValue(value)}</span>
+          </div>
+        `).join('')}
+      </div>
+      
+      <div class="timestamp">
+        <p>Form submitted on: ${new Date(webhookData.createdAt || patient.created_at).toLocaleDateString()} at ${new Date(webhookData.createdAt || patient.created_at).toLocaleTimeString()}</p>
+        <p>Form ID: ${webhookData.id || 'N/A'} | Flow ID: ${webhookData.flowID || 'N/A'}</p>
       </div>
     </body>
     </html>
