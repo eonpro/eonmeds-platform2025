@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { patientService } from '../services/patient.service';
+import { EditPatientModal } from '../components/patients/EditPatientModal';
 import './PatientProfile.css';
 
 interface PatientDetails {
@@ -32,6 +33,7 @@ export const PatientProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const loadPatient = async () => {
     if (!id) return;
@@ -71,6 +73,22 @@ export const PatientProfile: React.FC = () => {
       return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
     }
     return phone;
+  };
+
+  const handleSavePatient = async (updatedData: Partial<PatientDetails>) => {
+    if (!patient) return;
+    
+    try {
+      const updatedPatient = await patientService.updatePatient(patient.id, updatedData);
+      setPatient({
+        ...patient,
+        ...updatedPatient
+      });
+      setIsEditModalOpen(false);
+    } catch (err) {
+      console.error('Error updating patient:', err);
+      throw err;
+    }
   };
 
   if (loading) {
@@ -197,7 +215,7 @@ export const PatientProfile: React.FC = () => {
           <div className="overview-tab">
             <section className="info-section">
               <h2>Basic Information</h2>
-              <button className="edit-button">✏️ Edit</button>
+              <button className="edit-button" onClick={() => setIsEditModalOpen(true)}>✏️ Edit</button>
               
               <div className="info-grid">
                 <div className="info-item">
@@ -347,6 +365,15 @@ export const PatientProfile: React.FC = () => {
           </div>
         )}
       </div>
+
+      {patient && (
+        <EditPatientModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          patient={patient}
+          onSave={handleSavePatient}
+        />
+      )}
     </div>
   );
 }; 

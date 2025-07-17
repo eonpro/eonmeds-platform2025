@@ -268,7 +268,76 @@ router.post('/', authenticateToken, async (req, res) => {
 
 // Update patient
 router.put('/:id', authenticateToken, async (req, res) => {
-  res.json({ message: `Update patient ${req.params.id} - not implemented yet` });
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    // Build dynamic update query
+    const updateFields = [];
+    const values = [];
+    let paramCount = 1;
+    
+    // List of allowed fields to update
+    const allowedFields = [
+      'first_name', 'last_name', 'email', 'phone', 
+      'date_of_birth', 'gender', 'height_inches', 'weight_lbs',
+      'address', 'city', 'state', 'zip', 'status'
+    ];
+    
+    // Build update fields dynamically
+    for (const field of allowedFields) {
+      if (updateData.hasOwnProperty(field)) {
+        updateFields.push(`${field} = $${paramCount}`);
+        values.push(updateData[field]);
+        paramCount++;
+      }
+    }
+    
+    // Always update the updated_at field
+    updateFields.push(`updated_at = NOW()`);
+    
+    if (updateFields.length === 1) { // Only updated_at
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+    
+    // Add the patient ID as the last parameter
+    values.push(id);
+    
+    const query = `
+      UPDATE patients 
+      SET ${updateFields.join(', ')}
+      WHERE id::text = $${paramCount} OR patient_id = $${paramCount}
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, values);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    
+    // Calculate BMI if height and weight are provided
+    const patient = result.rows[0];
+    if (patient.height_inches && patient.weight_lbs) {
+      const bmi = (parseFloat(patient.weight_lbs) / (patient.height_inches * patient.height_inches)) * 703;
+      await pool.query(
+        'UPDATE patients SET bmi = $1 WHERE id = $2',
+        [bmi.toFixed(2), patient.id]
+      );
+      patient.bmi = bmi.toFixed(2);
+    }
+    
+    res.json(patient);
+  } catch (error) {
+    console.error('Error updating patient:', error);
+    
+    // Handle unique constraint violation
+    if (error.code === '23505' && error.constraint === 'patients_email_key') {
+      return res.status(409).json({ error: 'A patient with this email already exists' });
+    }
+    
+    res.status(500).json({ error: 'Failed to update patient' });
+  }
 });
 
 // Delete patient

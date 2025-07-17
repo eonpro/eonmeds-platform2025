@@ -135,6 +135,26 @@ class PatientService {
       throw error;
     }
   }
+
+  async updatePatient(id: string, patientData: Partial<Patient>): Promise<Patient> {
+    try {
+      const token = await this.getAuthToken();
+      const headers: any = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      
+      const response = await axios.put(
+        `${API_BASE_URL}/api/v1/patients/${id}`,
+        patientData,
+        { headers }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error updating patient:', error);
+      throw error;
+    }
+  }
 }
 
 export const patientService = new PatientService(); 
