@@ -1,11 +1,16 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm install --force && CI=true npm run build"
+buildCommand = "npm run build"
 
 [deploy]
-startCommand = "npx serve -s build -l $PORT"
+startCommand = "npm run start:prod"
 healthcheckPath = "/"
 healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[env]
+DISABLE_ESLINT_PLUGIN = "true"
 
 [service]
 internalPort = 3000 
