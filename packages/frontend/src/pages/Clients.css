@@ -273,15 +273,39 @@
   border-spacing: 0;
 }
 
-.list-header {
-  display: grid;
-  grid-template-columns: 2fr 1.5fr 1.5fr 1fr 1fr 100px;
+.clients-table thead {
+  background-color: transparent;
+}
+
+.clients-table th {
   padding: 16px 24px;
-  background-color: var(--color-gray-50);
-  font-weight: var(--font-weight-semibold);
-  font-size: 14px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: var(--font-weight-regular);
+  color: var(--color-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid white;
+}
+
+.clients-table tbody tr {
+  border-bottom: 1px solid white;
+  transition: all 0.2s ease;
+}
+
+.clients-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.clients-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+}
+
+.clients-table td {
+  padding: 16px 24px;
+  font-size: 13px;
   color: var(--color-gray-700);
-  border-bottom: 1px solid var(--color-gray-200);
 }
 
 /* Loading and Empty States */
@@ -386,33 +410,57 @@
   font-size: 13px;
 }
 
-/* Patient Status - Updated */
+/* Patient Status - Updated Button Style */
 .patient-status {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  justify-content: center;
+  min-width: 100px;
+}
+
+.status-badge {
+  padding: 6px 16px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: var(--font-weight-medium);
   text-transform: capitalize;
+  border: none;
+  cursor: default;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.patient-status.active {
+.status-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.status-badge.active {
   background-color: var(--color-primary-light);
   color: var(--color-gray-800);
 }
 
-.patient-status.qualified {
-  background-color: var(--color-primary-green);
-  color: var(--color-white);
+.status-badge.qualified {
+  background-color: #10b981;
+  color: white;
 }
 
-.patient-status.pending {
-  background-color: var(--color-primary-orange);
-  color: var(--color-white);
+.status-badge.processing {
+  background-color: #f59e0b;
+  color: white;
 }
 
-.patient-status.inactive {
+.status-badge.not-qualified {
+  background-color: #ef4444;
+  color: white;
+}
+
+.status-badge.pending {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.status-badge.inactive {
   background-color: var(--color-gray-200);
   color: var(--color-gray-600);
 }

@@ -88,6 +88,30 @@ export const Clients: React.FC = () => {
     }
   }, [searchTerm, debouncedSearch, fetchPatients]);
 
+  // Format date for display
+  const formatDate = (date: string | Date) => {
+    if (!date) return '-';
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { 
+      month: '2-digit', 
+      day: '2-digit', 
+      year: '2-digit' 
+    });
+  };
+
+  // Determine status based on BMI
+  const getPatientStatus = (patient: Patient) => {
+    if (!patient.bmi || patient.bmi === 0) {
+      return { status: 'processing', label: 'Processing' };
+    }
+    
+    if (patient.bmi < 27) {
+      return { status: 'not-qualified', label: 'Not Qualified' };
+    }
+    
+    return { status: 'qualified', label: 'Qualified' };
+  };
+
   const handlePatientClick = (patientId: string) => {
     navigate(`/clients/${patientId}`);
   };
@@ -107,15 +131,6 @@ export const Clients: React.FC = () => {
   const handleAddSuccess = () => {
     // Refresh the patient list
     fetchPatients();
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: '2-digit', 
-      day: '2-digit', 
-      year: '2-digit' 
-    });
   };
 
   const formatPhoneNumber = (phone: string) => {
@@ -198,7 +213,9 @@ export const Clients: React.FC = () => {
                   <td className="patient-email">{patient.email}</td>
                   <td className="patient-phone">{formatPhoneNumber(patient.phone)}</td>
                   <td className="patient-status">
-                    <span className="status-badge qualified">Qualified</span>
+                    <span className={`status-badge ${getPatientStatus(patient).status}`}>
+                      {getPatientStatus(patient).label}
+                    </span>
                   </td>
                   <td className="patient-created">{formatDate(patient.created_at)}</td>
                 </tr>
