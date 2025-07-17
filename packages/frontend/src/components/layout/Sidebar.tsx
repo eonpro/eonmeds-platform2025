@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Logo } from '../common/Logo';
 import './Sidebar.css';
 
 interface SidebarItem {
@@ -104,11 +105,8 @@ export const Sidebar: React.FC = () => {
   return (
     <div className="sidebar">
       <div className="sidebar-logo">
-        <img 
-          src="https://static.wixstatic.com/shapes/c49a9b_5fd302ab673e48be9489f00b87d2d8ca.svg" 
-          alt="EONMeds" 
-          className="logo"
-        />
+        <Logo height={40} className="sidebar-logo-img" />
+        <span className="sidebar-logo-text">EONMeds</span>
       </div>
       <nav className="sidebar-nav">
         {menuItems.map((item) => (
