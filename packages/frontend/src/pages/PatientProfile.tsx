@@ -34,10 +34,6 @@ export const PatientProfile: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    loadPatient();
-  }, [id]);
-
   const loadPatient = async () => {
     if (!id) return;
     
@@ -52,6 +48,10 @@ export const PatientProfile: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadPatient();
+  }, [id]);
 
   const calculateAge = (dob: string) => {
     const birthDate = new Date(dob);
