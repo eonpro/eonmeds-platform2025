@@ -11,7 +11,7 @@ interface PatientDetails {
   email: string;
   phone: string;
   date_of_birth: string;
-  gender: string;
+  gender?: string;
   status: string;
   created_at: string;
   height_inches?: number;

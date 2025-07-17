@@ -12,8 +12,12 @@ export interface Patient {
   email: string;
   phone: string;
   date_of_birth: string;
+  gender?: string;
   status: string;
   created_at: string;
+  height_inches?: number;
+  weight_lbs?: number;
+  bmi?: number;
   membership_hashtags?: string[];
   membership_status?: string;
 }
