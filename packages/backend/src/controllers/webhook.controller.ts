@@ -229,6 +229,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     // Create patient record with auto-generated patient_id
     const patientResult = await client.query(
       `INSERT INTO patients (
+        patient_id,
         heyflow_submission_id,
         form_type,
         form_version,
@@ -245,7 +246,10 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         consent_telehealth,
         consent_date,
         status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      ) VALUES (
+        'P' || LPAD(nextval('patient_id_seq')::TEXT, 6, '0'),
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+      )
       ON CONFLICT (email) DO UPDATE SET
         updated_at = NOW(),
         heyflow_submission_id = EXCLUDED.heyflow_submission_id,
