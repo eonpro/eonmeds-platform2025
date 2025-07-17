@@ -25,7 +25,7 @@ router.get('/me', checkJwt, getCurrentUser);
 router.patch('/profile', checkJwt, updateProfile);
 
 // Auth0 callback info (for frontend reference)
-router.get('/config', (req, res) => {
+router.get('/config', (_req, res) => {
   res.json({
     domain: process.env.AUTH0_DOMAIN,
     clientId: process.env.AUTH0_CLIENT_ID,

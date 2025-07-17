@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon",
+    "dev": "nodemon --exec 'ts-node --transpile-only -P tsconfig.loose.json' src/index.ts",
     "build": "echo 'No build needed for simple server'",
     "start": "node simple-server.js",
     "start:full": "node dist/index.js",

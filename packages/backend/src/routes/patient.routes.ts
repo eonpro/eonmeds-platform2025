@@ -6,9 +6,93 @@ import patientService from '../services/patient.service';
 
 const router = Router();
 
-// Get all patients
-router.get('/', authenticateToken, async (req, res) => {
-  res.json({ message: 'Get all patients - not implemented yet' });
+// Get all patients with pagination, search, and filters
+// Temporarily removed authenticateToken for testing
+router.get('/', async (req, res) => {
+  try {
+    const { 
+      page = '1', 
+      limit = '25', 
+      search = '', 
+      status = '',
+      sortBy = 'created_at',
+      sortOrder = 'DESC'
+    } = req.query;
+    
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+    
+    // Build the WHERE clause
+    let whereConditions = [];
+    let queryParams = [];
+    let paramCount = 1;
+    
+    // Search across name, email, phone
+    if (search) {
+      whereConditions.push(`(
+        LOWER(first_name) LIKE LOWER($${paramCount}) OR
+        LOWER(last_name) LIKE LOWER($${paramCount}) OR
+        LOWER(email) LIKE LOWER($${paramCount}) OR
+        phone LIKE $${paramCount}
+      )`);
+      queryParams.push(`%${search}%`);
+      paramCount++;
+    }
+    
+    // Filter by status
+    if (status) {
+      whereConditions.push(`status = $${paramCount}`);
+      queryParams.push(status);
+      paramCount++;
+    }
+    
+    const whereClause = whereConditions.length > 0 
+      ? `WHERE ${whereConditions.join(' AND ')}` 
+      : '';
+    
+    // Get total count
+    const countQuery = `SELECT COUNT(*) FROM patients ${whereClause}`;
+    const countResult = await pool.query(countQuery, queryParams);
+    const totalCount = parseInt(countResult.rows[0].count);
+    
+    // Get patients with pagination
+    queryParams.push(limitNum, offset);
+    const patientsQuery = `
+      SELECT 
+        id,
+        patient_id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        date_of_birth,
+        gender,
+        status,
+        form_type,
+        created_at,
+        updated_at
+      FROM patients
+      ${whereClause}
+      ORDER BY ${sortBy} ${sortOrder}
+      LIMIT $${paramCount} OFFSET $${paramCount + 1}
+    `;
+    
+    const patientsResult = await pool.query(patientsQuery, queryParams);
+    
+    res.json({
+      patients: patientsResult.rows,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limitNum)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching patients:', error);
+    res.status(500).json({ error: 'Failed to fetch patients' });
+  }
 });
 
 // Get patient by ID

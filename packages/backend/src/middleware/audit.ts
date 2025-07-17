@@ -157,7 +157,7 @@ function sanitizeResponse(data: any): any {
 // Middleware to log all PHI access
 export const auditPHIAccess = async (
   req: AuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
   // Log the access attempt

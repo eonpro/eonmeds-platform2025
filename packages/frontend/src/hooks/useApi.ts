@@ -2,7 +2,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import axios, { AxiosInstance } from 'axios';
 import { useEffect, useRef } from 'react';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app';
 
 // Create a single axios instance outside the hook
 const createApiClient = (): AxiosInstance => {

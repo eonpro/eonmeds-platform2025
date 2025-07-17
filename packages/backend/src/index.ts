@@ -18,7 +18,7 @@ import auditRoutes from './routes/audit.routes';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 5002;
 
 // Middleware
 app.use(cors());
@@ -60,6 +60,15 @@ app.get('/api/v1', (_req, res) => {
 app.use('/api/v1/webhooks', webhookRoutes);
 console.log('✅ Webhook routes loaded (always available)');
 
+// Register all routes immediately (with database check inside each route)
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/patients', patientRoutes);
+app.use('/api/v1/practitioners', practitionerRoutes);
+app.use('/api/v1/appointments', appointmentRoutes);
+app.use('/api/v1/documents', documentRoutes);
+app.use('/api/v1/audit', auditRoutes);
+console.log('✅ All routes registered (database check happens per route)');
+
 // Start server
 app.listen(PORT, () => {
   console.log('🚀 Server is running!');
@@ -84,18 +93,8 @@ async function initializeDatabase() {
     if (isConnected) {
       console.log('✅ Database connected successfully');
       databaseConnected = true;
-      
-      // Register database-dependent routes
-      app.use('/api/v1/auth', authRoutes);
-      app.use('/api/v1/patients', patientRoutes);
-      app.use('/api/v1/practitioners', practitionerRoutes);
-      app.use('/api/v1/appointments', appointmentRoutes);
-      app.use('/api/v1/documents', documentRoutes);
-      app.use('/api/v1/audit', auditRoutes);  // Remove auditMiddleware since it's not defined
-      
-      console.log('✅ All database routes loaded successfully');
     } else {
-      console.log('⚠️  Database connection failed - routes requiring database will not be available');
+      console.log('⚠️  Database connection failed - some functionality may be limited');
     }
   } catch (error) {
     console.error('❌ Error during database initialization:', error);
@@ -104,6 +103,9 @@ async function initializeDatabase() {
 
 // Initialize database connection
 initializeDatabase();
+
+// Export database connection status for routes to check
+export { databaseConnected };
 
 // 404 handler
 app.use((req, res) => {

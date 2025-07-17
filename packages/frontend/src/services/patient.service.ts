@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Patient service for API calls
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app';
 
 export interface Patient {
   id: string;

@@ -19,9 +19,9 @@ console.log('Database configuration:', {
 export const pool = process.env.DATABASE_URL 
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: {
-        rejectUnauthorized: false  // Allow self-signed certificates
-      }
+      ssl: process.env.NODE_ENV === 'production' 
+        ? { rejectUnauthorized: false }  // For production, allow self-signed certificates
+        : false  // For development, disable SSL entirely
     })
   : new Pool({
       host: process.env.DB_HOST || 'localhost',
@@ -32,9 +32,9 @@ export const pool = process.env.DATABASE_URL
       max: 20, // Maximum number of clients in the pool
       idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
       connectionTimeoutMillis: 10000, // Increase timeout to 10 seconds for Railway
-      ssl: process.env.DB_SSL === 'true' ? {
-        rejectUnauthorized: false  // Allow self-signed certificates
-      } : undefined  // Changed from false to undefined when SSL is not enabled
+      ssl: process.env.DB_SSL === 'true' && process.env.NODE_ENV === 'production'
+        ? { rejectUnauthorized: false }  // For production with SSL
+        : false  // For development or when SSL is disabled
     });
 
 // Test database connection with timeout
