@@ -7,7 +7,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { Clients } from './pages/Clients';
-import { PatientDetail } from './pages/PatientDetail';
+import { PatientProfile } from './pages/PatientProfile';
 import { UserProfile } from './components/auth/UserProfile';
 import { TestAuth } from './pages/TestAuth';
 import './i18n'; // Initialize i18n
@@ -29,8 +29,8 @@ function App() {
                     <Routes>
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/clients" element={<Clients />} />
-                      <Route path="/clients/:id" element={<PatientDetail />} />
-                      <Route path="/patients/:id" element={<PatientDetail />} />
+                      <Route path="/clients/:id" element={<PatientProfile />} />
+                      <Route path="/patients/:id" element={<PatientProfile />} />
                       <Route path="/profile" element={<UserProfile />} />
                       <Route 
                         path="/patients" 

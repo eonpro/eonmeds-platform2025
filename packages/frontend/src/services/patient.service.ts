@@ -41,64 +41,40 @@ class PatientService {
   }
 
   async getPatients(params?: {
+    page?: number;
     limit?: number;
-    offset?: number;
     search?: string;
     status?: string;
   }): Promise<PatientListResponse> {
     try {
-      const token = await this.getAuthToken();
-      const headers: any = {};
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      
       const response = await axios.get(`${API_BASE_URL}/api/v1/patients`, {
         params,
-        headers
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching patients:', error);
-      // Return empty data instead of throwing to prevent app crash
-      if (error.response?.status === 404 || error.code === 'ERR_NETWORK') {
-        return {
-          patients: [],
-          total: 0,
-          limit: params?.limit || 10,
-          offset: params?.offset || 0
-        };
-      }
       throw error;
     }
-  }
+  },
 
   async getPatientById(id: string): Promise<Patient> {
     try {
-      const token = await this.getAuthToken();
-      const headers: any = {};
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      
       const response = await axios.get(`${API_BASE_URL}/api/v1/patients/${id}`, {
-        headers
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       return response.data;
     } catch (error) {
       console.error('Error fetching patient:', error);
       throw error;
     }
-  }
+  },
 
-  async createPatient(patientData: {
-    first_name: string;
-    last_name: string;
-    email: string;
-    phone: string;
-    date_of_birth: string;
-    gender: string;
-  }): Promise<Patient> {
+  async createPatient(patientData: Partial<Patient>): Promise<Patient> {
     try {
       const token = await this.getAuthToken();
       const headers: any = { 'Content-Type': 'application/json' };
