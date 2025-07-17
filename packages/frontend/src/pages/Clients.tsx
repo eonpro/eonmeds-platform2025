@@ -105,7 +105,7 @@ export const Clients: React.FC = () => {
       return { status: 'processing', label: 'Processing' };
     }
     
-    if (patient.bmi < 27) {
+    if (patient.bmi < 22) {
       return { status: 'not-qualified', label: 'Not Qualified' };
     }
     
