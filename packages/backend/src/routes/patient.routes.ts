@@ -199,7 +199,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create patient
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const patientData = req.body;
     
@@ -267,7 +267,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update patient
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
