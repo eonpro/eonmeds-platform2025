@@ -479,8 +479,8 @@
 /* Delete Button */
 .delete-btn {
   background: transparent;
-  color: var(--color-gray-500);
-  border: none;
+  color: var(--color-gray-600);  /* Darker gray for better visibility */
+  border: 1px solid var(--color-gray-200);  /* Add subtle border */
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 16px;
@@ -495,7 +495,8 @@
 
 .delete-btn:hover {
   background-color: var(--color-gray-100);
-  color: var(--color-gray-700);
+  color: var(--color-gray-800);  /* Even darker on hover */
+  border-color: var(--color-gray-300);
 }
 
 .delete-btn:active {
