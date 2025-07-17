@@ -126,6 +126,48 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
+// Simple test endpoint for patient detail
+router.get('/test/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const query = `
+      SELECT 
+        id,
+        patient_id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        date_of_birth,
+        gender,
+        status,
+        created_at,
+        updated_at as last_activity,
+        form_type,
+        height_inches,
+        weight_lbs,
+        bmi,
+        medical_conditions,
+        current_medications,
+        allergies
+      FROM patients
+      WHERE patient_id = $1 OR id = $1
+    `;
+    
+    const result = await pool.query(query, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error in test endpoint:', error);
+    res.status(500).json({ error: 'Failed to fetch patient', details: error.message });
+  }
+});
+
 // Get patient by ID
 // TEMPORARY: Removing auth for testing
 router.get('/:id', async (req: Request, res: Response) => {

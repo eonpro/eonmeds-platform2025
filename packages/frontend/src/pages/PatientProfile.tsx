@@ -289,13 +289,13 @@ export const PatientProfile: React.FC = () => {
                 <div className="form-actions">
                   <button 
                     className="view-button"
-                    onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${patient.id}/intake-pdf`, '_blank')}
+                    onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
                   >
                     View PDF
                   </button>
                   <a 
-                    href={`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${patient.id}/intake-pdf`}
-                    download={`${patient.patient_id}_intake_form.pdf`}
+                    href={`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`}
+                    download={`${patient.patient_id || 'patient'}_intake_form.pdf`}
                     className="download-button"
                   >
                     Download
