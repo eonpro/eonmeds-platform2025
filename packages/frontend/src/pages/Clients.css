@@ -136,6 +136,13 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* Search Bar - Updated */
+.search-bar {
+  padding: 50px 0;
+  display: flex;
+  justify-content: center;
+}
+
 .search-container {
   display: flex;
   align-items: center;
@@ -148,7 +155,7 @@
 }
 
 .search-input {
-  flex: 1;
+  width: 600px;
   padding: 12px 20px;
   border: 2px solid var(--color-gray-200);
   border-radius: 8px;
@@ -251,6 +258,21 @@
   overflow: hidden;
 }
 
+/* Clients Table Container - Updated */
+.clients-table-container {
+  background-color: #efece7;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+/* Clients Table - Updated */
+.clients-table {
+  width: 100%;
+  background-color: transparent;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
 .list-header {
   display: grid;
   grid-template-columns: 2fr 1.5fr 1.5fr 1fr 1fr 100px;
@@ -336,32 +358,41 @@
   color: var(--color-gray-700);
 }
 
+/* Patient ID - Updated */
 .patient-id {
   font-weight: var(--font-weight-semibold);
-  color: var(--color-primary-teal);
+  color: #14a97b;
   font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 12px;
 }
 
+/* Patient Name - Updated */
 .patient-name {
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-900);
+  font-size: 13px;
 }
 
+/* Patient Email - Updated */
 .patient-email {
   color: var(--color-gray-600);
+  font-size: 13px;
 }
 
+/* Patient Phone - Updated with Poppins */
 .patient-phone {
   color: var(--color-gray-600);
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
 }
 
+/* Patient Status - Updated */
 .patient-status {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: var(--font-weight-medium);
   text-transform: capitalize;
 }
@@ -386,9 +417,11 @@
   color: var(--color-gray-600);
 }
 
+/* Patient Created Date - Updated with Poppins */
 .patient-created {
   color: var(--color-gray-500);
   font-size: 13px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .loading-cell,
