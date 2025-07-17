@@ -138,15 +138,7 @@ export class PatientService {
           bmi,
           medical_conditions,
           current_medications,
-          allergies,
-          address_line1,
-          address_line2,
-          city,
-          state,
-          zip_code,
-          preferred_language,
-          membership_status,
-          membership_hashtags
+          allergies
         FROM patients
         WHERE patient_id = $1 OR id = $1
       `;

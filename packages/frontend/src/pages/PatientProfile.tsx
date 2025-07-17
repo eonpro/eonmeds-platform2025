@@ -287,14 +287,20 @@ export const PatientProfile: React.FC = () => {
                   <p>Submitted on {new Date(patient.created_at).toLocaleDateString()}</p>
                 </div>
                 <div className="form-actions">
-                  <button className="view-button">View PDF</button>
-                  <button className="download-button">Download</button>
+                  <button 
+                    className="view-button"
+                    onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${patient.id}/intake-pdf`, '_blank')}
+                  >
+                    View PDF
+                  </button>
+                  <a 
+                    href={`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${patient.id}/intake-pdf`}
+                    download={`${patient.patient_id}_intake_form.pdf`}
+                    className="download-button"
+                  >
+                    Download
+                  </a>
                 </div>
-              </div>
-              
-              <div className="no-forms-message">
-                <p>Complete intake form data will be available here as PDFs</p>
-                <p className="coming-soon">PDF generation coming soon!</p>
               </div>
             </div>
           </div>

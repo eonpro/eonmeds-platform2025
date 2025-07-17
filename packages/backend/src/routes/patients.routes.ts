@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { PatientService } from '../services/patient.service';
 import { checkJwt, checkRole } from '../middleware/auth0';
 import { pool } from '../config/database';
+import { PDFService } from '../services/pdf.service';
 
 const router = Router();
 
@@ -144,7 +145,47 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Get patient intake form data
+// Get patient intake form as PDF
+router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Get patient data
+    const patient = await PatientService.getPatientById(id);
+    if (!patient) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    
+    // Get webhook data
+    const webhookResult = await pool.query(
+      `SELECT we.payload 
+       FROM webhook_events we
+       JOIN patients p ON p.heyflow_submission_id = we.webhook_id
+       WHERE p.id = $1
+       ORDER BY we.created_at DESC
+       LIMIT 1`,
+      [id]
+    );
+    
+    const webhookData = webhookResult.rows[0]?.payload || {};
+    
+    // Generate PDF
+    const pdfBuffer = await PDFService.generateIntakeFormPDF(patient, webhookData);
+    
+    // Set response headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${patient.patient_id}_intake_form.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    // Send PDF
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    res.status(500).json({ error: 'Failed to generate PDF' });
+  }
+});
+
+// Get patient intake data (raw webhook data)
 router.get('/:id/intake', checkJwt, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
