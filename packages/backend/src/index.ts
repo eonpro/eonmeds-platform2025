@@ -8,7 +8,7 @@ import { testDatabaseConnection } from './config/database';
 // Import all routes at the top
 import webhookRoutes from './routes/webhook.routes';
 import authRoutes from './routes/auth.routes';
-import patientRoutes from './routes/patients.routes';
+import patientRoutes from './routes/patient.routes';
 import practitionerRoutes from './routes/practitioner.routes';
 import appointmentRoutes from './routes/appointment.routes';
 import documentRoutes from './routes/document.routes';
