@@ -7,6 +7,32 @@ import { debounce } from '../utils/debounce';
 import { AddNewClientModal } from '../components/AddNewClientModal';
 import './Clients.css';
 
+// Delete Confirmation Modal Component
+interface DeleteModalProps {
+  isOpen: boolean;
+  patientName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({ isOpen, patientName, onConfirm, onCancel }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
+        <h2>Delete Patient</h2>
+        <p>Are you sure you want to delete <strong>{patientName}</strong>?</p>
+        <p className="warning-text">This action cannot be undone.</p>
+        <div className="modal-actions">
+          <button className="cancel-btn" onClick={onCancel}>Cancel</button>
+          <button className="confirm-delete-btn" onClick={onConfirm}>Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const Clients: React.FC = () => {
   const navigate = useNavigate();
   const { logout } = useAuth0();
@@ -18,6 +44,11 @@ export const Clients: React.FC = () => {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousPatientCountRef = useRef<number>(0);
   const [newPatientNotification, setNewPatientNotification] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; patientId: string; patientName: string }>({
+    isOpen: false,
+    patientId: '',
+    patientName: ''
+  });
 
   // Fetch patients
   const fetchPatients = useCallback(async (search?: string, showLoading = true) => {
@@ -133,22 +164,34 @@ export const Clients: React.FC = () => {
   };
 
   const handleDelete = async (patientId: string, patientName: string) => {
-    if (!window.confirm(`Are you sure you want to delete ${patientName}?`)) {
-      return;
-    }
+    setDeleteModal({ isOpen: true, patientId, patientName });
+  };
 
+  const confirmDelete = async () => {
+    const { patientId } = deleteModal;
+    
     try {
-      const response = await apiClient?.delete(`/api/v1/patients/${patientId}`);
-      if (response?.status === 200) {
-        // Show success message
-        alert('Patient deleted successfully');
-        // Refresh the patient list
-        fetchPatients();
+      const response = await apiClient.delete(`/api/v1/patients/${patientId}`);
+      
+      if (response.data.success) {
+        // Remove the patient from the list
+        setPatients(prev => prev.filter(p => p.id !== patientId));
+        // Close modal
+        setDeleteModal({ isOpen: false, patientId: '', patientName: '' });
+        // Show success notification
+        setNewPatientNotification('Patient deleted successfully');
+        setTimeout(() => setNewPatientNotification(null), 3000);
+      } else {
+        alert('Failed to delete patient. Please try again.');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting patient:', error);
       alert('Failed to delete patient. Please try again.');
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, patientId: '', patientName: '' });
   };
 
   const formatPhoneNumber = (phone: string) => {
@@ -255,7 +298,10 @@ export const Clients: React.FC = () => {
                       }}
                       title="Delete patient"
                     >
-                      🗑️
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                        <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4L4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                      </svg>
                     </button>
                   </td>
                 </tr>
@@ -269,6 +315,13 @@ export const Clients: React.FC = () => {
         isOpen={showAddModal}
         onClose={handleModalClose}
         onSuccess={handleAddSuccess}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        patientName={deleteModal.patientName}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
       />
     </div>
   );

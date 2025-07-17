@@ -387,27 +387,27 @@
   font-weight: var(--font-weight-semibold);
   color: #14a97b;
   font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-  font-size: 12px;
+  font-size: 13.5px;  /* Increased from 12px */
 }
 
 /* Patient Name - Updated */
 .patient-name {
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-900);
-  font-size: 13px;
+  font-size: 14.5px;  /* Increased from 13px */
 }
 
 /* Patient Email - Updated */
 .patient-email {
   color: var(--color-gray-600);
-  font-size: 13px;
+  font-size: 14.5px;  /* Increased from 13px */
 }
 
 /* Patient Phone - Updated with Poppins */
 .patient-phone {
   color: var(--color-gray-600);
   font-family: 'Poppins', sans-serif;
-  font-size: 13px;
+  font-size: 14.5px;  /* Increased from 13px */
 }
 
 /* Patient Status - Updated Button Style */
@@ -427,12 +427,10 @@
   border: none;
   cursor: default;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .status-badge:hover {
   transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 .status-badge.active {
@@ -468,7 +466,7 @@
 /* Patient Created Date - Updated with Poppins */
 .patient-created {
   color: var(--color-gray-500);
-  font-size: 13px;
+  font-size: 14.5px;  /* Increased from 13px */
   font-family: 'Poppins', sans-serif;
 }
 
@@ -480,12 +478,12 @@
 
 /* Delete Button */
 .delete-btn {
-  background-color: #ef4444;
-  color: white;
+  background: transparent;
+  color: var(--color-gray-500);
   border: none;
   padding: 6px 12px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: inline-flex;
@@ -496,13 +494,96 @@
 }
 
 .delete-btn:hover {
-  background-color: #dc2626;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
 }
 
 .delete-btn:active {
-  transform: translateY(0);
+  transform: scale(0.95);
+}
+
+/* Delete Confirmation Modal */
+.delete-modal {
+  max-width: 400px;
+  width: 90%;
+  margin: auto;
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.delete-modal h2 {
+  margin: 0 0 16px;
+  color: var(--color-gray-900);
+  font-size: 24px;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family);
+}
+
+.delete-modal p {
+  margin: 10px 0;
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: 1.5;
+  font-family: var(--font-family);
+}
+
+.delete-modal p strong {
+  color: var(--color-gray-900);
+  font-weight: var(--font-weight-semibold);
+}
+
+.delete-modal .warning-text {
+  color: var(--color-orange);
+  font-size: 14px;
+  margin-top: 16px;
+  font-weight: var(--font-weight-medium);
+}
+
+.delete-modal .modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.delete-modal .cancel-btn {
+  padding: 10px 24px;
+  border: 1px solid var(--color-gray-300);
+  background: white;
+  color: var(--color-gray-700);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
+  transition: all 0.2s ease;
+}
+
+.delete-modal .cancel-btn:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+}
+
+.delete-modal .confirm-delete-btn {
+  padding: 10px 24px;
+  border: none;
+  background: var(--color-orange);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
+  transition: all 0.2s ease;
+}
+
+.delete-modal .confirm-delete-btn:hover {
+  background: #d26c25;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(231, 124, 53, 0.3);
 }
 
 .loading-cell,

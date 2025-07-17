@@ -340,11 +340,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete patient
-router.delete('/:id', authenticateToken, async (req, res) => {
-  res.json({ message: `Delete patient ${req.params.id} - not implemented yet` });
-});
-
 // Send invite to patient
 router.post('/:id/invite', authenticateToken, async (req, res) => {
   try {
