@@ -18,6 +18,7 @@ export const Clients: React.FC = () => {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousPatientCountRef = useRef<number>(0);
   const [newPatientNotification, setNewPatientNotification] = useState<string | null>(null);
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date());
 
   // Fetch patients
   const fetchPatients = useCallback(async (search?: string, showLoading = true) => {
@@ -34,6 +35,9 @@ export const Clients: React.FC = () => {
       });
       const newPatients = response.data.patients || [];
       
+      // Log the fetch results
+      console.log(`Fetched ${newPatients.length} patients at ${new Date().toLocaleTimeString()}`);
+      
       // Check for new patients (only when not loading initially)
       if (!showLoading && newPatients.length > previousPatientCountRef.current) {
         const diff = newPatients.length - previousPatientCountRef.current;
@@ -43,6 +47,7 @@ export const Clients: React.FC = () => {
       
       previousPatientCountRef.current = newPatients.length;
       setPatients(newPatients);
+      setLastUpdateTime(new Date());
     } catch (err: any) {
       console.error('Error fetching patients:', err);
     } finally {
@@ -63,10 +68,11 @@ export const Clients: React.FC = () => {
     // Initial fetch
     fetchPatients();
 
-    // Set up polling every 10 seconds
+    // Set up polling every 5 seconds for more real-time updates
     pollingIntervalRef.current = setInterval(() => {
+      console.log('Polling for new patients...', new Date().toLocaleTimeString());
       fetchPatients(searchTerm, false); // Don't show loading indicator for background updates
-    }, 10000);
+    }, 5000); // Reduced from 10000ms to 5000ms for faster updates
 
     // Cleanup on unmount
     return () => {
@@ -157,6 +163,9 @@ export const Clients: React.FC = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
         />
+        <div className="last-update">
+          Last updated: {lastUpdateTime.toLocaleTimeString()} • Auto-refreshing every 5 seconds
+        </div>
       </div>
 
       <div className="clients-table-container">
