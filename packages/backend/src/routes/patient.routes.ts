@@ -73,7 +73,14 @@ router.get('/', async (req, res) => {
         status,
         form_type,
         created_at,
-        updated_at
+        updated_at,
+        address,
+        city,
+        state,
+        zip,
+        height_inches,
+        weight_lbs,
+        bmi
       FROM patients
       ${whereClause}
       ORDER BY ${sortBy} ${sortOrder}
@@ -345,6 +352,93 @@ router.get('/:id/webhook-data', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching webhook data:', error);
     res.status(500).json({ error: 'Failed to fetch webhook data' });
+  }
+});
+
+// GET /api/v1/patients/:id/intake-pdf - Generate intake form PDF
+router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Get patient data
+    const patientResult = await pool.query(`
+      SELECT p.*, 
+        we.payload as webhook_data
+      FROM patients p
+      LEFT JOIN webhook_events we ON p.heyflow_submission_id = we.webhook_id
+      WHERE p.id::text = $1 OR p.patient_id = $1
+    `, [id]);
+    
+    if (patientResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    
+    const patient = patientResult.rows[0];
+    const webhookData = patient.webhook_data || {};
+    const fields = webhookData.fields || {};
+    
+    // For now, return a simple HTML that can be printed as PDF
+    const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Weight Loss Intake Form - ${patient.first_name} ${patient.last_name}</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: #333; }
+        .section { margin-bottom: 30px; }
+        .field { margin-bottom: 10px; }
+        .label { font-weight: bold; color: #666; }
+        .value { margin-left: 10px; }
+      </style>
+    </head>
+    <body>
+      <h1>Weight Loss Intake Form</h1>
+      <div class="section">
+        <h2>Patient Information</h2>
+        <div class="field"><span class="label">Name:</span> <span class="value">${patient.first_name} ${patient.last_name}</span></div>
+        <div class="field"><span class="label">Email:</span> <span class="value">${patient.email}</span></div>
+        <div class="field"><span class="label">Phone:</span> <span class="value">${patient.phone || 'Not provided'}</span></div>
+        <div class="field"><span class="label">Date of Birth:</span> <span class="value">${patient.date_of_birth || 'Not provided'}</span></div>
+        <div class="field"><span class="label">Gender:</span> <span class="value">${patient.gender || 'Not provided'}</span></div>
+      </div>
+      
+      <div class="section">
+        <h2>Physical Information</h2>
+        <div class="field"><span class="label">Height:</span> <span class="value">${Math.floor(patient.height_inches / 12)}' ${patient.height_inches % 12}"</span></div>
+        <div class="field"><span class="label">Starting Weight:</span> <span class="value">${patient.weight_lbs} lbs</span></div>
+        <div class="field"><span class="label">BMI:</span> <span class="value">${patient.bmi}</span></div>
+        <div class="field"><span class="label">Goal Weight:</span> <span class="value">${fields.idealweight || 'Not provided'} lbs</span></div>
+      </div>
+      
+      <div class="section">
+        <h2>Address</h2>
+        <div class="field"><span class="label">Address:</span> <span class="value">${patient.address || fields.address || 'Not provided'}</span></div>
+        <div class="field"><span class="label">City:</span> <span class="value">${patient.city || fields['address [city]'] || 'Not provided'}</span></div>
+        <div class="field"><span class="label">State:</span> <span class="value">${patient.state || fields['address [state]'] || 'Not provided'}</span></div>
+        <div class="field"><span class="label">ZIP:</span> <span class="value">${patient.zip || fields['address [zip]'] || 'Not provided'}</span></div>
+      </div>
+      
+      <div class="section">
+        <h2>Medical History</h2>
+        <div class="field"><span class="label">Medical Conditions:</span> <span class="value">${fields['Do you have any medical conditions or chronic illnesses?'] || 'None reported'}</span></div>
+        <div class="field"><span class="label">Mental Health:</span> <span class="value">${fields['Have you been diagnosed with any mental health condition?'] || 'None reported'}</span></div>
+        <div class="field"><span class="label">Surgeries:</span> <span class="value">${fields['Have you ever undergone any surgeries or medical procedures?'] || 'None reported'}</span></div>
+      </div>
+      
+      <div class="section">
+        <p><small>Form submitted on: ${new Date(webhookData.createdAt || patient.created_at).toLocaleDateString()}</small></p>
+      </div>
+    </body>
+    </html>
+    `;
+    
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+    
+  } catch (error) {
+    console.error('Error generating intake PDF:', error);
+    res.status(500).json({ error: 'Failed to generate intake PDF' });
   }
 });
 

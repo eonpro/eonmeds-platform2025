@@ -144,6 +144,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     // Debug: Log the payload structure
     console.log('Processing HeyFlow submission with payload structure:');
     console.log('- Has fields array?', Array.isArray(payload.fields));
+    console.log('- Has fields object?', typeof payload.fields === 'object' && !Array.isArray(payload.fields));
     console.log('- Has data object?', typeof payload.data === 'object');
     console.log('- Payload keys:', Object.keys(payload));
     
@@ -166,9 +167,14 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       console.log('Using Format 1: Direct data object');
       extractedData = payload.data;
     }
-    // Format 2: Fields array (older format)
+    // Format 2: Fields object (current HeyFlow format - July 2025)
+    else if (payload.fields && typeof payload.fields === 'object' && !Array.isArray(payload.fields)) {
+      console.log('Using Format 2: Fields object (current format)');
+      extractedData = payload.fields;
+    }
+    // Format 3: Fields array (older format)
     else if (Array.isArray(payload.fields)) {
-      console.log('Using Format 2: Fields array');
+      console.log('Using Format 3: Fields array (older format)');
       
       // Extract each field using the helper function
       extractedData = {
@@ -185,14 +191,14 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         consent_telehealth: getFieldValue('consent_telehealth'),
       };
     }
-    // Format 3: Direct properties on payload
+    // Format 4: Direct properties on payload
     else if (payload.firstname || payload.email || payload.lastname) {
-      console.log('Using Format 3: Direct properties');
+      console.log('Using Format 4: Direct properties');
       extractedData = payload;
     }
-    // Format 4: Nested in submission object
+    // Format 5: Nested in submission object
     else if (payload.submission && typeof payload.submission === 'object') {
-      console.log('Using Format 4: Submission object');
+      console.log('Using Format 5: Submission object');
       extractedData = payload.submission.data || payload.submission;
     }
     else {
@@ -208,13 +214,18 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       first_name: extractedData.firstname || extractedData.first_name || extractedData.firstName || null,
       last_name: extractedData.lastname || extractedData.last_name || extractedData.lastName || null,
       email: extractedData.email || extractedData.Email || extractedData.email_address || null,
-      phone: extractedData.PhoneNumber || extractedData.phone || extractedData.phone_number || extractedData.telefono || null,
+      phone: extractedData['Phone Number'] || extractedData.PhoneNumber || extractedData.phone || extractedData.phone_number || extractedData.telefono || null,
       date_of_birth: extractedData.dob || extractedData.date_of_birth || extractedData.dateOfBirth || extractedData.birthdate || null,
       gender: extractedData.gender || extractedData.Gender || extractedData.sex || null,
       height_feet: parseInt(extractedData.feet || extractedData.height_feet || 0),
       height_inches: parseInt(extractedData.inches || extractedData.height_inches || 0),
       weight_lbs: parseFloat(extractedData.starting_weight || extractedData.weight || extractedData.weight_lbs || extractedData.current_weight || 0),
-      target_weight_lbs: parseFloat(extractedData.target_weight || extractedData.target_weight_lbs || extractedData.goal_weight || 0),
+      target_weight_lbs: parseFloat(extractedData.idealweight || extractedData.target_weight || extractedData.target_weight_lbs || extractedData.goal_weight || 0),
+      bmi: parseFloat(extractedData.BMI || extractedData.bmi || 0),
+      address: extractedData.address || extractedData.Address || null,
+      city: extractedData['address [city]'] || extractedData.city || null,
+      state: extractedData['address [state]'] || extractedData.state || null,
+      zip: extractedData['address [zip]'] || extractedData.zip || null,
       consent_treatment: extractedData.consent_treatment === 'yes' || extractedData.consent_treatment === true || extractedData.consent_treatment === 'true',
       consent_telehealth: extractedData.consent_telehealth === 'yes' || extractedData.consent_telehealth === true || extractedData.consent_telehealth === 'true',
     };
@@ -252,13 +263,17 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         height_inches,
         weight_lbs,
         bmi,
+        address,
+        city,
+        state,
+        zip,
         consent_treatment,
         consent_telehealth,
         consent_date,
         status
       ) VALUES (
         'P' || LPAD(nextval('patient_id_seq')::TEXT, 6, '0'),
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
       )
       ON CONFLICT (email) DO UPDATE SET
         updated_at = NOW(),
@@ -267,7 +282,11 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         phone = EXCLUDED.phone,
         height_inches = EXCLUDED.height_inches,
         weight_lbs = EXCLUDED.weight_lbs,
-        bmi = EXCLUDED.bmi
+        bmi = EXCLUDED.bmi,
+        address = EXCLUDED.address,
+        city = EXCLUDED.city,
+        state = EXCLUDED.state,
+        zip = EXCLUDED.zip
       RETURNING id, patient_id, email, first_name, last_name`,
       [
         payload.id || payload.webhookId,
@@ -283,6 +302,10 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         calculateHeightInches(patientData.height_feet, patientData.height_inches),
         patientData.weight_lbs,
         bmi,
+        patientData.address,
+        patientData.city,
+        patientData.state,
+        patientData.zip,
         patientData.consent_treatment,
         patientData.consent_telehealth,
         new Date(), // consent date

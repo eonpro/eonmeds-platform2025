@@ -1,5 +1,249 @@
 # EONMeds Platform - Project Scratchpad
 
+## CRITICAL ISSUE: Real-Time Patient Display Not Working (July 2025)
+
+### Problem Statement
+The dashboard polling mechanism is working correctly (fetching every 5 seconds), but NO new HeyFlow submissions are appearing in the patient list. This is the most critical component of the platform.
+
+### Current Situation Analysis
+
+#### What's Working ✅
+1. **Frontend Polling**: Successfully fetching patient list every 5 seconds
+2. **Console Logging**: Shows "Fetched 3 patients at [timestamp]" repeatedly
+3. **Backend API**: `/api/v1/patients` endpoint responding with 3 patients
+4. **Database Connection**: Backend successfully connected to AWS RDS
+5. **UI Updates**: Last update timestamp showing correctly
+
+#### What's NOT Working ❌
+1. **New Patients Not Appearing**: Only showing the same 3 patients (Sarai, Maria, Test Patient)
+2. **HeyFlow Integration**: Unknown if webhooks are being received
+3. **Patient Creation**: Unknown if new patients are being created in database
+4. **Data Flow**: Complete breakdown somewhere in the pipeline
+
+### Root Cause Analysis
+
+#### Hypothesis 1: HeyFlow Webhooks Not Configured
+- **Evidence**: No new patients appearing despite form submissions
+- **Test**: Check webhook configuration in HeyFlow dashboard
+- **Solution**: Configure correct webhook URL
+
+#### Hypothesis 2: Webhooks Received but Failing
+- **Evidence**: Backend logs show test webhook with wrong format
+- **Test**: Check webhook_events table in database
+- **Solution**: Fix webhook processing logic
+
+#### Hypothesis 3: Patients Created but Not Displayed
+- **Evidence**: Frontend only shows 3 patients consistently
+- **Test**: Query database directly for all patients
+- **Solution**: Fix patient retrieval query or filters
+
+#### Hypothesis 4: Database Write Failures
+- **Evidence**: No new patients in response
+- **Test**: Check database logs and webhook processing errors
+- **Solution**: Fix database write permissions or schema issues
+
+### Diagnostic Action Plan
+
+#### Step 1: Verify Webhook Configuration
+```bash
+# Check if HeyFlow is configured with correct URL:
+https://eonmeds-platform2025-production.up.railway.app/api/v1/webhooks/heyflow
+```
+
+#### Step 2: Check Database Directly
+```sql
+-- Check all patients in database
+SELECT COUNT(*) as total_patients FROM patients;
+SELECT * FROM patients ORDER BY created_at DESC LIMIT 10;
+
+-- Check webhook events
+SELECT COUNT(*) as total_webhooks FROM webhook_events;
+SELECT * FROM webhook_events ORDER BY created_at DESC LIMIT 10;
+
+-- Check today's activity
+SELECT * FROM patients WHERE created_at >= CURRENT_DATE;
+SELECT * FROM webhook_events WHERE created_at >= CURRENT_DATE;
+```
+
+#### Step 3: Test Webhook Endpoint
+```bash
+# Test webhook is accessible
+curl https://eonmeds-platform2025-production.up.railway.app/api/v1/webhooks/test
+
+# Check recent webhooks
+curl https://eonmeds-platform2025-production.up.railway.app/api/v1/webhooks/recent
+
+# Check today's data
+curl https://eonmeds-platform2025-production.up.railway.app/api/v1/patients/today
+```
+
+#### Step 4: Analyze Webhook Processing
+1. Review webhook controller logic for format mismatches
+2. Check if HeyFlow changed their payload structure
+3. Verify database write operations are succeeding
+4. Check for any error logs in webhook processing
+
+### Implementation Fixes
+
+#### Fix 1: Enhanced Webhook Logging
+```typescript
+// Add comprehensive logging to webhook controller
+export const handleHeyFlowWebhook = async (req: Request, res: Response) => {
+  console.log('=== WEBHOOK RECEIVED ===');
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Body:', JSON.stringify(req.body, null, 2));
+  console.log('Body Type:', typeof req.body);
+  console.log('Body Keys:', Object.keys(req.body || {}));
+  
+  // Store ALL webhooks for debugging
+  await storeWebhookEvent(req.body);
+  
+  // Try multiple payload formats
+  const formats = [
+    () => req.body.data,
+    () => req.body.fields,
+    () => req.body.submission?.data,
+    () => req.body
+  ];
+  
+  let extractedData = null;
+  for (const format of formats) {
+    try {
+      const data = format();
+      if (data && (data.email || data.Email)) {
+        extractedData = data;
+        break;
+      }
+    } catch (e) {
+      continue;
+    }
+  }
+  
+  if (!extractedData) {
+    console.error('UNABLE TO EXTRACT DATA FROM ANY FORMAT');
+    console.error('Full payload:', JSON.stringify(req.body, null, 2));
+  }
+};
+```
+
+#### Fix 2: Remove ALL Filtering
+```typescript
+// Temporarily show ALL patients without any filters
+router.get('/', async (req, res) => {
+  const result = await pool.query(`
+    SELECT * FROM patients 
+    ORDER BY created_at DESC
+  `);
+  
+  console.log(`Returning ALL ${result.rows.length} patients from database`);
+  
+  res.json({
+    patients: result.rows,
+    total: result.rows.length,
+    debug: {
+      timestamp: new Date().toISOString(),
+      query: 'SELECT ALL'
+    }
+  });
+});
+```
+
+#### Fix 3: Manual Patient Creation Test
+```typescript
+// Add endpoint to manually create test patient
+router.post('/test-create', async (req, res) => {
+  const testPatient = {
+    patient_id: 'P' + Date.now(),
+    first_name: 'Test',
+    last_name: 'Patient_' + Date.now(),
+    email: `test${Date.now()}@test.com`,
+    status: 'active',
+    form_type: 'manual_test'
+  };
+  
+  const result = await pool.query(
+    `INSERT INTO patients (patient_id, first_name, last_name, email, status, form_type)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    Object.values(testPatient)
+  );
+  
+  res.json({
+    created: result.rows[0],
+    message: 'Test patient created - check if it appears in dashboard'
+  });
+});
+```
+
+### Quick Wins to Try Immediately
+
+1. **Check HeyFlow Dashboard**
+   - Login to HeyFlow
+   - Go to Integrations/Webhooks
+   - Verify webhook URL is exactly: `https://eonmeds-platform2025-production.up.railway.app/api/v1/webhooks/heyflow`
+   - Check if webhooks are enabled
+   - Look for any failed webhook attempts
+
+2. **Submit Test Form**
+   - Submit a new HeyFlow form
+   - Note the exact time
+   - Wait 30 seconds
+   - Check dashboard
+   - Check `/api/v1/webhooks/recent`
+
+3. **Database Direct Query**
+   - Connect to AWS RDS directly
+   - Run: `SELECT COUNT(*) FROM patients;`
+   - Run: `SELECT COUNT(*) FROM webhook_events;`
+   - This tells us if data exists but isn't displaying
+
+### Success Criteria
+- New HeyFlow submissions appear in dashboard within 10 seconds
+- Webhook events are logged and visible
+- Patient count increases with each form submission
+- No manual intervention required
+
+### If All Else Fails - Emergency Fixes
+
+1. **Bypass Webhook Processing**
+   ```typescript
+   // Temporarily create patient from ANY webhook
+   const emergencyPatient = {
+     first_name: req.body.firstname || 'Unknown',
+     last_name: req.body.lastname || 'Unknown', 
+     email: req.body.email || `unknown${Date.now()}@temp.com`,
+     status: 'pending'
+   };
+   
+   await createPatient(emergencyPatient);
+   ```
+
+2. **Add Manual Refresh Button**
+   ```typescript
+   // Force complete data refresh
+   const forceRefresh = async () => {
+     const response = await fetch('/api/v1/patients?force=true&nocache=' + Date.now());
+     setPatients(response.data.patients);
+   };
+   ```
+
+3. **Show Webhook Debug Info**
+   ```typescript
+   // Display webhook status in UI
+   <div className="webhook-status">
+     Last Webhook: {webhookStatus.lastReceived || 'Never'}
+     Total Webhooks: {webhookStatus.total || 0}
+     Failed: {webhookStatus.failed || 0}
+   </div>
+   ```
+
+### Timeline for Resolution
+1. **Immediate (5 mins)**: Check HeyFlow webhook configuration
+2. **Quick (15 mins)**: Deploy enhanced logging and test endpoints
+3. **Short-term (30 mins)**: Fix webhook processing based on findings
+4. **Medium-term (2 hours)**: Implement comprehensive monitoring
+5. **Long-term (1 day)**: Add webhook replay and manual processing UI
+
 ## Background and Motivation
 
 The user is building EONMeds, a HIPAA- and SOC 2-compliant telehealth platform specifically designed for the Hispanic community. The platform focuses on weight loss treatments and other medical services, requiring comprehensive features for patient management, prescription tracking, and multi-channel communication.
