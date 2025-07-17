@@ -96,8 +96,46 @@ router.get('/', async (req, res) => {
 });
 
 // Get patient by ID
-router.get('/:id', authenticateToken, async (req, res) => {
-  res.json({ message: `Get patient ${req.params.id} - not implemented yet` });
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Query using either id or patient_id
+    const result = await pool.query(`
+      SELECT 
+        id,
+        patient_id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        date_of_birth,
+        gender,
+        status,
+        form_type,
+        height_inches,
+        weight_lbs,
+        bmi,
+        medical_conditions,
+        current_medications,
+        allergies,
+        heyflow_submission_id,
+        submitted_at,
+        created_at,
+        updated_at
+      FROM patients
+      WHERE id::text = $1 OR patient_id = $1
+    `, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching patient:', error);
+    res.status(500).json({ error: 'Failed to fetch patient' });
+  }
 });
 
 // Create patient
@@ -245,7 +283,7 @@ router.get('/:id/webhook-data', async (req: Request, res: Response) => {
       SELECT we.payload, we.created_at, we.webhook_id
       FROM webhook_events we
       JOIN patients p ON p.heyflow_submission_id = we.webhook_id
-      WHERE p.id = $1
+      WHERE p.id::text = $1 OR p.patient_id = $1
       ORDER BY we.created_at DESC
       LIMIT 1
     `, [id]);

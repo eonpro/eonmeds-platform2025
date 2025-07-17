@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useApi } from '../hooks/useApi';
@@ -15,13 +15,16 @@ export const Clients: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const previousPatientCountRef = useRef<number>(0);
+  const [newPatientNotification, setNewPatientNotification] = useState<string | null>(null);
 
   // Fetch patients
-  const fetchPatients = useCallback(async (search?: string) => {
+  const fetchPatients = useCallback(async (search?: string, showLoading = true) => {
     if (!apiClient) return;
 
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const response = await apiClient.get<PatientListResponse>('/api/v1/patients', {
         params: {
           search,
@@ -29,11 +32,21 @@ export const Clients: React.FC = () => {
           offset: 0
         }
       });
-      setPatients(response.data.patients || []);
+      const newPatients = response.data.patients || [];
+      
+      // Check for new patients (only when not loading initially)
+      if (!showLoading && newPatients.length > previousPatientCountRef.current) {
+        const diff = newPatients.length - previousPatientCountRef.current;
+        setNewPatientNotification(`${diff} new patient${diff > 1 ? 's' : ''} added!`);
+        setTimeout(() => setNewPatientNotification(null), 5000);
+      }
+      
+      previousPatientCountRef.current = newPatients.length;
+      setPatients(newPatients);
     } catch (err: any) {
       console.error('Error fetching patients:', err);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, [apiClient]);
 
@@ -45,9 +58,23 @@ export const Clients: React.FC = () => {
     [fetchPatients]
   );
 
+  // Set up polling for real-time updates
   useEffect(() => {
+    // Initial fetch
     fetchPatients();
-  }, [fetchPatients]);
+
+    // Set up polling every 10 seconds
+    pollingIntervalRef.current = setInterval(() => {
+      fetchPatients(searchTerm, false); // Don't show loading indicator for background updates
+    }, 10000);
+
+    // Cleanup on unmount
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, [fetchPatients, searchTerm]);
 
   useEffect(() => {
     if (searchTerm) {
@@ -99,6 +126,14 @@ export const Clients: React.FC = () => {
 
   return (
     <div className="clients-page">
+      {/* New Patient Notification */}
+      {newPatientNotification && (
+        <div className="new-patient-notification">
+          <span>{newPatientNotification}</span>
+          <button onClick={() => setNewPatientNotification(null)}>×</button>
+        </div>
+      )}
+      
       <div className="page-header">
         <h1>Welcome, Italo</h1>
         <div className="header-actions">

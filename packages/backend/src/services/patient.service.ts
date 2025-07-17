@@ -140,7 +140,7 @@ export class PatientService {
           current_medications,
           allergies
         FROM patients
-        WHERE patient_id = $1 OR id = $1
+        WHERE patient_id = $1 OR id::text = $1
       `;
       
       const result = await pool.query(query, [patientId]);
@@ -171,7 +171,7 @@ export class PatientService {
           p.form_type
         FROM webhook_events we
         JOIN patients p ON p.heyflow_submission_id = we.webhook_id
-        WHERE p.patient_id = $1 OR p.id = $1
+        WHERE p.patient_id = $1 OR p.id::text = $1
         ORDER BY we.created_at DESC
         LIMIT 1
       `;

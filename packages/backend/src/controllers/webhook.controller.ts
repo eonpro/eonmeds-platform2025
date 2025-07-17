@@ -213,7 +213,8 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       gender: extractedData.gender || extractedData.Gender || extractedData.sex || null,
       height_feet: parseInt(extractedData.feet || extractedData.height_feet || 0),
       height_inches: parseInt(extractedData.inches || extractedData.height_inches || 0),
-      weight_lbs: parseFloat(extractedData.starting_weight || extractedData.weight || extractedData.weight_lbs || 0),
+      weight_lbs: parseFloat(extractedData.starting_weight || extractedData.weight || extractedData.weight_lbs || extractedData.current_weight || 0),
+      target_weight_lbs: parseFloat(extractedData.target_weight || extractedData.target_weight_lbs || extractedData.goal_weight || 0),
       consent_treatment: extractedData.consent_treatment === 'yes' || extractedData.consent_treatment === true || extractedData.consent_treatment === 'true',
       consent_telehealth: extractedData.consent_telehealth === 'yes' || extractedData.consent_telehealth === true || extractedData.consent_telehealth === 'true',
     };
@@ -221,6 +222,14 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     // Validate required fields
     if (!patientData.email) {
       throw new Error('Missing required field: email');
+    }
+    
+    // Calculate BMI if we have height and weight
+    let bmi = null;
+    const totalHeightInches = calculateHeightInches(patientData.height_feet, patientData.height_inches);
+    if (totalHeightInches > 0 && patientData.weight_lbs > 0) {
+      bmi = (patientData.weight_lbs / (totalHeightInches * totalHeightInches)) * 703;
+      bmi = Math.round(bmi * 10) / 10; // Round to 1 decimal place
     }
     
     // Get form type from various possible locations
@@ -242,19 +251,23 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         gender,
         height_inches,
         weight_lbs,
+        bmi,
         consent_treatment,
         consent_telehealth,
         consent_date,
         status
       ) VALUES (
         'P' || LPAD(nextval('patient_id_seq')::TEXT, 6, '0'),
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
       )
       ON CONFLICT (email) DO UPDATE SET
         updated_at = NOW(),
         heyflow_submission_id = EXCLUDED.heyflow_submission_id,
         last_name = EXCLUDED.last_name,
-        phone = EXCLUDED.phone
+        phone = EXCLUDED.phone,
+        height_inches = EXCLUDED.height_inches,
+        weight_lbs = EXCLUDED.weight_lbs,
+        bmi = EXCLUDED.bmi
       RETURNING id, patient_id, email, first_name, last_name`,
       [
         payload.id || payload.webhookId,
@@ -269,6 +282,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         patientData.gender,
         calculateHeightInches(patientData.height_feet, patientData.height_inches),
         patientData.weight_lbs,
+        bmi,
         patientData.consent_treatment,
         patientData.consent_telehealth,
         new Date(), // consent date
@@ -280,9 +294,9 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     
     // Handle form-specific data based on form type
     // Check if it's a weight loss form by flowID or form name
-    if (formType.includes('weight') || extractedData.target_weight_lbs) {
+    if (formType.includes('weight') || extractedData.target_weight_lbs || patientData.target_weight_lbs) {
       const weightLossData = {
-        target_weight_lbs: extractedData.target_weight_lbs || null,
+        target_weight_lbs: patientData.target_weight_lbs || extractedData.target_weight_lbs || null,
         weight_loss_timeline: extractedData.weight_loss_timeline || null,
         previous_weight_loss_attempts: extractedData.previous_weight_loss_attempts || null,
         exercise_frequency: extractedData.exercise_frequency || null,

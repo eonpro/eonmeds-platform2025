@@ -234,3 +234,46 @@
     padding: 12px 16px;
   }
 } 
+
+/* New Patient Notification */
+.new-patient-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #4CAF50;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+}
+
+.new-patient-notification button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+.new-patient-notification button:hover {
+  opacity: 0.8;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+} 
