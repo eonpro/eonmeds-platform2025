@@ -163,9 +163,6 @@ export const Clients: React.FC = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
         />
-        <div className="last-update">
-          Last updated: {lastUpdateTime.toLocaleTimeString()} • Auto-refreshing every 5 seconds
-        </div>
       </div>
 
       <div className="clients-table-container">

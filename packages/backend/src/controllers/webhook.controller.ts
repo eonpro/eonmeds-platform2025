@@ -246,14 +246,18 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     // Get form type from various possible locations
     const formType = payload.flowID || payload.formType || payload.form_type || payload.type || 'unknown';
     
-    // Create patient record with auto-generated patient_id
-    const patientResult = await client.query(
+    // Generate patient ID with new format
+    const patientIdResult = await client.query(
+      "SELECT 'P' || LPAD((COALESCE(MAX(SUBSTRING(patient_id FROM 2)::INTEGER), 0) + 1)::TEXT, 4, '0') as patient_id FROM patients WHERE patient_id ~ '^P[0-9]+$'"
+    );
+    const patientId = patientIdResult.rows[0]?.patient_id || 'P0001';
+    
+    // Create or update patient record
+    const result = await client.query(
       `INSERT INTO patients (
         patient_id,
         heyflow_submission_id,
         form_type,
-        form_version,
-        submitted_at,
         first_name,
         last_name,
         email,
@@ -267,12 +271,12 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         city,
         state,
         zip,
+        submitted_at,
         consent_treatment,
         consent_telehealth,
         consent_date,
         status
       ) VALUES (
-        'P' || LPAD(nextval('patient_id_seq')::TEXT, 6, '0'),
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
       )
       ON CONFLICT (email) DO UPDATE SET
@@ -289,7 +293,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         zip = EXCLUDED.zip
       RETURNING id, patient_id, email, first_name, last_name`,
       [
-        payload.id || payload.webhookId,
+        patientId,
         formType,
         '1.0', // HeyFlow doesn't send version in test data
         new Date(payload.createdAt || Date.now()),

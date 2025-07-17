@@ -137,7 +137,9 @@
 }
 
 .search-container {
-  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .search-wrapper {
@@ -146,19 +148,24 @@
 }
 
 .search-input {
-  width: 100%;
-  padding: 12px 20px 12px 48px;
+  flex: 1;
+  padding: 12px 20px;
   border: 2px solid var(--color-gray-200);
   border-radius: 8px;
   font-size: 16px;
   font-family: var(--font-family);
   transition: all 0.2s ease;
+  background-color: var(--color-white);
 }
 
 .search-input:focus {
   outline: none;
   border-color: var(--color-primary-teal);
   box-shadow: 0 0 0 3px rgba(20, 169, 123, 0.1);
+}
+
+.search-input::placeholder {
+  color: var(--color-gray-400);
 }
 
 .search-icon {
@@ -286,4 +293,113 @@
 
 .empty-state p {
   color: var(--color-gray-500);
+}
+
+/* Patient Table Styles */
+.patient-table {
+  width: 100%;
+  background-color: var(--color-white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-top: 24px;
+}
+
+.patient-table thead {
+  background-color: var(--color-gray-50);
+}
+
+.patient-table th {
+  padding: 16px 24px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--color-gray-200);
+}
+
+.patient-table tbody tr {
+  border-bottom: 1px solid var(--color-gray-100);
+  transition: all 0.2s ease;
+}
+
+.patient-table tbody tr:hover {
+  background-color: var(--color-gray-50);
+  cursor: pointer;
+}
+
+.patient-table td {
+  padding: 20px 24px;
+  font-size: 14px;
+  color: var(--color-gray-700);
+}
+
+.patient-id {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-teal);
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+}
+
+.patient-name {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+}
+
+.patient-email {
+  color: var(--color-gray-600);
+}
+
+.patient-phone {
+  color: var(--color-gray-600);
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+}
+
+.patient-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  text-transform: capitalize;
+}
+
+.patient-status.active {
+  background-color: var(--color-primary-light);
+  color: var(--color-gray-800);
+}
+
+.patient-status.qualified {
+  background-color: var(--color-primary-green);
+  color: var(--color-white);
+}
+
+.patient-status.pending {
+  background-color: var(--color-primary-orange);
+  color: var(--color-white);
+}
+
+.patient-status.inactive {
+  background-color: var(--color-gray-200);
+  color: var(--color-gray-600);
+}
+
+.patient-created {
+  color: var(--color-gray-500);
+  font-size: 13px;
+}
+
+.loading-cell,
+.empty-cell {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--color-gray-500);
+  font-size: 16px;
+}
+
+/* Remove old styles that might conflict */
+.client-row {
+  cursor: pointer;
 } 

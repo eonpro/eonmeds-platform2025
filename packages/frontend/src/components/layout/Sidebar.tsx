@@ -106,7 +106,6 @@ export const Sidebar: React.FC = () => {
     <div className="sidebar">
       <div className="sidebar-logo">
         <Logo height={40} className="sidebar-logo-img" />
-        <span className="sidebar-logo-text">EONMeds</span>
       </div>
       <nav className="sidebar-nav">
         {menuItems.map((item) => (
