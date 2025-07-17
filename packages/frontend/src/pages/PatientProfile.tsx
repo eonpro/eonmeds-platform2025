@@ -17,11 +17,10 @@ interface PatientDetails {
   height_inches?: number;
   weight_lbs?: number;
   bmi?: number;
-  address_line1?: string;
-  address_line2?: string;
+  address?: string;
   city?: string;
   state?: string;
-  zip_code?: string;
+  zip?: string;
   membership_status?: string;
   membership_hashtags?: string[];
 }
@@ -40,6 +39,7 @@ export const PatientProfile: React.FC = () => {
     try {
       setLoading(true);
       const data = await patientService.getPatientById(id);
+      console.log('Patient data received:', data); // Debug log
       setPatient(data);
     } catch (err) {
       console.error('Error loading patient:', err);
@@ -247,8 +247,8 @@ export const PatientProfile: React.FC = () => {
                     {patient.address ? (
                       <>
                         {patient.address}<br />
-                        {patient.city && patient.state && patient.zip_code && 
-                          `${patient.city}, ${patient.state} ${patient.zip_code}`
+                        {patient.city && patient.state && patient.zip && 
+                          `${patient.city}, ${patient.state} ${patient.zip}`
                         }
                       </>
                     ) : (
