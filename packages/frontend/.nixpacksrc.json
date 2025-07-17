@@ -1,0 +1,17 @@
+{
+  "phases": {
+    "install": {
+      "cmds": [
+        "npm ci || npm install"
+      ]
+    },
+    "build": {
+      "cmds": [
+        "npm run build"
+      ]
+    }
+  },
+  "start": {
+    "cmd": "npx serve -s build -l $PORT"
+  }
+} 
