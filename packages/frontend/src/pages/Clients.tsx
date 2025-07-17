@@ -129,8 +129,26 @@ export const Clients: React.FC = () => {
   };
 
   const handleAddSuccess = () => {
-    // Refresh the patient list
-    fetchPatients();
+    fetchPatients(); // Refresh the list
+  };
+
+  const handleDelete = async (patientId: string, patientName: string) => {
+    if (!window.confirm(`Are you sure you want to delete ${patientName}?`)) {
+      return;
+    }
+
+    try {
+      const response = await apiClient?.delete(`/api/v1/patients/${patientId}`);
+      if (response?.status === 200) {
+        // Show success message
+        alert('Patient deleted successfully');
+        // Refresh the patient list
+        fetchPatients();
+      }
+    } catch (error: any) {
+      console.error('Error deleting patient:', error);
+      alert('Failed to delete patient. Please try again.');
+    }
   };
 
   const formatPhoneNumber = (phone: string) => {
@@ -188,16 +206,17 @@ export const Clients: React.FC = () => {
               <th>PHONE</th>
               <th>STATUS</th>
               <th>CREATED</th>
+              <th>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="loading-cell">Loading clients...</td>
+                <td colSpan={7} className="loading-cell">Loading clients...</td>
               </tr>
             ) : patients.length === 0 ? (
               <tr>
-                <td colSpan={6} className="empty-cell">
+                <td colSpan={7} className="empty-cell">
                   {searchTerm ? 'No clients found matching your search' : 'No clients yet'}
                 </td>
               </tr>
@@ -205,19 +224,40 @@ export const Clients: React.FC = () => {
               patients.map((patient) => (
                 <tr 
                   key={patient.id} 
-                  onClick={() => handlePatientClick(patient.id)}
                   className="client-row"
                 >
-                  <td className="patient-id">{patient.patient_id || 'E7007'}</td>
-                  <td className="patient-name">{patient.name || `${patient.first_name} ${patient.last_name}`}</td>
-                  <td className="patient-email">{patient.email}</td>
-                  <td className="patient-phone">{formatPhoneNumber(patient.phone)}</td>
-                  <td className="patient-status">
+                  <td className="patient-id" onClick={() => handlePatientClick(patient.id)}>
+                    {patient.patient_id || 'E7007'}
+                  </td>
+                  <td className="patient-name" onClick={() => handlePatientClick(patient.id)}>
+                    {patient.name || `${patient.first_name} ${patient.last_name}`}
+                  </td>
+                  <td className="patient-email" onClick={() => handlePatientClick(patient.id)}>
+                    {patient.email}
+                  </td>
+                  <td className="patient-phone" onClick={() => handlePatientClick(patient.id)}>
+                    {formatPhoneNumber(patient.phone)}
+                  </td>
+                  <td className="patient-status" onClick={() => handlePatientClick(patient.id)}>
                     <span className={`status-badge ${getPatientStatus(patient).status}`}>
                       {getPatientStatus(patient).label}
                     </span>
                   </td>
-                  <td className="patient-created">{formatDate(patient.created_at)}</td>
+                  <td className="patient-created" onClick={() => handlePatientClick(patient.id)}>
+                    {formatDate(patient.created_at)}
+                  </td>
+                  <td className="patient-actions">
+                    <button 
+                      className="delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(patient.id, patient.name || `${patient.first_name} ${patient.last_name}`);
+                      }}
+                      title="Delete patient"
+                    >
+                      🗑️
+                    </button>
+                  </td>
                 </tr>
               ))
             )}

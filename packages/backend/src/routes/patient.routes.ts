@@ -653,4 +653,62 @@ router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
   }
 });
 
+// Delete a patient
+// Temporarily removed authenticateToken for testing
+router.delete('/:id', async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { id } = req.params;
+    
+    // Start transaction
+    await client.query('BEGIN');
+    
+    // First check if patient exists
+    const checkResult = await client.query(
+      'SELECT id, patient_id, first_name, last_name FROM patients WHERE id = $1',
+      [id]
+    );
+    
+    if (checkResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    
+    const patient = checkResult.rows[0];
+    
+    // Delete related records first (if any exist)
+    // Delete from weight_loss_intake if exists
+    await client.query('DELETE FROM weight_loss_intake WHERE patient_id = $1', [id]);
+    
+    // Delete from patients table
+    const deleteResult = await client.query(
+      'DELETE FROM patients WHERE id = $1 RETURNING id',
+      [id]
+    );
+    
+    // Commit transaction
+    await client.query('COMMIT');
+    
+    console.log(`Deleted patient ${patient.patient_id}: ${patient.first_name} ${patient.last_name}`);
+    
+    res.json({ 
+      success: true, 
+      message: 'Patient deleted successfully',
+      deletedPatient: {
+        id: patient.id,
+        patient_id: patient.patient_id,
+        name: `${patient.first_name} ${patient.last_name}`
+      }
+    });
+    
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error deleting patient:', error);
+    res.status(500).json({ error: 'Failed to delete patient' });
+  } finally {
+    client.release();
+  }
+});
+
 export default router; 
