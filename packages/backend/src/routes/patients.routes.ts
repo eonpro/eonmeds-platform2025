@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { PatientService } from '../services/patient.service';
 import { checkJwt, checkRole } from '../middleware/auth0';
 import { pool } from '../config/database';
-import { PDFService } from '../services/pdf.service';
+// import { PDFService } from '../services/pdf.service';
 
 const router = Router();
 
@@ -146,6 +146,8 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // Get patient intake form as PDF
+// TEMPORARILY DISABLED - PDF generation
+/*
 router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -183,6 +185,12 @@ router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
     console.error('Error generating PDF:', error);
     res.status(500).json({ error: 'Failed to generate PDF' });
   }
+});
+*/
+
+// Temporary simple PDF endpoint
+router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
+  res.status(501).json({ error: 'PDF generation temporarily disabled' });
 });
 
 // Get patient intake data (raw webhook data)
