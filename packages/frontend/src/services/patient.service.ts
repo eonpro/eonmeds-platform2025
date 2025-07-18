@@ -32,6 +32,9 @@ export interface Patient {
   
   // Additional info
   additional_info?: string;
+  
+  // Payment integration
+  stripe_customer_id?: string;
 }
 
 export interface PatientListResponse {

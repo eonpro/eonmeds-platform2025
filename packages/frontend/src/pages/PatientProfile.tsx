@@ -18,6 +18,7 @@ import {
   MapIcon
 } from '../components/common/Icons';
 import './PatientProfile.css';
+import { PatientInvoices } from '../components/patients/PatientInvoices';
 
 interface PatientDetails {
   id: string;
@@ -25,25 +26,37 @@ interface PatientDetails {
   first_name: string;
   last_name: string;
   email: string;
-  phone: string;
-  date_of_birth: string;
+  phone?: string;
+  date_of_birth?: string;
   gender?: string;
-  status: string;
-  created_at: string;
   height_inches?: number;
   weight_lbs?: number;
   bmi?: number;
-  address?: string;
+  status?: string;
+  membership_status?: string;
+  membership_hashtags?: string[];
+  created_at: string;
+  updated_at?: string;
+  
+  // Address fields
+  address?: string; // Legacy full address
   address_house?: string;
   address_street?: string;
   apartment_number?: string;
   city?: string;
   state?: string;
   zip?: string;
-  membership_status?: string;
-  membership_hashtags?: string[];
-  tracking_number?: string;
+  
+  // Additional info
   additional_info?: string;
+  
+  // Payment integration
+  stripe_customer_id?: string;
+  
+  // HeyFlow integration
+  heyflow_submission_id?: string;
+  form_type?: string;
+  submitted_at?: string;
 }
 
 interface TimelineNote {
@@ -1282,8 +1295,11 @@ export const PatientProfile: React.FC = () => {
 
               {activeTab === 'invoices' && (
                 <div className="invoices-tab">
-                  <h2>Invoices</h2>
-                  <p className="coming-soon">Invoice management coming soon!</p>
+                  <PatientInvoices 
+                    patientId={patient.patient_id}
+                    patientName={`${patient.first_name} ${patient.last_name}`}
+                    stripeCustomerId={patient.stripe_customer_id}
+                  />
                 </div>
               )}
 

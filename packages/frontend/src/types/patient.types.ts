@@ -30,6 +30,9 @@ export interface Patient {
   // Additional info
   additional_info?: string;
   
+  // Payment integration
+  stripe_customer_id?: string;
+  
   // HeyFlow integration
   heyflow_submission_id?: string;
   form_type?: string;

@@ -1,0 +1,31 @@
+# Stripe Configuration for EONMeds
+# Copy these values to your .env file and fill in your actual values
+
+# Stripe API Keys (get from https://dashboard.stripe.com/apikeys)
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+
+# Stripe Webhook Secret (get from https://dashboard.stripe.com/webhooks)
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+
+# Subscription Settings
+STRIPE_TRIAL_DAYS=0
+INVOICE_DUE_DAYS=30
+
+# Product IDs (create in Stripe Dashboard)
+# Weight Loss Program
+STRIPE_PRODUCT_WEIGHT_LOSS_MONTHLY=prod_xxxxxxxxxxxxx
+STRIPE_PRODUCT_WEIGHT_LOSS_QUARTERLY=prod_xxxxxxxxxxxxx
+
+# Testosterone Program  
+STRIPE_PRODUCT_TESTOSTERONE_MONTHLY=prod_xxxxxxxxxxxxx
+STRIPE_PRODUCT_TESTOSTERONE_QUARTERLY=prod_xxxxxxxxxxxxx
+
+# Price IDs (create in Stripe Dashboard)
+# Weight Loss Pricing
+STRIPE_PRICE_WEIGHT_LOSS_MONTHLY=price_xxxxxxxxxxxxx
+STRIPE_PRICE_WEIGHT_LOSS_QUARTERLY=price_xxxxxxxxxxxxx
+
+# Testosterone Pricing
+STRIPE_PRICE_TESTOSTERONE_MONTHLY=price_xxxxxxxxxxxxx
+STRIPE_PRICE_TESTOSTERONE_QUARTERLY=price_xxxxxxxxxxxxx 
