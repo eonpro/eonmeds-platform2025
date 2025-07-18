@@ -862,7 +862,7 @@ export const PatientProfile: React.FC = () => {
                     <div className="loading-container">
                       <p>Loading intake form data...</p>
                     </div>
-                  ) : intakeFormData ? (
+                  ) : true ? (
                     <>
                       {/* Header Section - Like Overview */}
                       <div className="section-header">
@@ -880,17 +880,17 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item">
                                 <label>FIRST NAME</label>
-                                <p>{intakeFormData.firstname || intakeFormData.first_name || patient?.first_name || '-'}</p>
+                                <p>{intakeFormData?.firstname || intakeFormData?.first_name || patient?.first_name || '-'}</p>
                               </div>
                               <div className="info-item">
                                 <label>LAST NAME</label>
-                                <p>{intakeFormData.lastname || intakeFormData.last_name || patient?.last_name || '-'}</p>
+                                <p>{intakeFormData?.lastname || intakeFormData?.last_name || patient?.last_name || '-'}</p>
                               </div>
                               <div className="info-item">
                                 <label>DATE OF BIRTH</label>
                                 <p>
-                                  {intakeFormData.dob || patient?.date_of_birth ? 
-                                    new Date(intakeFormData.dob || patient?.date_of_birth).toLocaleDateString('en-US', {
+                                  {intakeFormData?.dob || patient?.date_of_birth ? 
+                                    new Date(intakeFormData?.dob || patient?.date_of_birth).toLocaleDateString('en-US', {
                                       month: 'long',
                                       day: 'numeric',
                                       year: 'numeric'
@@ -902,23 +902,23 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item">
                                 <label>EMAIL</label>
-                                <p>{intakeFormData.email || patient?.email || '-'}</p>
+                                <p>{intakeFormData?.email || patient?.email || '-'}</p>
                               </div>
                               <div className="info-item">
                                 <label>PHONE NUMBER</label>
-                                <p>{intakeFormData['Phone Number'] || intakeFormData.phone || patient?.phone || '-'}</p>
+                                <p>{intakeFormData?['Phone Number'] || intakeFormData?.phone || patient?.phone || '-'}</p>
                               </div>
                               <div className="info-item">
                                 <label>GENDER</label>
-                                <p>{intakeFormData.gender || patient?.gender || '-'}</p>
+                                <p>{intakeFormData?.gender || patient?.gender || '-'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item">
                                 <label>I AM 18 YEARS OR OLDER</label>
                                 <p>
-                                  <span style={{ color: intakeFormData['I am 18 years or older'] === 'yes' || intakeFormData['I am 18 years or older'] === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
-                                    {intakeFormData['I am 18 years or older'] === 'yes' || intakeFormData['I am 18 years or older'] === true ? '✓' : '✗'}
+                                  <span style={{ color: intakeFormData?['I am 18 years or older'] === 'yes' || intakeFormData?['I am 18 years or older'] === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
+                                    {intakeFormData?['I am 18 years or older'] === 'yes' || intakeFormData?['I am 18 years or older'] === true ? '✓' : '✗'}
                                   </span>
                                 </p>
                               </div>
@@ -933,21 +933,21 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item">
                                 <label>WHAT IS YOUR HEIGHT?</label>
-                                <p>{intakeFormData.feet || '-'} ft {intakeFormData.inches || '-'} in</p>
+                                <p>{intakeFormData?.feet || '-'} ft {intakeFormData?.inches || '-'} in</p>
                               </div>
                               <div className="info-item">
                                 <label>WHAT IS YOUR CURRENT WEIGHT?</label>
-                                <p>{intakeFormData.starting_weight || intakeFormData.weight || '-'} lbs</p>
+                                <p>{intakeFormData?.starting_weight || intakeFormData?.weight || '-'} lbs</p>
                               </div>
                               <div className="info-item">
                                 <label>BMI</label>
-                                <p>{intakeFormData.BMI || intakeFormData.bmi || patient?.bmi || '-'}</p>
+                                <p>{intakeFormData?.BMI || intakeFormData?.bmi || patient?.bmi || '-'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item">
                                 <label>WHAT IS YOUR IDEAL/TARGET WEIGHT?</label>
-                                <p>{intakeFormData.idealweight || intakeFormData.target_weight || '-'} lbs</p>
+                                <p>{intakeFormData?.idealweight || intakeFormData?.target_weight || '-'} lbs</p>
                               </div>
                             </div>
                           </div>
@@ -961,11 +961,11 @@ export const PatientProfile: React.FC = () => {
                               <div className="info-item full-width">
                                 <label>ADDRESS</label>
                                 <p>
-                                  {intakeFormData['address [house]'] || ''} {intakeFormData['address [street]'] || ''}
-                                  {intakeFormData['apartment#'] && `, Apt ${intakeFormData['apartment#']}`}
+                                  {intakeFormData?['address [house]'] || ''} {intakeFormData?['address [street]'] || ''}
+                                  {intakeFormData?['apartment#'] && `, Apt ${intakeFormData?['apartment#']}`}
                                   <br />
-                                  {intakeFormData['address [city]'] || ''}{intakeFormData['address [city]'] && intakeFormData['address [state]'] ? ', ' : ''}
-                                  {intakeFormData['address [state]'] || ''} {intakeFormData['address [zip]'] || ''}
+                                  {intakeFormData?['address [city]'] || ''}{intakeFormData?['address [city]'] && intakeFormData?['address [state]'] ? ', ' : ''}
+                                  {intakeFormData?['address [state]'] || ''} {intakeFormData?['address [zip]'] || ''}
                                 </p>
                               </div>
                             </div>
@@ -979,25 +979,25 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>DO YOU HAVE A HISTORY OF ANY OF THE FOLLOWING CHRONIC CONDITIONS?</label>
-                                <p>{intakeFormData['Do you have a history of any of the following chronic conditions?'] || intakeFormData.chronic_conditions || '-'}</p>
+                                <p>{intakeFormData?['Do you have a history of any of the following chronic conditions?'] || intakeFormData?.chronic_conditions || '-'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>HAVE YOU HAD ANY SURGERIES? IF SO, PLEASE LIST THEM.</label>
-                                <p>{intakeFormData['Have you had any surgeries? If so, please list them.'] || intakeFormData.surgeries || '-'}</p>
+                                <p>{intakeFormData?['Have you had any surgeries? If so, please list them.'] || intakeFormData?.surgeries || '-'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>ARE YOU CURRENTLY TAKING ANY PRESCRIPTION MEDICATIONS? IF SO, PLEASE LIST THEM.</label>
-                                <p>{intakeFormData['Are you currently taking any prescription medications? If so, please list them.'] || intakeFormData.medications || '-'}</p>
+                                <p>{intakeFormData?['Are you currently taking any prescription medications? If so, please list them.'] || intakeFormData?.medications || '-'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>DO YOU HAVE ANY ALLERGIES (MEDICATIONS, FOODS, OR OTHER)?</label>
-                                <p>{intakeFormData['Do you have any allergies (medications, foods, or other)?'] || intakeFormData.allergies || '-'}</p>
+                                <p>{intakeFormData?['Do you have any allergies (medications, foods, or other)?'] || intakeFormData?.allergies || '-'}</p>
                               </div>
                             </div>
                           </div>
@@ -1010,13 +1010,13 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>HOW OFTEN DO YOU EXERCISE PER WEEK?</label>
-                                <p>{intakeFormData['How often do you exercise per week?'] || intakeFormData.exercise_frequency || '-'}</p>
+                                <p>{intakeFormData?['How often do you exercise per week?'] || intakeFormData?.exercise_frequency || '-'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>HOW WOULD YOU DESCRIBE YOUR CURRENT DIET?</label>
-                                <p>{intakeFormData['How would you describe your current diet?'] || intakeFormData.diet_description || '-'}</p>
+                                <p>{intakeFormData?['How would you describe your current diet?'] || intakeFormData?.diet_description || '-'}</p>
                               </div>
                             </div>
                           </div>
@@ -1029,13 +1029,13 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>HAVE YOU PREVIOUSLY TAKEN ANY GLP-1 MEDICATIONS (OZEMPIC, WEGOVY, MOUNJARO, ETC.)?</label>
-                                <p>{intakeFormData['Have you previously taken any GLP-1 medications (Ozempic, Wegovy, Mounjaro, etc.)?'] || intakeFormData.glp1_history || '-'}</p>
+                                <p>{intakeFormData?['Have you previously taken any GLP-1 medications (Ozempic, Wegovy, Mounjaro, etc.)?'] || intakeFormData?.glp1_history || '-'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>IF YES, WHICH MEDICATION(S) AND FOR HOW LONG?</label>
-                                <p>{intakeFormData['If yes, which medication(s) and for how long?'] || intakeFormData.glp1_details || '-'}</p>
+                                <p>{intakeFormData?['If yes, which medication(s) and for how long?'] || intakeFormData?.glp1_details || '-'}</p>
                               </div>
                             </div>
                           </div>
@@ -1049,24 +1049,24 @@ export const PatientProfile: React.FC = () => {
                               <div className="info-item">
                                 <label>CONSENT TO TREATMENT</label>
                                 <p>
-                                  <span style={{ color: intakeFormData.consent_treatment === 'yes' || intakeFormData.consent_treatment === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
-                                    {intakeFormData.consent_treatment === 'yes' || intakeFormData.consent_treatment === true ? '✓' : '✗'}
+                                  <span style={{ color: intakeFormData?.consent_treatment === 'yes' || intakeFormData?.consent_treatment === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
+                                    {intakeFormData?.consent_treatment === 'yes' || intakeFormData?.consent_treatment === true ? '✓' : '✗'}
                                   </span>
                                 </p>
                               </div>
                               <div className="info-item">
                                 <label>CONSENT TO TELEHEALTH</label>
                                 <p>
-                                  <span style={{ color: intakeFormData.consent_telehealth === 'yes' || intakeFormData.consent_telehealth === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
-                                    {intakeFormData.consent_telehealth === 'yes' || intakeFormData.consent_telehealth === true ? '✓' : '✗'}
+                                  <span style={{ color: intakeFormData?.consent_telehealth === 'yes' || intakeFormData?.consent_telehealth === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
+                                    {intakeFormData?.consent_telehealth === 'yes' || intakeFormData?.consent_telehealth === true ? '✓' : '✗'}
                                   </span>
                                 </p>
                               </div>
                               <div className="info-item">
                                 <label>MARKETING CONSENT</label>
                                 <p>
-                                  <span style={{ color: intakeFormData.marketing_consent === 'yes' || intakeFormData.marketing_consent === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
-                                    {intakeFormData.marketing_consent === 'yes' || intakeFormData.marketing_consent === true ? '✓' : '✗'}
+                                  <span style={{ color: intakeFormData?.marketing_consent === 'yes' || intakeFormData?.marketing_consent === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
+                                    {intakeFormData?.marketing_consent === 'yes' || intakeFormData?.marketing_consent === true ? '✓' : '✗'}
                                   </span>
                                 </p>
                               </div>
@@ -1081,43 +1081,43 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item">
                                 <label>BLOOD PRESSURE</label>
-                                <p>{intakeFormData['Blood Pressure'] || intakeFormData.blood_pressure || 'I havent done it recently.'}</p>
+                                <p>{intakeFormData?['Blood Pressure'] || intakeFormData?.blood_pressure || 'I havent done it recently.'}</p>
                               </div>
                               <div className="info-item">
                                 <label>MEDICAL CONDITIONS</label>
-                                <p>{intakeFormData['Medical Conditions'] || intakeFormData.medical_conditions || 'No'}</p>
+                                <p>{intakeFormData?['Medical Conditions'] || intakeFormData?.medical_conditions || 'No'}</p>
                               </div>
                               <div className="info-item">
                                 <label>MENTAL HEALTH CONDITIONS</label>
-                                <p>{intakeFormData['Mental Health Conditions'] || intakeFormData.mental_health_conditions || 'No'}</p>
+                                <p>{intakeFormData?['Mental Health Conditions'] || intakeFormData?.mental_health_conditions || 'No'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item">
                                 <label>SURGERIES/PROCEDURES</label>
-                                <p>{intakeFormData['Surgeries/Procedures'] || intakeFormData.surgeries_procedures || 'No'}</p>
+                                <p>{intakeFormData?['Surgeries/Procedures'] || intakeFormData?.surgeries_procedures || 'No'}</p>
                               </div>
                               <div className="info-item">
                                 <label>TYPE 2 DIABETES</label>
-                                <p>{intakeFormData['Type 2 Diabetes'] || intakeFormData.type2_diabetes || 'No'}</p>
+                                <p>{intakeFormData?['Type 2 Diabetes'] || intakeFormData?.type2_diabetes || 'No'}</p>
                               </div>
                               <div className="info-item">
                                 <label>THYROID CANCER</label>
-                                <p>{intakeFormData['Thyroid Cancer'] || intakeFormData.thyroid_cancer || 'No'}</p>
+                                <p>{intakeFormData?['Thyroid Cancer'] || intakeFormData?.thyroid_cancer || 'No'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item">
                                 <label>MULTIPLE ENDOCRINE NEOPLASIA</label>
-                                <p>{intakeFormData['Multiple Endocrine Neoplasia'] || intakeFormData.multiple_endocrine_neoplasia || 'No'}</p>
+                                <p>{intakeFormData?['Multiple Endocrine Neoplasia'] || intakeFormData?.multiple_endocrine_neoplasia || 'No'}</p>
                               </div>
                               <div className="info-item">
                                 <label>GASTROPARESIS</label>
-                                <p>{intakeFormData['Gastroparesis'] || intakeFormData.gastroparesis || 'No'}</p>
+                                <p>{intakeFormData?['Gastroparesis'] || intakeFormData?.gastroparesis || 'No'}</p>
                               </div>
                               <div className="info-item">
                                 <label>PREGNANT/BREASTFEEDING</label>
-                                <p>{intakeFormData['Pregnant/Breastfeeding'] || intakeFormData.pregnant_breastfeeding || 'No'}</p>
+                                <p>{intakeFormData?['Pregnant/Breastfeeding'] || intakeFormData?.pregnant_breastfeeding || 'No'}</p>
                               </div>
                             </div>
                           </div>
@@ -1130,19 +1130,19 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>DIAGNOSED CONDITIONS</label>
-                                <p>{intakeFormData['Diagnosed Conditions'] || intakeFormData.diagnosed_conditions || 'No, none of these apply to me'}</p>
+                                <p>{intakeFormData?['Diagnosed Conditions'] || intakeFormData?.diagnosed_conditions || 'No, none of these apply to me'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>CHRONIC DISEASES</label>
-                                <p>{intakeFormData['Chronic Diseases'] || intakeFormData.chronic_diseases || 'No, none of these'}</p>
+                                <p>{intakeFormData?['Chronic Diseases'] || intakeFormData?.chronic_diseases || 'No, none of these'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>FAMILY HISTORY</label>
-                                <p>{intakeFormData['Family History'] || intakeFormData.family_history || 'No, none of these.'}</p>
+                                <p>{intakeFormData?['Family History'] || intakeFormData?.family_history || 'No, none of these.'}</p>
                               </div>
                             </div>
                           </div>
@@ -1155,19 +1155,19 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>GLP-1 MEDICATION HISTORY</label>
-                                <p>{intakeFormData['GLP-1 Medication History'] || intakeFormData.glp1_medication_history || 'I have never taken a GLP-1 medication'}</p>
+                                <p>{intakeFormData?['GLP-1 Medication History'] || intakeFormData?.glp1_medication_history || 'I have never taken a GLP-1 medication'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>SIDE EFFECTS</label>
-                                <p>{intakeFormData['Side Effects'] || intakeFormData.side_effects || 'I dont experience side effects'}</p>
+                                <p>{intakeFormData?['Side Effects'] || intakeFormData?.side_effects || 'I dont experience side effects'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>PERSONALIZED TREATMENT INTEREST</label>
-                                <p>{intakeFormData['Personalized Treatment Interest'] || intakeFormData.personalized_treatment_interest || 'No'}</p>
+                                <p>{intakeFormData?['Personalized Treatment Interest'] || intakeFormData?.personalized_treatment_interest || 'No'}</p>
                               </div>
                             </div>
                           </div>
@@ -1180,21 +1180,21 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item">
                                 <label>HOW DID YOU HEAR ABOUT US?</label>
-                                <p>{intakeFormData['How did you hear about us?'] || intakeFormData.referral_source || 'Instagram'}</p>
+                                <p>{intakeFormData?['How did you hear about us?'] || intakeFormData?.referral_source || 'Instagram'}</p>
                               </div>
                               <div className="info-item">
                                 <label>STATE OF RESIDENCE</label>
-                                <p>{intakeFormData['State of Residence'] || intakeFormData.state_of_residence || '-'}</p>
+                                <p>{intakeFormData?['State of Residence'] || intakeFormData?.state_of_residence || '-'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item">
                                 <label>MARKETING CONSENT</label>
-                                <p>{intakeFormData['Marketing Consent'] || intakeFormData.marketing_consent_text || 'Yes'}</p>
+                                <p>{intakeFormData?['Marketing Consent'] || intakeFormData?.marketing_consent_text || 'Yes'}</p>
                               </div>
                               <div className="info-item">
                                 <label>TERMS AGREEMENT</label>
-                                <p>{intakeFormData['Terms Agreement'] || intakeFormData.terms_agreement || 'Yes'}</p>
+                                <p>{intakeFormData?['Terms Agreement'] || intakeFormData?.terms_agreement || 'Yes'}</p>
                               </div>
                             </div>
                           </div>
@@ -1207,29 +1207,29 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item">
                                 <label>UTM SOURCE</label>
-                                <p>{intakeFormData['UTM Source'] || intakeFormData.utm_source || '-'}</p>
+                                <p>{intakeFormData?['UTM Source'] || intakeFormData?.utm_source || '-'}</p>
                               </div>
                               <div className="info-item">
                                 <label>UTM MEDIUM</label>
-                                <p>{intakeFormData['UTM Medium'] || intakeFormData.utm_medium || '-'}</p>
+                                <p>{intakeFormData?['UTM Medium'] || intakeFormData?.utm_medium || '-'}</p>
                               </div>
                               <div className="info-item">
                                 <label>UTM CAMPAIGN</label>
-                                <p>{intakeFormData['UTM Campaign'] || intakeFormData.utm_campaign || '-'}</p>
+                                <p>{intakeFormData?['UTM Campaign'] || intakeFormData?.utm_campaign || '-'}</p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item">
                                 <label>UTM CONTENT</label>
-                                <p>{intakeFormData['UTM Content'] || intakeFormData.utm_content || '-'}</p>
+                                <p>{intakeFormData?['UTM Content'] || intakeFormData?.utm_content || '-'}</p>
                               </div>
                               <div className="info-item">
                                 <label>UTM TERM</label>
-                                <p>{intakeFormData['UTM Term'] || intakeFormData.utm_term || '-'}</p>
+                                <p>{intakeFormData?['UTM Term'] || intakeFormData?.utm_term || '-'}</p>
                               </div>
                               <div className="info-item">
                                 <label>UTM ID</label>
-                                <p>{intakeFormData['UTM ID'] || intakeFormData.utm_id || '-'}</p>
+                                <p>{intakeFormData?['UTM ID'] || intakeFormData?.utm_id || '-'}</p>
                               </div>
                             </div>
                           </div>
