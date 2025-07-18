@@ -25,19 +25,22 @@
 
 .qualifications-controls {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   margin-bottom: 30px;
-  align-items: center;
+  align-items: stretch;
   max-width: 1400px;
 }
 
 .search-section {
   flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 .search-input {
   width: 100%;
-  padding: 12px 16px;
+  height: 44px;
+  padding: 0 16px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
@@ -58,12 +61,13 @@
 
 .filter-section {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
 }
 
 .tag-filter-dropdown {
-  padding: 12px 40px 12px 16px;
+  height: 44px;
+  padding: 0 40px 0 16px;
   border: 1px solid #14a97b;
   border-radius: 8px;
   font-size: 14px;
@@ -85,7 +89,8 @@
 }
 
 .add-new-client-btn {
-  padding: 12px 24px;
+  height: 44px;
+  padding: 0 24px;
   background-color: #14a97b;
   color: white;
   border: none;
@@ -96,6 +101,8 @@
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
 }
 
 .add-new-client-btn:hover {
