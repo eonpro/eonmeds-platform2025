@@ -75,6 +75,9 @@ router.get('/', async (req, res) => {
         created_at,
         updated_at,
         address,
+        address_house,
+        address_street,
+        apartment_number,
         city,
         state,
         zip,
@@ -173,6 +176,9 @@ router.get('/:id', async (req, res) => {
         weight_lbs,
         bmi,
         address,
+        address_house,
+        address_street,
+        apartment_number,
         city,
         state,
         zip,
@@ -281,7 +287,8 @@ router.put('/:id', async (req, res) => {
     const allowedFields = [
       'first_name', 'last_name', 'email', 'phone', 
       'date_of_birth', 'gender', 'height_inches', 'weight_lbs',
-      'address', 'city', 'state', 'zip', 'status'
+      'address', 'address_house', 'address_street', 'apartment_number',
+      'city', 'state', 'zip', 'status'
     ];
     
     // Build update fields dynamically
