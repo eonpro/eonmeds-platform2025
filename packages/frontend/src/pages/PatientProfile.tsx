@@ -55,6 +55,10 @@ interface TimelineNote {
   isPinned: boolean;
 }
 
+interface IntakeFormData {
+  [key: string]: any;
+}
+
 export const PatientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -72,6 +76,8 @@ export const PatientProfile: React.FC = () => {
   const [patientStatus, setPatientStatus] = useState<string>('pending');
   const [isEditingAdditionalInfo, setIsEditingAdditionalInfo] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState('');
+  const [intakeFormData, setIntakeFormData] = useState<IntakeFormData | null>(null);
+  const [intakeLoading, setIntakeLoading] = useState(false);
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState('');
@@ -98,6 +104,36 @@ export const PatientProfile: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const loadIntakeData = async () => {
+    if (!id) return;
+    
+    try {
+      setIntakeLoading(true);
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/webhook-data`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Intake data received:', data);
+        setIntakeFormData(data);
+      }
+    } catch (err) {
+      console.error('Error loading intake data:', err);
+    } finally {
+      setIntakeLoading(false);
+    }
+  };
+
+  // Load intake data when intake tab is selected
+  useEffect(() => {
+    if (activeTab === 'intake' && !intakeFormData && !intakeLoading) {
+      loadIntakeData();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     loadPatient();
@@ -813,15 +849,234 @@ export const PatientProfile: React.FC = () => {
               )}
 
               {activeTab === 'intake' && (
-                <div className="intake-form-tab">
-                  <h2>Intake Form</h2>
-                  <div className="intake-form-content">
+                <div className="intake-form-section">
+                  {intakeLoading ? (
+                    <div className="loading-container">
+                      <p>Loading intake form data...</p>
+                    </div>
+                  ) : intakeFormData ? (
+                    <div className="intake-form-data">
+                      {/* Demographics Section */}
+                      <div className="info-section">
+                        <h3>Demographics</h3>
+                        <div className="info-grid">
+                          <div className="info-row">
+                            <div className="info-item">
+                              <label>FIRST NAME</label>
+                              <p>{intakeFormData.firstname || intakeFormData.first_name || patient?.first_name || '-'}</p>
+                            </div>
+                            <div className="info-item">
+                              <label>LAST NAME</label>
+                              <p>{intakeFormData.lastname || intakeFormData.last_name || patient?.last_name || '-'}</p>
+                            </div>
+                            <div className="info-item">
+                              <label>DATE OF BIRTH</label>
+                              <p>
+                                {intakeFormData.dob || patient?.date_of_birth ? 
+                                  new Date(intakeFormData.dob || patient?.date_of_birth).toLocaleDateString('en-US', {
+                                    month: 'long',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  }) : '-'
+                                }
+                              </p>
+                            </div>
+                          </div>
+                          <div className="info-row">
+                            <div className="info-item">
+                              <label>EMAIL</label>
+                              <p>{intakeFormData.email || patient?.email || '-'}</p>
+                            </div>
+                            <div className="info-item">
+                              <label>PHONE NUMBER</label>
+                              <p>{intakeFormData['Phone Number'] || intakeFormData.phone || patient?.phone || '-'}</p>
+                            </div>
+                            <div className="info-item">
+                              <label>GENDER</label>
+                              <p>{intakeFormData.gender || patient?.gender || '-'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Physical Information Section */}
+                      <div className="info-section">
+                        <h3>Physical Information</h3>
+                        <div className="info-grid">
+                          <div className="info-row">
+                            <div className="info-item">
+                              <label>What is your height?</label>
+                              <p>{intakeFormData.feet || '-'} ft {intakeFormData.inches || '-'} in</p>
+                            </div>
+                            <div className="info-item">
+                              <label>What is your current weight?</label>
+                              <p>{intakeFormData.starting_weight || intakeFormData.weight || '-'} lbs</p>
+                            </div>
+                            <div className="info-item">
+                              <label>BMI</label>
+                              <p>{intakeFormData.BMI || intakeFormData.bmi || patient?.bmi || '-'}</p>
+                            </div>
+                          </div>
+                          <div className="info-row">
+                            <div className="info-item">
+                              <label>What is your ideal/target weight?</label>
+                              <p>{intakeFormData.idealweight || intakeFormData.target_weight || '-'} lbs</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Current Address Section */}
+                      <div className="info-section">
+                        <h3>Current Address</h3>
+                        <div className="info-grid">
+                          <div className="info-row">
+                            <div className="info-item full-width">
+                              <label>ADDRESS</label>
+                              <p>
+                                {intakeFormData['address [house]'] || ''} {intakeFormData['address [street]'] || ''}
+                                {intakeFormData['apartment#'] && `, Apt ${intakeFormData['apartment#']}`}
+                                <br />
+                                {intakeFormData['address [city]'] || ''}{intakeFormData['address [city]'] && intakeFormData['address [state]'] ? ', ' : ''}
+                                {intakeFormData['address [state]'] || ''} {intakeFormData['address [zip]'] || ''}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Medical History Section */}
+                      <div className="info-section">
+                        <h3>Medical History</h3>
+                        <div className="info-grid">
+                          <div className="info-row">
+                            <div className="info-item full-width">
+                              <label>Do you have a history of any of the following chronic conditions?</label>
+                              <p>{intakeFormData['Do you have a history of any of the following chronic conditions?'] || intakeFormData.chronic_conditions || '-'}</p>
+                            </div>
+                          </div>
+                          <div className="info-row">
+                            <div className="info-item full-width">
+                              <label>Have you had any surgeries? If so, please list them.</label>
+                              <p>{intakeFormData['Have you had any surgeries? If so, please list them.'] || intakeFormData.surgeries || '-'}</p>
+                            </div>
+                          </div>
+                          <div className="info-row">
+                            <div className="info-item full-width">
+                              <label>Are you currently taking any prescription medications? If so, please list them.</label>
+                              <p>{intakeFormData['Are you currently taking any prescription medications? If so, please list them.'] || intakeFormData.medications || '-'}</p>
+                            </div>
+                          </div>
+                          <div className="info-row">
+                            <div className="info-item full-width">
+                              <label>Do you have any allergies (medications, foods, or other)?</label>
+                              <p>{intakeFormData['Do you have any allergies (medications, foods, or other)?'] || intakeFormData.allergies || '-'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Lifestyle & Activity Section */}
+                      <div className="info-section">
+                        <h3>Lifestyle & Activity</h3>
+                        <div className="info-grid">
+                          <div className="info-row">
+                            <div className="info-item full-width">
+                              <label>How often do you exercise per week?</label>
+                              <p>{intakeFormData['How often do you exercise per week?'] || intakeFormData.exercise_frequency || '-'}</p>
+                            </div>
+                          </div>
+                          <div className="info-row">
+                            <div className="info-item full-width">
+                              <label>How would you describe your current diet?</label>
+                              <p>{intakeFormData['How would you describe your current diet?'] || intakeFormData.diet_description || '-'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* GLP-1 History Section */}
+                      <div className="info-section glp1-section">
+                        <h3>GLP-1 History</h3>
+                        <div className="info-grid">
+                          <div className="info-row">
+                            <div className="info-item full-width">
+                              <label>Have you previously taken any GLP-1 medications (Ozempic, Wegovy, Mounjaro, etc.)?</label>
+                              <p>{intakeFormData['Have you previously taken any GLP-1 medications (Ozempic, Wegovy, Mounjaro, etc.)?'] || intakeFormData.glp1_history || '-'}</p>
+                            </div>
+                          </div>
+                          <div className="info-row">
+                            <div className="info-item full-width">
+                              <label>If yes, which medication(s) and for how long?</label>
+                              <p>{intakeFormData['If yes, which medication(s) and for how long?'] || intakeFormData.glp1_details || '-'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Consent Forms Section */}
+                      <div className="info-section">
+                        <h3>Consent Forms</h3>
+                        <div className="info-grid">
+                          <div className="info-row">
+                            <div className="info-item">
+                              <label>I am 18 years or older</label>
+                              <p>
+                                <span style={{ color: intakeFormData['I am 18 years or older'] === 'yes' || intakeFormData['I am 18 years or older'] === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
+                                  {intakeFormData['I am 18 years or older'] === 'yes' || intakeFormData['I am 18 years or older'] === true ? '✓' : '✗'}
+                                </span>
+                              </p>
+                            </div>
+                            <div className="info-item">
+                              <label>Consent to Treatment</label>
+                              <p>
+                                <span style={{ color: intakeFormData.consent_treatment === 'yes' || intakeFormData.consent_treatment === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
+                                  {intakeFormData.consent_treatment === 'yes' || intakeFormData.consent_treatment === true ? '✓' : '✗'}
+                                </span>
+                              </p>
+                            </div>
+                            <div className="info-item">
+                              <label>Consent to Telehealth</label>
+                              <p>
+                                <span style={{ color: intakeFormData.consent_telehealth === 'yes' || intakeFormData.consent_telehealth === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
+                                  {intakeFormData.consent_telehealth === 'yes' || intakeFormData.consent_telehealth === true ? '✓' : '✗'}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                          <div className="info-row">
+                            <div className="info-item">
+                              <label>Marketing Consent</label>
+                              <p>
+                                <span style={{ color: intakeFormData.marketing_consent === 'yes' || intakeFormData.marketing_consent === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
+                                  {intakeFormData.marketing_consent === 'yes' || intakeFormData.marketing_consent === true ? '✓' : '✗'}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* PDF Download Button */}
+                      <div className="form-actions-container">
+                        <button 
+                          className="view-pdf-btn"
+                          onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
+                            <path d="M8.5 1v7.5H15m-6.5 0L15 2M1 9v5a1 1 0 001 1h12a1 1 0 001-1V9M8 11.5v3m0 0l-2.5-2.5M8 14.5l2.5-2.5"/>
+                          </svg>
+                          Download Intake Form PDF
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
                     <div className="intake-form-card">
                       <div className="form-icon"><FormIcon className="form-icon-large" /></div>
                       <div className="form-details">
                         <h3>Weight Loss Intake Form</h3>
-                        <p>Submitted on {new Date(patient.created_at).toLocaleDateString()}</p>
-                        <p className="form-id">Form ID: {patient.patient_id}</p>
+                        <p>Submitted on {patient && new Date(patient.created_at).toLocaleDateString()}</p>
+                        <p className="form-id">Form ID: {patient?.patient_id}</p>
                       </div>
                       <div className="form-actions">
                         <button 
@@ -835,7 +1090,7 @@ export const PatientProfile: React.FC = () => {
                         </button>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
 
