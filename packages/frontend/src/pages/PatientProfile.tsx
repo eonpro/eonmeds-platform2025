@@ -130,11 +130,20 @@ export const PatientProfile: React.FC = () => {
     return phone;
   };
 
-  const formatAddress = (patient: PatientDetails) => {
+  const formatAddress = () => {
+    if (!patient) return { addressLine1: '', addressLine2: '', fullAddress: '' };
+    
     // Check if we have the new structured address fields
-    if (patient.address_house && patient.address_street) {
-      // Use structured fields
-      let addressLine1 = `${patient.address_house} ${patient.address_street}`;
+    if ((patient.address_house || patient.address_street) && patient.city && patient.state) {
+      // New format with separate fields
+      let addressLine1 = '';
+      if (patient.address_house && patient.address_street) {
+        addressLine1 = `${patient.address_house} ${patient.address_street}`;
+      } else if (patient.address_street) {
+        addressLine1 = patient.address_street;
+      }
+      
+      // Add apartment number if it exists
       if (patient.apartment_number) {
         addressLine1 += `, Apt ${patient.apartment_number}`;
       }
@@ -152,17 +161,24 @@ export const PatientProfile: React.FC = () => {
       };
     } else if (patient.address && patient.city && patient.state) {
       // Legacy format - address already contains house and street
+      let addressLine1 = patient.address;
+      
+      // Add apartment number if it exists and not already in address
+      if (patient.apartment_number && !addressLine1.toLowerCase().includes('apt')) {
+        addressLine1 += `, Apt ${patient.apartment_number}`;
+      }
+      
       // Only show city, state, zip on second line if they're not already in the address
-      const addressLower = patient.address.toLowerCase();
+      const addressLower = addressLine1.toLowerCase();
       const cityInAddress = patient.city && addressLower.includes(patient.city.toLowerCase());
       const stateInAddress = patient.state && addressLower.includes(patient.state.toLowerCase());
       
       if (cityInAddress || stateInAddress) {
         // Address already contains city/state, don't duplicate
         return { 
-          addressLine1: patient.address, 
+          addressLine1, 
           addressLine2: '', 
-          fullAddress: patient.address 
+          fullAddress: addressLine1 
         };
       } else {
         // Address doesn't contain city/state, show them separately
@@ -173,17 +189,24 @@ export const PatientProfile: React.FC = () => {
         const addressLine2 = parts.join(', ');
         
         return { 
-          addressLine1: patient.address, 
+          addressLine1, 
           addressLine2, 
-          fullAddress: `${patient.address}, ${addressLine2}` 
+          fullAddress: `${addressLine1}, ${addressLine2}` 
         };
       }
     } else if (patient.address) {
       // Only address field available
+      let addressLine1 = patient.address;
+      
+      // Add apartment number if it exists and not already in address
+      if (patient.apartment_number && !addressLine1.toLowerCase().includes('apt')) {
+        addressLine1 += `, Apt ${patient.apartment_number}`;
+      }
+      
       return { 
-        addressLine1: patient.address, 
+        addressLine1, 
         addressLine2: '', 
-        fullAddress: patient.address 
+        fullAddress: addressLine1 
       };
     } else {
       // No address data
@@ -528,7 +551,7 @@ export const PatientProfile: React.FC = () => {
                         <label>ADDRESS</label>
                         <p>
                           {(() => {
-                            const { addressLine1, addressLine2, fullAddress } = formatAddress(patient);
+                            const { addressLine1, addressLine2, fullAddress } = formatAddress();
                             return addressLine1 ? (
                               <a 
                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`}
