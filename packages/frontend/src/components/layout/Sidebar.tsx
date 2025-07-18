@@ -10,7 +10,12 @@ interface SidebarItem {
   label: string;
 }
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isCollapsed: boolean;
+  onToggle: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const { logout } = useAuth0();
 
   const menuItems: SidebarItem[] = [
@@ -103,9 +108,20 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <div className="sidebar">
+    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-logo">
-        <Logo height={30} className="sidebar-logo-img" />
+        {!isCollapsed && <Logo height={30} className="sidebar-logo-img" />}
+        <button className="sidebar-toggle" onClick={onToggle}>
+          {isCollapsed ? (
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+            </svg>
+          )}
+        </button>
       </div>
       <nav className="sidebar-nav">
         {menuItems.map((item) => (
@@ -115,18 +131,19 @@ export const Sidebar: React.FC = () => {
             className={({ isActive }) => 
               `sidebar-link ${isActive ? 'active' : ''}`
             }
+            title={isCollapsed ? item.label : ''}
           >
             <span className="sidebar-icon">{item.icon}</span>
-            <span className="sidebar-label">{item.label}</span>
+            {!isCollapsed && <span className="sidebar-label">{item.label}</span>}
           </NavLink>
         ))}
       </nav>
       <div className="sidebar-footer">
-        <button className="sidebar-logout" onClick={handleLogout}>
+        <button className="sidebar-logout" onClick={handleLogout} title={isCollapsed ? 'Log out' : ''}>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
           </svg>
-          <span>Log out</span>
+          {!isCollapsed && <span>Log out</span>}
         </button>
       </div>
     </div>

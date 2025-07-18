@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import './AppLayout.css';
 
@@ -7,10 +7,15 @@ interface AppLayoutProps {
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
   return (
     <div className="app-layout">
-      <Sidebar />
-      <div className="app-content">
+      <Sidebar 
+        isCollapsed={isSidebarCollapsed} 
+        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+      />
+      <div className={`app-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         {children}
       </div>
     </div>

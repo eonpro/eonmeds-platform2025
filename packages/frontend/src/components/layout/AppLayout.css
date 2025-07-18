@@ -9,4 +9,9 @@
   margin-left: 240px;
   min-height: 100vh;
   background-color: #ffffff;
+  transition: margin-left 0.3s ease;
+}
+
+.app-content.sidebar-collapsed {
+  margin-left: 80px;
 } 
