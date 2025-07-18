@@ -108,18 +108,24 @@ export const PatientProfile: React.FC = () => {
   };
 
   const loadIntakeData = async () => {
+    console.log('loadIntakeData called with id:', id, 'apiClient:', apiClient);
     if (!id || !apiClient) return;
     
     try {
       setIntakeLoading(true);
+      console.log('Fetching intake data from:', `/api/v1/patients/${id}/webhook-data`);
       const response = await apiClient.get(`/api/v1/patients/${id}/webhook-data`);
       
+      console.log('Intake API response:', response);
       if (response.data) {
         console.log('Intake data received:', response.data);
         setIntakeFormData(response.data);
+      } else {
+        console.log('No data in response');
       }
     } catch (err) {
       console.error('Error loading intake data:', err);
+      console.error('Error details:', err.response?.data || err.message);
       // If webhook data fails, we'll just show the simple form
     } finally {
       setIntakeLoading(false);
@@ -128,7 +134,9 @@ export const PatientProfile: React.FC = () => {
 
   // Load intake data when intake tab is selected
   useEffect(() => {
+    console.log('Intake useEffect triggered - activeTab:', activeTab, 'intakeFormData:', intakeFormData, 'intakeLoading:', intakeLoading);
     if (activeTab === 'intake' && !intakeFormData && !intakeLoading && id && apiClient) {
+      console.log('Calling loadIntakeData from useEffect');
       loadIntakeData();
     }
   }, [activeTab, id, apiClient]); // Added proper dependencies
@@ -645,9 +653,9 @@ export const PatientProfile: React.FC = () => {
                   <button 
                     className="tag-btn"
                     onClick={() => setShowHashtagInput(!showHashtagInput)}
+                    title="Add hashtag"
                   >
-                    <TagIcon className="tag-icon" />
-                    Hashtag
+                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>#</span>
                   </button>
                   {showHashtagInput && (
                     <div className="header-tag-input-wrapper">
@@ -848,6 +856,7 @@ export const PatientProfile: React.FC = () => {
 
               {activeTab === 'intake' && (
                 <div className="intake-form-section">
+                  {console.log('Rendering intake form - Loading:', intakeLoading, 'Data:', intakeFormData)}
                   {intakeLoading ? (
                     <div className="loading-container">
                       <p>Loading intake form data...</p>
