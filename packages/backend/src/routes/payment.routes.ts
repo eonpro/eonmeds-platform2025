@@ -207,47 +207,185 @@ router.get('/subscriptions/:subscriptionId', async (req, res) => {
 
 // ==================== Invoices ====================
 
-// List invoices for patient
+// Get all invoices for a patient
 router.get('/invoices/patient/:patientId', async (req, res) => {
   try {
     const { patientId } = req.params;
-    const { status, limit = 20, offset = 0 } = req.query;
     
-    let query = `
-      SELECT i.*, 
-             array_agg(
-               json_build_object(
-                 'id', ii.id,
-                 'description', ii.description,
-                 'quantity', ii.quantity,
-                 'unit_price', ii.unit_price,
-                 'amount', ii.amount
-               )
-             ) as items
+    const query = `
+      SELECT 
+        i.*,
+        array_agg(
+          json_build_object(
+            'id', ii.id,
+            'description', ii.description,
+            'quantity', ii.quantity,
+            'unit_price', ii.unit_price,
+            'amount', ii.amount
+          )
+        ) as items
       FROM invoices i
       LEFT JOIN invoice_items ii ON i.id = ii.invoice_id
       WHERE i.patient_id = $1
+      GROUP BY i.id
+      ORDER BY i.created_at DESC
     `;
     
-    const params: any[] = [patientId];
+    const result = await pool.query(query, [patientId]);
     
-    if (status) {
-      query += ' AND i.status = $' + (params.length + 1);
-      params.push(status);
-    }
-    
-    query += ' GROUP BY i.id ORDER BY i.invoice_date DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
-    params.push(limit, offset);
-    
-    const result = await pool.query(query, params);
-    
-    res.json({ 
-      invoices: result.rows,
-      total: result.rowCount 
+    res.json({
+      success: true,
+      invoices: result.rows
     });
   } catch (error) {
-    console.error('Error listing invoices:', error);
-    res.status(500).json({ error: 'Failed to list invoices' });
+    console.error('Error fetching patient invoices:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch invoices' 
+    });
+  }
+});
+
+// Get income report (admin only)
+router.get('/income-report', async (req, res) => {
+  try {
+    const { start_date, end_date, payment_method } = req.query;
+    
+    let paymentQuery = `
+      SELECT 
+        p.id,
+        p.amount,
+        p.payment_method,
+        p.payment_date,
+        p.status,
+        p.stripe_payment_id,
+        p.offline_reference,
+        i.invoice_number,
+        i.patient_id,
+        pat.first_name || ' ' || pat.last_name as patient_name
+      FROM payments p
+      JOIN invoices i ON p.invoice_id = i.id
+      JOIN patients pat ON i.patient_id = pat.patient_id
+      WHERE p.payment_date >= $1 AND p.payment_date <= $2
+    `;
+    
+    const queryParams = [start_date, end_date];
+    
+    if (payment_method && payment_method !== 'all') {
+      paymentQuery += ` AND p.payment_method = $3`;
+      queryParams.push(payment_method);
+    }
+    
+    paymentQuery += ` ORDER BY p.payment_date DESC`;
+    
+    const paymentsResult = await pool.query(paymentQuery, queryParams);
+    
+    // Calculate stats
+    const statsQuery = `
+      SELECT 
+        COALESCE(SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END), 0) as total_revenue,
+        COALESCE(SUM(CASE WHEN payment_method = 'stripe' AND status = 'paid' THEN amount ELSE 0 END), 0) as stripe_payments,
+        COALESCE(SUM(CASE WHEN payment_method != 'stripe' AND status = 'paid' THEN amount ELSE 0 END), 0) as offline_payments,
+        COALESCE(SUM(CASE WHEN status = 'refunded' THEN amount ELSE 0 END), 0) as refunds,
+        COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as pending_payments,
+        COUNT(*) as payment_count
+      FROM payments
+      WHERE payment_date >= $1 AND payment_date <= $2
+    `;
+    
+    const statsResult = await pool.query(statsQuery, [start_date, end_date]);
+    
+    res.json({
+      success: true,
+      payments: paymentsResult.rows,
+      stats: statsResult.rows[0]
+    });
+  } catch (error) {
+    console.error('Error generating income report:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate income report' 
+    });
+  }
+});
+
+// Mark invoice as paid (offline payment)
+router.post('/mark-paid', async (req, res) => {
+  try {
+    const { invoice_id, payment_date, payment_method, reference, notes } = req.body;
+    
+    // Start transaction
+    await pool.query('BEGIN');
+    
+    // Get invoice details
+    const invoiceQuery = `
+      SELECT id, invoice_number, amount_due, patient_id 
+      FROM invoices 
+      WHERE id = $1 AND status = 'open'
+    `;
+    const invoiceResult = await pool.query(invoiceQuery, [invoice_id]);
+    
+    if (invoiceResult.rows.length === 0) {
+      await pool.query('ROLLBACK');
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Invoice not found or already paid' 
+      });
+    }
+    
+    const invoice = invoiceResult.rows[0];
+    
+    // Create payment record
+    const paymentQuery = `
+      INSERT INTO payments (
+        invoice_id, 
+        amount, 
+        payment_method, 
+        payment_date, 
+        status, 
+        offline_reference,
+        notes
+      ) VALUES ($1, $2, $3, $4, 'paid', $5, $6)
+      RETURNING id
+    `;
+    
+    await pool.query(paymentQuery, [
+      invoice_id,
+      invoice.amount_due,
+      payment_method,
+      payment_date,
+      reference,
+      notes
+    ]);
+    
+    // Update invoice status
+    const updateInvoiceQuery = `
+      UPDATE invoices 
+      SET 
+        status = 'paid',
+        amount_paid = amount_due,
+        amount_due = 0,
+        paid_at = $2,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+    `;
+    
+    await pool.query(updateInvoiceQuery, [invoice_id, payment_date]);
+    
+    // Commit transaction
+    await pool.query('COMMIT');
+    
+    res.json({
+      success: true,
+      message: 'Invoice marked as paid successfully'
+    });
+  } catch (error) {
+    await pool.query('ROLLBACK');
+    console.error('Error marking invoice as paid:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to mark invoice as paid' 
+    });
   }
 });
 

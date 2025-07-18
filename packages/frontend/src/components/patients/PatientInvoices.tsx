@@ -3,6 +3,7 @@ import { useApi } from '../../hooks/useApi';
 import { CreateInvoiceModal } from './CreateInvoiceModal';
 import { InvoiceDetailsModal } from './InvoiceDetailsModal';
 import { PaymentModal } from './PaymentModal';
+import { MarkAsPaidModal } from './MarkAsPaidModal';
 import './PatientInvoices.css';
 
 interface Invoice {
@@ -42,6 +43,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
 
   // Fetch invoices
   useEffect(() => {
@@ -156,16 +158,28 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
                       👁️
                     </button>
                     {invoice.status === 'open' && (
-                      <button 
-                        className="action-btn charge"
-                        onClick={() => {
-                          setSelectedInvoice(invoice);
-                          setShowPaymentModal(true);
-                        }}
-                        title="Charge Invoice"
-                      >
-                        💳
-                      </button>
+                      <>
+                        <button 
+                          className="action-btn charge"
+                          onClick={() => {
+                            setSelectedInvoice(invoice);
+                            setShowPaymentModal(true);
+                          }}
+                          title="Charge Invoice"
+                        >
+                          💳
+                        </button>
+                        <button 
+                          className="action-btn mark-paid"
+                          onClick={() => {
+                            setSelectedInvoice(invoice);
+                            setShowMarkPaidModal(true);
+                          }}
+                          title="Mark as Paid (Offline)"
+                        >
+                          ✓
+                        </button>
+                      </>
                     )}
                   </td>
                 </tr>
@@ -208,6 +222,22 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
           }}
           onSuccess={() => {
             setShowPaymentModal(false);
+            setSelectedInvoice(null);
+            fetchInvoices();
+          }}
+        />
+      )}
+
+      {/* Mark as Paid Modal */}
+      {showMarkPaidModal && selectedInvoice && (
+        <MarkAsPaidModal
+          invoice={selectedInvoice}
+          onClose={() => {
+            setShowMarkPaidModal(false);
+            setSelectedInvoice(null);
+          }}
+          onSuccess={() => {
+            setShowMarkPaidModal(false);
             setSelectedInvoice(null);
             fetchInvoices();
           }}

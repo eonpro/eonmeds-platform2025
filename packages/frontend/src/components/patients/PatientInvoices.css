@@ -176,4 +176,13 @@
 
 .action-btn.charge:hover {
   background-color: #bfdbfe;
+}
+
+.action-btn.mark-paid {
+  background-color: #d1fae5;
+  border-color: #6ee7b7;
+}
+
+.action-btn.mark-paid:hover {
+  background-color: #a7f3d0;
 } 
