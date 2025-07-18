@@ -69,6 +69,7 @@ export const PatientProfile: React.FC = () => {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [showHashtagInput, setShowHashtagInput] = useState(false);
   const [newHashtag, setNewHashtag] = useState('');
+  const [patientStatus, setPatientStatus] = useState<string>('pending');
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState('');
@@ -105,6 +106,12 @@ export const PatientProfile: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    if (patient) {
+      setPatientStatus(patient.status || 'pending');
+    }
+  }, [patient]);
 
   // Add intake form as a pinned note when component loads
   useEffect(() => {
@@ -336,6 +343,37 @@ export const PatientProfile: React.FC = () => {
     // Update backend here
   };
 
+  const handleStatusChange = async (newStatus: string) => {
+    if (!patient) return;
+    
+    try {
+      setPatientStatus(newStatus);
+      const updatedPatient = await patientService.updatePatient(patient.id, { status: newStatus });
+      setPatient({
+        ...patient,
+        ...updatedPatient
+      });
+    } catch (err) {
+      console.error('Error updating status:', err);
+      // Revert on error
+      setPatientStatus(patient.status || 'pending');
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'qualified':
+        return '#14a97b';
+      case 'not_qualified':
+      case 'not qualified':
+        return '#dc3545';
+      case 'pending':
+        return '#f59e0b';
+      default:
+        return '#6b7280';
+    }
+  };
+
   if (loading) {
     return (
       <div className="patient-profile-loading">
@@ -353,17 +391,6 @@ export const PatientProfile: React.FC = () => {
       </div>
     );
   }
-
-  const getStatusColor = (status: string) => {
-    const statusColors: { [key: string]: string } = {
-      'qualified': '#10b981',
-      'not-qualified': '#ef4444',
-      'processing': '#f59e0b',
-      'pending': '#f59e0b',
-      'active': '#10b981'
-    };
-    return statusColors[status.toLowerCase().replace(/ /g, '-')] || '#6b7280';
-  };
 
   return (
     <div className="patient-profile-container">
@@ -478,6 +505,21 @@ export const PatientProfile: React.FC = () => {
                 </div>
               ))}
             </div>
+            
+            <div className="status-dropdown-section">
+              <select 
+                className="status-dropdown"
+                value={patientStatus}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                style={{ backgroundColor: getStatusColor(patientStatus) }}
+              >
+                <option value="pending">PENDING REVIEW</option>
+                <option value="qualified">QUALIFIED</option>
+                <option value="not_qualified">NOT QUALIFIED</option>
+                <option value="follow_up">FOLLOW UP</option>
+                <option value="enrolled">ENROLLED</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -509,9 +551,6 @@ export const PatientProfile: React.FC = () => {
                       </button>
                     </span>
                   ))}
-                  {patient.status === 'pending' && (
-                    <span className="pending-tag">PENDING REVIEW</span>
-                  )}
                 </div>
               </div>
 
