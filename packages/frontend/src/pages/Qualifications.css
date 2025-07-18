@@ -25,7 +25,6 @@
 
 .qualifications-controls {
   display: flex;
-  justify-content: space-between;
   gap: 20px;
   margin-bottom: 30px;
   align-items: center;
@@ -47,6 +46,10 @@
   transition: all 0.2s;
 }
 
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
 .search-input:focus {
   outline: none;
   border-color: #14a97b;
@@ -56,6 +59,7 @@
 .filter-section {
   display: flex;
   gap: 10px;
+  align-items: center;
 }
 
 .tag-filter-dropdown {

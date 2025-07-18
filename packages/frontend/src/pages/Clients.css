@@ -28,7 +28,6 @@
 /* Search Section */
 .search-section {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
   gap: 20px;
@@ -50,15 +49,21 @@
   transition: all 0.2s;
 }
 
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
 .search-input:focus {
   outline: none;
-  border-color: var(--color-primary-teal);
-  box-shadow: 0 0 0 3px rgba(20, 169, 123, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(26, 184, 123, 0.1);
 }
 
 /* Tag Filter Dropdown */
 .filter-section {
-  min-width: 200px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .tag-filter-dropdown {
