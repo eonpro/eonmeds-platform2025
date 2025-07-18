@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { patientService } from '../services/patient.service';
 import { EditPatientModal } from '../components/patients/EditPatientModal';
 import { CreatePatientModal } from '../components/patients/CreatePatientModal';
+import { useApi } from '../hooks/useApi';
 import { 
   ArrowBackIcon, 
   UserIcon, 
@@ -62,6 +63,7 @@ interface IntakeFormData {
 export const PatientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const apiClient = useApi();
   const [patient, setPatient] = useState<PatientDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -106,23 +108,19 @@ export const PatientProfile: React.FC = () => {
   };
 
   const loadIntakeData = async () => {
-    if (!id) return;
+    if (!id || !apiClient) return;
     
     try {
       setIntakeLoading(true);
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/webhook-data`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
-      });
+      const response = await apiClient.get(`/api/v1/patients/${id}/webhook-data`);
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Intake data received:', data);
-        setIntakeFormData(data);
+      if (response.data) {
+        console.log('Intake data received:', response.data);
+        setIntakeFormData(response.data);
       }
     } catch (err) {
       console.error('Error loading intake data:', err);
+      // If webhook data fails, we'll just show the simple form
     } finally {
       setIntakeLoading(false);
     }
@@ -130,10 +128,10 @@ export const PatientProfile: React.FC = () => {
 
   // Load intake data when intake tab is selected
   useEffect(() => {
-    if (activeTab === 'intake' && !intakeFormData && !intakeLoading) {
+    if (activeTab === 'intake' && !intakeFormData && !intakeLoading && id && apiClient) {
       loadIntakeData();
     }
-  }, [activeTab]);
+  }, [activeTab, id, apiClient]); // Added proper dependencies
 
   useEffect(() => {
     loadPatient();
