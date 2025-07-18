@@ -64,26 +64,30 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     }
   };
 
-  const handleServiceTypeChange = (index: number, packageId: string) => {
+  const handleServiceTypeChange = (index: number, value: string) => {
     const newItems = [...items];
-    const selectedPackage = packages.find(p => p.id === packageId);
     
-    if (selectedPackage) {
-      newItems[index] = {
-        ...newItems[index],
-        service_package_id: packageId,
-        service_type: selectedPackage.category,
-        description: selectedPackage.name,
-        unit_price: selectedPackage.price
-      };
-    } else if (packageId === 'custom') {
+    if (value === 'custom' || value === '') {
+      // Allow custom entry
       newItems[index] = {
         ...newItems[index],
         service_package_id: undefined,
         service_type: 'custom',
-        description: '',
-        unit_price: 0
+        description: newItems[index].description || '',
+        unit_price: newItems[index].unit_price || 0
       };
+    } else {
+      // Find selected package
+      const selectedPackage = packages.find(p => p.id.toString() === value);
+      if (selectedPackage) {
+        newItems[index] = {
+          ...newItems[index],
+          service_package_id: value,
+          service_type: selectedPackage.category,
+          description: selectedPackage.name,
+          unit_price: selectedPackage.price
+        };
+      }
     }
     
     setItems(newItems);
@@ -179,26 +183,24 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                   <select
                     value={item.service_package_id || ''}
                     onChange={(e) => handleServiceTypeChange(index, e.target.value)}
-                    required
                   >
-                    <option value="">Select service</option>
+                    <option value="">Select service or enter custom</option>
                     {packages.map(pkg => (
                       <option key={pkg.id} value={pkg.id}>
                         {pkg.name}
                       </option>
                     ))}
-                    <option value="custom">Custom</option>
+                    <option value="custom">Custom Service</option>
                   </select>
                   
-                  {item.service_type === 'custom' && (
-                    <input
-                      type="text"
-                      value={item.description}
-                      onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                      placeholder="Description"
-                      required
-                    />
-                  )}
+                  <input
+                    type="text"
+                    value={item.description}
+                    onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                    placeholder="Service description"
+                    required
+                    style={{ display: item.service_type === 'custom' || !item.service_package_id ? 'block' : 'none' }}
+                  />
                   
                   <input
                     type="number"
@@ -215,7 +217,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                     min="0"
                     step="0.01"
                     required
-                    disabled={item.service_type !== 'custom'}
                   />
                   
                   <span className="item-total">
