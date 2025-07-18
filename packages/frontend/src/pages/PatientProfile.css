@@ -540,18 +540,6 @@
   background-color: white;
 }
 
-.tab.plus-tab {
-  width: 40px;
-  padding: 14px 0;
-  text-align: center;
-  font-size: 18px;
-  color: #999;
-}
-
-.tab.plus-tab:hover {
-  color: #14a97b;
-}
-
 /* Tab Content */
 .tab-content {
   padding: 30px;

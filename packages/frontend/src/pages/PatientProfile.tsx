@@ -662,7 +662,6 @@ export const PatientProfile: React.FC = () => {
                 <PrescriptionIcon className="tab-icon" />
                 Prescriptions
               </button>
-              <button className="tab plus-tab">+</button>
             </div>
 
             <div className="tab-content">
