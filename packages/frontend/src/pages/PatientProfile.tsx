@@ -131,26 +131,64 @@ export const PatientProfile: React.FC = () => {
   };
 
   const formatAddress = (patient: PatientDetails) => {
-    // Build address line 1
-    let addressLine1 = '';
+    // Check if we have the new structured address fields
     if (patient.address_house && patient.address_street) {
-      addressLine1 = `${patient.address_house} ${patient.address_street}`;
+      // Use structured fields
+      let addressLine1 = `${patient.address_house} ${patient.address_street}`;
       if (patient.apartment_number) {
         addressLine1 += `, Apt ${patient.apartment_number}`;
       }
+      
+      const parts = [];
+      if (patient.city) parts.push(patient.city);
+      if (patient.state) parts.push(patient.state);
+      if (patient.zip) parts.push(patient.zip);
+      const addressLine2 = parts.join(', ');
+      
+      return { 
+        addressLine1, 
+        addressLine2, 
+        fullAddress: addressLine2 ? `${addressLine1}, ${addressLine2}` : addressLine1 
+      };
+    } else if (patient.address && patient.city && patient.state) {
+      // Legacy format - address already contains house and street
+      // Only show city, state, zip on second line if they're not already in the address
+      const addressLower = patient.address.toLowerCase();
+      const cityInAddress = patient.city && addressLower.includes(patient.city.toLowerCase());
+      const stateInAddress = patient.state && addressLower.includes(patient.state.toLowerCase());
+      
+      if (cityInAddress || stateInAddress) {
+        // Address already contains city/state, don't duplicate
+        return { 
+          addressLine1: patient.address, 
+          addressLine2: '', 
+          fullAddress: patient.address 
+        };
+      } else {
+        // Address doesn't contain city/state, show them separately
+        const parts = [];
+        if (patient.city) parts.push(patient.city);
+        if (patient.state) parts.push(patient.state);
+        if (patient.zip) parts.push(patient.zip);
+        const addressLine2 = parts.join(', ');
+        
+        return { 
+          addressLine1: patient.address, 
+          addressLine2, 
+          fullAddress: `${patient.address}, ${addressLine2}` 
+        };
+      }
     } else if (patient.address) {
-      // Fallback to legacy address field
-      addressLine1 = patient.address;
+      // Only address field available
+      return { 
+        addressLine1: patient.address, 
+        addressLine2: '', 
+        fullAddress: patient.address 
+      };
+    } else {
+      // No address data
+      return { addressLine1: '', addressLine2: '', fullAddress: '' };
     }
-
-    // Build address line 2
-    const parts = [];
-    if (patient.city) parts.push(patient.city);
-    if (patient.state) parts.push(patient.state);
-    if (patient.zip) parts.push(patient.zip);
-    const addressLine2 = parts.join(', ');
-
-    return { addressLine1, addressLine2, fullAddress: `${addressLine1}, ${addressLine2}` };
   };
 
   const handleSavePatient = async (updatedData: Partial<PatientDetails>) => {
@@ -498,8 +536,13 @@ export const PatientProfile: React.FC = () => {
                                 rel="noopener noreferrer"
                                 className="address-link"
                               >
-                                {addressLine1}<br />
-                                {addressLine2}
+                                {addressLine1}
+                                {addressLine2 && (
+                                  <>
+                                    <br />
+                                    {addressLine2}
+                                  </>
+                                )}
                                 <MapIcon className="map-icon" />
                               </a>
                             ) : (

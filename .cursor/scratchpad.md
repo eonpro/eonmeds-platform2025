@@ -1034,6 +1034,12 @@ ADD COLUMN IF NOT EXISTS apartment_number VARCHAR(50);
 - `packages/frontend/src/pages/PatientProfile.tsx` - Updated
 - `packages/frontend/src/components/patients/EditPatientModal.tsx` - Updated
 
+### Additional Fix: Address Display Duplication
+- Updated `formatAddress` function to detect when address already contains city/state
+- Prevents showing duplicate information (e.g., "5411 Natchez Way, Durham, NC, USA" then "Durham, North Carolina, 27712")
+- Smart detection to only show city/state/zip separately when not already in address
+- Conditional line break - only shows second line when there's content
+
 ## Project Status Board
 
 ### Critical Errors to Fix (July 2025) 🚨
