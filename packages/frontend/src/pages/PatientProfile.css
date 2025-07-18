@@ -799,53 +799,64 @@
 
 /* Special Intake Form Note in Timeline */
 .intake-form-note {
-  background-color: #f0f9ff !important;
-  border-color: #3b82f6 !important;
+  background-color: #f7cf6c !important;
+  border-color: #f7cf6c !important;
+  padding: 12px !important; /* Make more compact */
 }
 
 .intake-form-note-content {
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  margin-top: 10px;
+  gap: 10px;
+  align-items: center; /* Changed from flex-start to center for compact look */
+  margin-top: 8px; /* Reduced from 10px */
+}
+
+.intake-form-info {
+  flex: 1;
 }
 
 .form-icon-small {
-  font-size: 24px;
+  font-size: 20px; /* Reduced from 24px */
   opacity: 0.8;
 }
 
 .note-title {
-  margin: 0 0 4px 0;
+  margin: 0 0 2px 0; /* Reduced bottom margin */
   font-weight: 600;
-  color: #333;
+  color: #000000; /* Changed to black */
 }
 
 .note-subtitle {
-  margin: 0 0 8px 0;
-  font-size: 13px;
-  color: #666;
+  margin: 0 0 6px 0; /* Reduced bottom margin */
+  font-size: 12px; /* Reduced from 13px */
+  color: #000000; /* Changed to black */
 }
 
 .view-form-btn {
-  padding: 4px 12px;
-  background-color: #3b82f6;
+  padding: 6px 14px; /* Slightly increased padding for better button appearance */
+  background-color: #000000; /* Changed to black */
   color: white;
   border: none;
   border-radius: 4px;
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: none; /* Removed transition */
 }
 
 .view-form-btn:hover {
-  background-color: #2563eb;
+  background-color: #000000; /* Keep same color on hover */
+  transform: none; /* No transformation on hover */
 }
 
 .pinned-label {
   font-size: 12px;
   color: #f59e0b;
   font-weight: 500;
+}
+
+/* Make date black for intake form note */
+.intake-form-note .note-date {
+  color: #000000;
 }
 
 .form-icon-svg,
