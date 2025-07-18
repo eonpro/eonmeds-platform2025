@@ -1148,12 +1148,10 @@
 
 .status-dropdown:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .status-dropdown:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(20, 169, 123, 0.2);
 }
 
 .status-dropdown option {
