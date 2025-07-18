@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { patientService } from '../services/patient.service';
 import { EditPatientModal } from '../components/patients/EditPatientModal';
+import { 
+  ArrowBackIcon, 
+  UserIcon, 
+  ChartIcon, 
+  InvoiceIcon, 
+  DocumentIcon, 
+  FormIcon, 
+  PrescriptionIcon,
+  PlusIcon,
+  PinIcon,
+  TagIcon,
+  EditIcon,
+  MoreOptionsIcon,
+  CloseIcon,
+  MapIcon
+} from '../components/common/Icons';
 import './PatientProfile.css';
 
 interface PatientDetails {
@@ -41,7 +57,7 @@ export const PatientProfile: React.FC = () => {
   const [patient, setPatient] = useState<PatientDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('intake');
+  const [activeTab, setActiveTab] = useState('overview');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [timelineNotes, setTimelineNotes] = useState<TimelineNote[]>([]);
   const [newNote, setNewNote] = useState('');
@@ -214,7 +230,7 @@ export const PatientProfile: React.FC = () => {
     <div className="patient-profile-container">
       <div className="profile-header-bar">
         <button className="back-button" onClick={() => navigate('/clients')}>
-          ← Back to Clients
+          <ArrowBackIcon className="back-icon" /> Back to Clients
         </button>
       </div>
 
@@ -253,11 +269,11 @@ export const PatientProfile: React.FC = () => {
                           {new Date(note.createdAt).toLocaleDateString()}
                         </span>
                         <div className="note-actions">
-                          <span className="pinned-label">📌 Pinned</span>
+                          <span className="pinned-label"><PinIcon className="pin-icon" filled={true} /> Pinned</span>
                         </div>
                       </div>
                       <div className="intake-form-note-content">
-                        <div className="form-icon-small">📄</div>
+                        <div className="form-icon-small"><FormIcon className="form-icon-svg" /></div>
                         <div>
                           <p className="note-title">Intake Form - {patient.patient_id}</p>
                           <p className="note-subtitle">Weight Loss Program</p>
@@ -282,13 +298,13 @@ export const PatientProfile: React.FC = () => {
                             onClick={() => togglePinNote(note.id)}
                             title={note.isPinned ? 'Unpin' : 'Pin'}
                           >
-                            📌
+                            <PinIcon className="pin-icon" filled={note.isPinned} />
                           </button>
                           <button 
                             className="delete-note-btn"
                             onClick={() => deleteNote(note.id)}
                           >
-                            ×
+                            <CloseIcon />
                           </button>
                         </div>
                       </div>
@@ -336,12 +352,12 @@ export const PatientProfile: React.FC = () => {
 
             <div className="profile-actions">
               <button className="profile-settings-btn">Profile settings</button>
-              <button className="more-options-btn">⋮</button>
+              <button className="more-options-btn"><MoreOptionsIcon className="more-options-icon" /></button>
               <button 
                 className="tag-btn"
                 onClick={() => setShowHashtagInput(!showHashtagInput)}
               >
-                🏷
+                <TagIcon className="tag-icon" />
               </button>
             </div>
           </div>
@@ -375,43 +391,43 @@ export const PatientProfile: React.FC = () => {
               className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
               onClick={() => setActiveTab('overview')}
             >
-              👤 Overview
+              <UserIcon className="tab-icon" /> Overview
             </button>
             <button 
               className={`tab ${activeTab === 'progress' ? 'active' : ''}`}
               onClick={() => setActiveTab('progress')}
             >
-              📊 Progress
+              <ChartIcon className="tab-icon" /> Progress
             </button>
             <button 
               className={`tab ${activeTab === 'invoices' ? 'active' : ''}`}
               onClick={() => setActiveTab('invoices')}
             >
-              💳 Invoices
+              <InvoiceIcon className="tab-icon" /> Invoices
             </button>
             <button 
               className={`tab ${activeTab === 'soap' ? 'active' : ''}`}
               onClick={() => setActiveTab('soap')}
             >
-              📝 SOAP Notes
+              <DocumentIcon className="tab-icon" /> SOAP Notes
             </button>
             <button 
               className={`tab ${activeTab === 'intake' ? 'active' : ''}`}
               onClick={() => setActiveTab('intake')}
             >
-              📄 Intake Form
+              <FormIcon className="tab-icon" /> Intake Form
             </button>
             <button 
               className={`tab ${activeTab === 'prescriptions' ? 'active' : ''}`}
               onClick={() => setActiveTab('prescriptions')}
             >
-              💊 Prescriptions
+              <PrescriptionIcon className="tab-icon" /> Prescriptions
             </button>
             <button 
               className={`tab plus-tab`}
               onClick={() => console.log('Add new tab')}
             >
-              +
+              <PlusIcon className="tab-icon" />
             </button>
           </div>
 
@@ -422,7 +438,7 @@ export const PatientProfile: React.FC = () => {
                   <span className="client-id">CLIENT ID</span>
                   <span className="patient-id">{patient.patient_id}</span>
                   <button className="edit-btn" onClick={() => setIsEditModalOpen(true)}>
-                    Edit ✏️
+                    <EditIcon className="edit-icon" /> Edit
                   </button>
                 </div>
 
@@ -455,12 +471,20 @@ export const PatientProfile: React.FC = () => {
                         <label>ADDRESS</label>
                         <p>
                           {patient.address ? (
-                            <>
+                            <a 
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                `${patient.address}, ${patient.city || ''} ${patient.state || ''} ${patient.zip || ''}`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="address-link"
+                            >
                               {patient.address}<br />
                               {patient.city && patient.state && patient.zip && 
-                                `${patient.city} ${patient.state} ${patient.zip}`
+                                `${patient.city}, ${patient.state} ${patient.zip}`
                               }
-                            </>
+                              <MapIcon className="map-icon" />
+                            </a>
                           ) : (
                             'Not provided'
                           )}
@@ -518,7 +542,7 @@ export const PatientProfile: React.FC = () => {
                 <h2>Intake Form</h2>
                 <div className="intake-form-content">
                   <div className="intake-form-card">
-                    <div className="form-icon">📄</div>
+                    <div className="form-icon"><FormIcon className="form-icon-large" /></div>
                     <div className="form-details">
                       <h3>Weight Loss Intake Form</h3>
                       <p>Submitted on {new Date(patient.created_at).toLocaleDateString()}</p>

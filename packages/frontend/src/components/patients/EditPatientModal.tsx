@@ -35,6 +35,8 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
   const [formData, setFormData] = useState<Partial<PatientData>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [heightFeet, setHeightFeet] = useState<number>(0);
+  const [heightInches, setHeightInches] = useState<number>(0);
 
   useEffect(() => {
     if (patient) {
@@ -53,6 +55,12 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
         zip: patient.zip,
         status: patient.status
       });
+      
+      // Convert height to feet and inches
+      if (patient.height_inches) {
+        setHeightFeet(Math.floor(patient.height_inches / 12));
+        setHeightInches(patient.height_inches % 12);
+      }
     }
   }, [patient]);
 
@@ -62,6 +70,19 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleHeightChange = (type: 'feet' | 'inches', value: string) => {
+    const numValue = parseInt(value) || 0;
+    if (type === 'feet') {
+      setHeightFeet(numValue);
+      const totalInches = (numValue * 12) + heightInches;
+      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+    } else {
+      setHeightInches(numValue);
+      const totalInches = (heightFeet * 12) + numValue;
+      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -171,16 +192,31 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label htmlFor="height_inches">Height (inches)</label>
-              <input
-                type="number"
-                id="height_inches"
-                name="height_inches"
-                value={formData.height_inches || ''}
-                onChange={handleInputChange}
-                min="0"
-                max="120"
-              />
+              <label>Height</label>
+              <div className="height-input-group">
+                <div className="height-field">
+                  <input
+                    type="number"
+                    value={heightFeet}
+                    onChange={(e) => handleHeightChange('feet', e.target.value)}
+                    min="0"
+                    max="8"
+                    placeholder="0"
+                  />
+                  <span className="unit-label">ft</span>
+                </div>
+                <div className="height-field">
+                  <input
+                    type="number"
+                    value={heightInches}
+                    onChange={(e) => handleHeightChange('inches', e.target.value)}
+                    min="0"
+                    max="11"
+                    placeholder="0"
+                  />
+                  <span className="unit-label">in</span>
+                </div>
+              </div>
             </div>
 
             <div className="form-group">
@@ -205,6 +241,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 name="address"
                 value={formData.address || ''}
                 onChange={handleInputChange}
+                placeholder="123 Main Street"
               />
             </div>
 

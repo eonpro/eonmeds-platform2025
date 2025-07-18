@@ -12,15 +12,29 @@
 }
 
 .back-button {
-  background: none;
-  border: none;
-  color: #666;
-  font-size: 14px;
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 16px;
-  border-radius: 4px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
   transition: all 0.2s;
-  font-family: var(--font-family);
+  font-family: 'Poppins', sans-serif;
+}
+
+.back-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.back-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .back-button:hover {
@@ -365,6 +379,28 @@
   border-color: #ccc;
 }
 
+.more-options-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-options-btn:hover {
+  background-color: #f3f4f6;
+}
+
+.more-options-btn svg {
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+}
+
 /* Tabs */
 .profile-tabs {
   display: flex;
@@ -375,18 +411,31 @@
 }
 
 .tab {
+  padding: 12px 20px;
   background: none;
   border: none;
-  padding: 14px 20px;
+  border-bottom: 3px solid transparent;
   font-size: 14px;
   font-weight: 500;
-  color: #666;
+  color: #6b7280;
   cursor: pointer;
-  position: relative;
-  white-space: nowrap;
   transition: all 0.2s;
-  font-family: var(--font-family);
-  border-radius: 4px 4px 0 0;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tab-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .tab:hover {
@@ -444,17 +493,24 @@
 }
 
 .edit-btn {
-  margin-left: auto;
-  padding: 6px 16px;
-  background-color: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 6px 16px;
+  background: #14a97b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.edit-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .edit-btn:hover {
@@ -792,6 +848,26 @@
   font-weight: 500;
 }
 
+.form-icon-svg,
+.form-icon-small svg {
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+}
+
+.form-icon-large {
+  width: 48px;
+  height: 48px;
+  color: #14a97b;
+}
+
+.pin-icon {
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+  color: #f59e0b;
+}
+
 /* Overview Section (renamed from intake-form-section) */
 .overview-section {
   max-width: 900px;
@@ -873,4 +949,27 @@
   background-color: #0e8a5f;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(20, 169, 123, 0.3);
+} 
+
+.address-link {
+  color: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  flex-direction: column;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.address-link:hover {
+  color: #14a97b;
+}
+
+.map-icon {
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #14a97b;
 } 
