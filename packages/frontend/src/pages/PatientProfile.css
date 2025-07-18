@@ -436,18 +436,28 @@
 }
 
 .profile-settings-btn {
-  padding: 8px 16px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   background-color: white;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .profile-settings-btn:hover {
   background-color: #f5f5f5;
   border-color: #ccc;
+}
+
+.profile-settings-btn svg {
+  width: 20px;
+  height: 20px;
+  color: #666;
 }
 
 .more-options-btn,
