@@ -56,6 +56,13 @@ BEGIN
     ALTER TABLE patients ADD COLUMN membership_hashtags TEXT[];
   END IF;
 
+  -- Add additional_info column
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                WHERE table_name = 'patients' 
+                AND column_name = 'additional_info') THEN
+    ALTER TABLE patients ADD COLUMN additional_info TEXT;
+  END IF;
+
   -- Add status_updated_at column
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
                 WHERE table_name = 'patients' 

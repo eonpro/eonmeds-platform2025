@@ -188,7 +188,9 @@ router.get('/:id', async (req, res) => {
         heyflow_submission_id,
         submitted_at,
         created_at,
-        updated_at
+        updated_at,
+        membership_hashtags,
+        additional_info
       FROM patients
       WHERE id::text = $1 OR patient_id = $1
     `, [id]);
@@ -283,12 +285,12 @@ router.put('/:id', async (req, res) => {
     const values = [];
     let paramCount = 1;
     
-    // List of allowed fields to update
+    // Only allow updating certain fields
     const allowedFields = [
-      'first_name', 'last_name', 'email', 'phone', 
-      'date_of_birth', 'gender', 'height_inches', 'weight_lbs',
+      'first_name', 'last_name', 'email', 'phone', 'date_of_birth', 'gender',
+      'height_inches', 'weight_lbs',
       'address', 'address_house', 'address_street', 'apartment_number',
-      'city', 'state', 'zip', 'status'
+      'city', 'state', 'zip', 'status', 'membership_hashtags', 'additional_info'
     ];
     
     // Build update fields dynamically
