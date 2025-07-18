@@ -2,19 +2,32 @@ import Stripe from 'stripe';
 import { stripeConfig } from '../config/stripe.config';
 
 export class StripeService {
-  private stripe: Stripe;
+  private stripe: Stripe | null = null;
 
   constructor() {
-    // Initialize Stripe with API key from config
-    this.stripe = new Stripe(stripeConfig.apiKey, {
-      apiVersion: '2023-10-16',
-    });
+    // Initialize Stripe with API key from config if available
+    if (stripeConfig.apiKey) {
+      this.stripe = new Stripe(stripeConfig.apiKey, {
+        apiVersion: '2023-10-16',
+      });
+    } else {
+      console.warn('⚠️  Stripe API key not configured. Stripe functionality will be disabled.');
+    }
+  }
+
+  // Helper to check if Stripe is configured
+  private isConfigured(): boolean {
+    return this.stripe !== null;
   }
 
   // ==================== CUSTOMER METHODS ====================
   
   // Create a new Stripe customer from patient data
   async createCustomer(patientData: any) {
+    if (!this.isConfigured()) {
+      return { success: false, error: 'Stripe is not configured. Please add STRIPE_SECRET_KEY to environment variables.' };
+    }
+    
     try {
       const customerData = {
         email: patientData.email,

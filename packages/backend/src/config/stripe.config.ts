@@ -75,12 +75,16 @@ export const stripeConfig = {
 // Validate configuration on startup
 export const validateStripeConfig = () => {
   if (!stripeConfig.apiKey) {
-    throw new Error('STRIPE_SECRET_KEY environment variable is required');
+    console.warn('⚠️  STRIPE_SECRET_KEY not set - Stripe payment functionality will be disabled');
+    console.warn('   Add STRIPE_SECRET_KEY=sk_test_... to your .env file to enable payments');
+    return false;
   }
   
   if (!stripeConfig.webhookSecret) {
-    console.warn('STRIPE_WEBHOOK_SECRET not set - webhooks will not be verified');
+    console.warn('⚠️  STRIPE_WEBHOOK_SECRET not set - webhooks will not be verified');
+    console.warn('   Add STRIPE_WEBHOOK_SECRET=whsec_... to your .env file for webhook security');
   }
   
   console.log('✅ Stripe configuration loaded successfully');
+  return true;
 }; 

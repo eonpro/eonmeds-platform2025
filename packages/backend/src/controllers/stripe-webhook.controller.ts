@@ -11,16 +11,22 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'] as string;
   let event: Stripe.Event;
 
-  try {
-    // Verify webhook signature
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      stripeConfig.webhookSecret
-    );
-  } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+  // If no webhook secret is configured, skip signature verification (development only!)
+  if (!stripeConfig.webhookSecret) {
+    console.warn('⚠️  Webhook signature verification skipped - no STRIPE_WEBHOOK_SECRET configured');
+    event = req.body as Stripe.Event;
+  } else {
+    try {
+      // Verify webhook signature
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        stripeConfig.webhookSecret
+      );
+    } catch (err: any) {
+      console.error('Webhook signature verification failed:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
   }
 
   console.log(`📨 Stripe webhook received: ${event.type}`);

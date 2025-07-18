@@ -4,8 +4,12 @@ import { authenticateToken } from '../middleware/auth';
 import { handleStripeWebhook } from '../controllers/stripe-webhook.controller';
 import stripeService from '../services/stripe.service';
 import pool from '../config/database';
+import { validateStripeConfig } from '../config/stripe.config';
 
 const router = Router();
+
+// Validate Stripe configuration on startup
+validateStripeConfig();
 
 // Stripe webhook endpoint (no auth required)
 router.post('/webhook/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
