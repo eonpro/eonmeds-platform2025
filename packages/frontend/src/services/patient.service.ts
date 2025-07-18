@@ -29,6 +29,9 @@ export interface Patient {
   city?: string;
   state?: string;
   zip?: string;
+  
+  // Additional info
+  additional_info?: string;
 }
 
 export interface PatientListResponse {

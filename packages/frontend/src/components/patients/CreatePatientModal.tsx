@@ -35,10 +35,19 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
     phone: '',
     date_of_birth: '',
     gender: '',
-    status: 'qualified'
+    height_inches: undefined,
+    weight_lbs: undefined,
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    status: 'pending'
   });
+  
+  const [heightFeet, setHeightFeet] = useState<number>(0);
+  const [heightInches, setHeightInches] = useState<number>(0);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -48,27 +57,30 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
     }));
   };
 
+  const handleHeightChange = (type: 'feet' | 'inches', value: string) => {
+    const numValue = parseInt(value) || 0;
+    
+    if (type === 'feet') {
+      setHeightFeet(numValue);
+      const totalInches = numValue * 12 + heightInches;
+      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+    } else {
+      setHeightInches(numValue);
+      const totalInches = heightFeet * 12 + numValue;
+      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setError('');
 
     try {
       await onSave(formData);
-      // Reset form
-      setFormData({
-        first_name: '',
-        last_name: '',
-        email: '',
-        phone: '',
-        date_of_birth: '',
-        gender: '',
-        status: 'qualified'
-      });
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create patient');
-      console.error('Error creating patient:', err);
+    } catch (err) {
+      setError('Failed to create patient. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -173,17 +185,31 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label htmlFor="height_inches">Height (inches)</label>
-              <input
-                type="number"
-                id="height_inches"
-                name="height_inches"
-                value={formData.height_inches || ''}
-                onChange={handleInputChange}
-                min="0"
-                max="120"
-                placeholder="70"
-              />
+              <label>Height</label>
+              <div className="height-input-group">
+                <div className="height-field">
+                  <input
+                    type="number"
+                    value={heightFeet}
+                    onChange={(e) => handleHeightChange('feet', e.target.value)}
+                    min="0"
+                    max="8"
+                    placeholder="0"
+                  />
+                  <span className="unit-label">ft</span>
+                </div>
+                <div className="height-field">
+                  <input
+                    type="number"
+                    value={heightInches}
+                    onChange={(e) => handleHeightChange('inches', e.target.value)}
+                    min="0"
+                    max="11"
+                    placeholder="0"
+                  />
+                  <span className="unit-label">in</span>
+                </div>
+              </div>
             </div>
 
             <div className="form-group">

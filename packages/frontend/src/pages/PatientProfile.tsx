@@ -70,6 +70,8 @@ export const PatientProfile: React.FC = () => {
   const [showHashtagInput, setShowHashtagInput] = useState(false);
   const [newHashtag, setNewHashtag] = useState('');
   const [patientStatus, setPatientStatus] = useState<string>('pending');
+  const [isEditingAdditionalInfo, setIsEditingAdditionalInfo] = useState(false);
+  const [additionalInfo, setAdditionalInfo] = useState('');
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState('');
@@ -110,6 +112,7 @@ export const PatientProfile: React.FC = () => {
   useEffect(() => {
     if (patient) {
       setPatientStatus(patient.status || 'pending');
+      setAdditionalInfo(patient.additional_info || '');
     }
   }, [patient]);
 
@@ -401,6 +404,25 @@ export const PatientProfile: React.FC = () => {
         return '#f59e0b';
       default:
         return '#6b7280';
+    }
+  };
+
+  const handleSaveAdditionalInfo = async () => {
+    if (!patient) return;
+    
+    try {
+      const updatedPatient = await patientService.updatePatient(patient.id, {
+        additional_info: additionalInfo
+      });
+      setPatient({
+        ...patient,
+        additional_info: additionalInfo
+      });
+      setIsEditingAdditionalInfo(false);
+    } catch (err) {
+      console.error('Error updating additional info:', err);
+      // Revert on error
+      setAdditionalInfo(patient.additional_info || '');
     }
   };
 
@@ -714,6 +736,7 @@ export const PatientProfile: React.FC = () => {
                                   rel="noopener noreferrer"
                                   className="address-link"
                                 >
+                                  <MapIcon className="map-icon" />
                                   {addressLine1}
                                   {addressLine2 && (
                                     <>
@@ -721,7 +744,6 @@ export const PatientProfile: React.FC = () => {
                                       {addressLine2}
                                     </>
                                   )}
-                                  <MapIcon className="map-icon" />
                                 </a>
                               ) : (
                                 'Not provided'
@@ -769,7 +791,20 @@ export const PatientProfile: React.FC = () => {
                     <div className="additional-info-section">
                       <label>ADDITIONAL INFORMATION</label>
                       <div className="additional-info-box">
-                        <p>{patient.additional_info || 'No additional information provided.'}</p>
+                        <textarea
+                          className="additional-info-textarea"
+                          value={additionalInfo}
+                          onChange={(e) => setAdditionalInfo(e.target.value)}
+                          rows={4}
+                          placeholder="Enter additional information..."
+                        />
+                        <button 
+                          className="save-additional-info-btn"
+                          onClick={handleSaveAdditionalInfo}
+                          disabled={additionalInfo === patient.additional_info}
+                        >
+                          {additionalInfo === patient.additional_info ? 'No changes' : 'Save Changes'}
+                        </button>
                       </div>
                     </div>
                   </div>

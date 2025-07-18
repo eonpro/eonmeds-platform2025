@@ -27,6 +27,9 @@ export interface Patient {
   created_at: string;
   updated_at: string;
   
+  // Additional info
+  additional_info?: string;
+  
   // HeyFlow integration
   heyflow_submission_id?: string;
   form_type?: string;
