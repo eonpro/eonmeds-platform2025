@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { patientService } from '../services/patient.service';
 import { EditPatientModal } from '../components/patients/EditPatientModal';
+import { CreatePatientModal } from '../components/patients/CreatePatientModal';
 import { 
   ArrowBackIcon, 
   UserIcon, 
@@ -64,9 +65,16 @@ export const PatientProfile: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [timelineNotes, setTimelineNotes] = useState<TimelineNote[]>([]);
   const [newNote, setNewNote] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [showHashtagInput, setShowHashtagInput] = useState(false);
   const [newHashtag, setNewHashtag] = useState('');
+  
+  // Search functionality
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<PatientDetails[]>([]);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const loadPatient = async () => {
     if (!id) return;
@@ -110,6 +118,50 @@ export const PatientProfile: React.FC = () => {
       setTimelineNotes(prev => [intakeNote, ...prev]);
     }
   }, [patient]);
+
+  // Search patients
+  useEffect(() => {
+    const searchPatients = async () => {
+      if (searchQuery.length < 2) {
+        setSearchResults([]);
+        setShowSearchDropdown(false);
+        return;
+      }
+
+      setSearchLoading(true);
+      try {
+        const response = await patientService.getPatients({ 
+          search: searchQuery, 
+          limit: 10 
+        });
+        setSearchResults(response.patients as PatientDetails[]);
+        setShowSearchDropdown(true);
+      } catch (error) {
+        console.error('Error searching patients:', error);
+      } finally {
+        setSearchLoading(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchPatients, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  const handlePatientSelect = (selectedPatient: PatientDetails) => {
+    navigate(`/patients/${selectedPatient.id}`);
+    setSearchQuery('');
+    setShowSearchDropdown(false);
+  };
+
+  const handleCreatePatient = async (patientData: any) => {
+    try {
+      const newPatient = await patientService.createPatient(patientData);
+      navigate(`/patients/${newPatient.id}`);
+    } catch (error) {
+      console.error('Error creating patient:', error);
+      throw error;
+    }
+  };
 
   const calculateAge = (dob: string) => {
     const birthDate = new Date(dob);
@@ -326,9 +378,34 @@ export const PatientProfile: React.FC = () => {
               type="text"
               className="client-search-input"
               placeholder="Search for Client"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
             />
+            {showSearchDropdown && (
+              <div className="search-dropdown">
+                {searchLoading ? (
+                  <div className="search-loading">Searching...</div>
+                ) : searchResults.length > 0 ? (
+                  searchResults.map((result) => (
+                    <div
+                      key={result.id}
+                      className="search-result-item"
+                      onClick={() => handlePatientSelect(result)}
+                    >
+                      <div className="search-result-name">
+                        {result.first_name} {result.last_name}
+                      </div>
+                      <div className="search-result-id">{result.patient_id}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="search-no-results">No clients found</div>
+                )}
+              </div>
+            )}
           </div>
-          <button className="add-client-btn" onClick={() => navigate('/clients')}>
+          <button className="add-client-btn" onClick={() => setIsCreateModalOpen(true)}>
             + Client
           </button>
           <button className="dashboard-btn" onClick={() => navigate('/dashboard')}>
@@ -703,6 +780,13 @@ export const PatientProfile: React.FC = () => {
           onClose={() => setIsEditModalOpen(false)}
           patient={patient}
           onSave={handleSavePatient}
+        />
+      )}
+      {isCreateModalOpen && (
+        <CreatePatientModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSave={handleCreatePatient}
         />
       )}
     </div>
