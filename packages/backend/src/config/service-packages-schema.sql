@@ -12,11 +12,8 @@ CREATE TABLE IF NOT EXISTS service_packages (
 );
 
 -- Add index for faster queries
-CREATE INDEX idx_service_packages_active ON service_packages(is_active);
-CREATE INDEX idx_service_packages_category ON service_packages(category);
-
--- Add service_package_id to invoice_items if it doesn't exist
-ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS service_package_id INTEGER REFERENCES service_packages(id);
+CREATE INDEX IF NOT EXISTS idx_service_packages_active ON service_packages(is_active);
+CREATE INDEX IF NOT EXISTS idx_service_packages_category ON service_packages(category);
 
 -- Insert default packages
 INSERT INTO service_packages (name, category, billing_period, price, description) VALUES

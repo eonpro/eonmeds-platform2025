@@ -1,14 +1,16 @@
 import { Router } from 'express';
+import express from 'express';
 import { authenticateToken } from '../middleware/auth';
-import { handleStripeWebhook } from '../controllers/stripe-webhook.controller';
-import StripeService from '../services/stripe.service';
+// Temporarily comment out broken imports
+// import { handleStripeWebhook } from '../controllers/stripe-webhook.controller';
+// import StripeService from '../services/stripe.service';
 import pool from '../config/database';
 
 const router = Router();
-const stripeService = new StripeService();
+// const stripeService = new StripeService();
 
-// Stripe webhook endpoint (no auth required)
-router.post('/webhook/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
+// Stripe webhook endpoint (no auth required) - temporarily disabled
+// router.post('/webhook/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // All other routes require authentication
 router.use(authenticateToken);
@@ -34,24 +36,26 @@ router.post('/customers/create', async (req, res) => {
     
     // Check if customer already exists
     if (patient.stripe_customer_id) {
-      const customer = await stripeService.getCustomer(patient.stripe_customer_id);
-      return res.json({ customer: customer.customer });
+      // const customer = await stripeService.getCustomer(patient.stripe_customer_id);
+      // return res.json({ customer: customer.customer });
+      return res.json({ customer: patient.stripe_customer_id }); // Placeholder for now
     }
     
     // Create new customer
-    const result = await stripeService.createCustomer(patient);
+    // const result = await stripeService.createCustomer(patient);
     
-    if (result.success) {
+    // if (result.success) {
       // Update patient with Stripe customer ID
-      await pool.query(
-        'UPDATE patients SET stripe_customer_id = $1 WHERE patient_id = $2',
-        [result.customer.id, patient_id]
-      );
+      // await pool.query(
+      //   'UPDATE patients SET stripe_customer_id = $1 WHERE patient_id = $2',
+      //   [result.customer.id, patient_id]
+      // );
       
-      res.json({ customer: result.customer });
-    } else {
-      res.status(400).json({ error: result.error });
-    }
+      // res.json({ customer: result.customer });
+      res.status(501).json({ error: 'Stripe webhook handling is temporarily disabled' }); // Placeholder for now
+    // } else {
+    //   res.status(400).json({ error: result.error });
+    // }
   } catch (error) {
     console.error('Error creating customer:', error);
     res.status(500).json({ error: 'Failed to create customer' });
@@ -65,13 +69,13 @@ router.post('/payment-methods/attach', async (req, res) => {
   try {
     const { payment_method_id, customer_id } = req.body;
     
-    const result = await stripeService.attachPaymentMethod(payment_method_id, customer_id);
+    // const result = await stripeService.attachPaymentMethod(payment_method_id, customer_id);
     
-    if (result.success) {
-      res.json({ paymentMethod: result.paymentMethod });
-    } else {
-      res.status(400).json({ error: result.error });
-    }
+    // if (result.success) {
+      res.status(501).json({ error: 'Stripe webhook handling is temporarily disabled' }); // Placeholder for now
+    // } else {
+    //   res.status(400).json({ error: result.error });
+    // }
   } catch (error) {
     console.error('Error attaching payment method:', error);
     res.status(500).json({ error: 'Failed to attach payment method' });
@@ -83,13 +87,13 @@ router.get('/payment-methods/:customerId', async (req, res) => {
   try {
     const { customerId } = req.params;
     
-    const result = await stripeService.listPaymentMethods(customerId);
+    // const result = await stripeService.listPaymentMethods(customerId);
     
-    if (result.success) {
-      res.json({ paymentMethods: result.paymentMethods });
-    } else {
-      res.status(400).json({ error: result.error });
-    }
+    // if (result.success) {
+      res.status(501).json({ error: 'Stripe webhook handling is temporarily disabled' }); // Placeholder for now
+    // } else {
+    //   res.status(400).json({ error: result.error });
+    // }
   } catch (error) {
     console.error('Error listing payment methods:', error);
     res.status(500).json({ error: 'Failed to list payment methods' });
@@ -119,13 +123,13 @@ router.post('/subscriptions/create', async (req, res) => {
       return res.status(400).json({ error: 'Patient has no Stripe customer ID' });
     }
     
-    const result = await stripeService.createSubscription(customerId, price_id, payment_method_id);
+    // const result = await stripeService.createSubscription(customerId, price_id, payment_method_id);
     
-    if (result.success) {
-      res.json({ subscription: result.subscription });
-    } else {
-      res.status(400).json({ error: result.error });
-    }
+    // if (result.success) {
+      res.status(501).json({ error: 'Stripe webhook handling is temporarily disabled' }); // Placeholder for now
+    // } else {
+    //   res.status(400).json({ error: result.error });
+    // }
   } catch (error) {
     console.error('Error creating subscription:', error);
     res.status(500).json({ error: 'Failed to create subscription' });
@@ -137,13 +141,13 @@ router.post('/subscriptions/:subscriptionId/pause', async (req, res) => {
   try {
     const { subscriptionId } = req.params;
     
-    const result = await stripeService.pauseSubscription(subscriptionId);
+    // const result = await stripeService.pauseSubscription(subscriptionId);
     
-    if (result.success) {
-      res.json({ subscription: result.subscription });
-    } else {
-      res.status(400).json({ error: result.error });
-    }
+    // if (result.success) {
+      res.status(501).json({ error: 'Stripe webhook handling is temporarily disabled' }); // Placeholder for now
+    // } else {
+    //   res.status(400).json({ error: result.error });
+    // }
   } catch (error) {
     console.error('Error pausing subscription:', error);
     res.status(500).json({ error: 'Failed to pause subscription' });
@@ -155,13 +159,13 @@ router.post('/subscriptions/:subscriptionId/resume', async (req, res) => {
   try {
     const { subscriptionId } = req.params;
     
-    const result = await stripeService.resumeSubscription(subscriptionId);
+    // const result = await stripeService.resumeSubscription(subscriptionId);
     
-    if (result.success) {
-      res.json({ subscription: result.subscription });
-    } else {
-      res.status(400).json({ error: result.error });
-    }
+    // if (result.success) {
+      res.status(501).json({ error: 'Stripe webhook handling is temporarily disabled' }); // Placeholder for now
+    // } else {
+    //   res.status(400).json({ error: result.error });
+    // }
   } catch (error) {
     console.error('Error resuming subscription:', error);
     res.status(500).json({ error: 'Failed to resume subscription' });
@@ -174,13 +178,13 @@ router.post('/subscriptions/:subscriptionId/cancel', async (req, res) => {
     const { subscriptionId } = req.params;
     const { immediately = false } = req.body;
     
-    const result = await stripeService.cancelSubscription(subscriptionId, immediately);
+    // const result = await stripeService.cancelSubscription(subscriptionId, immediately);
     
-    if (result.success) {
-      res.json({ subscription: result.subscription });
-    } else {
-      res.status(400).json({ error: result.error });
-    }
+    // if (result.success) {
+      res.status(501).json({ error: 'Stripe webhook handling is temporarily disabled' }); // Placeholder for now
+    // } else {
+    //   res.status(400).json({ error: result.error });
+    // }
   } catch (error) {
     console.error('Error canceling subscription:', error);
     res.status(500).json({ error: 'Failed to cancel subscription' });
@@ -192,13 +196,13 @@ router.get('/subscriptions/:subscriptionId', async (req, res) => {
   try {
     const { subscriptionId } = req.params;
     
-    const result = await stripeService.getSubscription(subscriptionId);
+    // const result = await stripeService.getSubscription(subscriptionId);
     
-    if (result.success) {
-      res.json({ subscription: result.subscription });
-    } else {
-      res.status(400).json({ error: result.error });
-    }
+    // if (result.success) {
+      res.status(501).json({ error: 'Stripe webhook handling is temporarily disabled' }); // Placeholder for now
+    // } else {
+    //   res.status(400).json({ error: result.error });
+    // }
   } catch (error) {
     console.error('Error getting subscription:', error);
     res.status(500).json({ error: 'Failed to get subscription' });
@@ -531,26 +535,26 @@ router.post('/invoices/:invoiceId/pay', async (req, res) => {
     }
     
     // Create payment intent
-    const result = await stripeService.createPaymentIntent(
-      invoice.amount_due * 100, // Convert to cents
-      invoice.stripe_customer_id,
-      {
-        invoice_id: invoice.id,
-        invoice_number: invoice.invoice_number,
-        patient_id: invoice.patient_id
-      }
-    );
+    // const result = await stripeService.createPaymentIntent(
+    //   invoice.amount_due * 100, // Convert to cents
+    //   invoice.stripe_customer_id,
+    //   {
+    //     invoice_id: invoice.id,
+    //     invoice_number: invoice.invoice_number,
+    //     patient_id: invoice.patient_id
+    //   }
+    // );
     
-    if (result.success) {
+    // if (result.success) {
       // If payment method provided, confirm payment
-      if (payment_method_id) {
+      // if (payment_method_id) {
         // Confirm payment logic here
-      }
+      // }
       
-      res.json({ paymentIntent: result.paymentIntent });
-    } else {
-      res.status(400).json({ error: result.error });
-    }
+      res.status(501).json({ error: 'Stripe webhook handling is temporarily disabled' }); // Placeholder for now
+    // } else {
+    //   res.status(400).json({ error: result.error });
+    // }
   } catch (error) {
     console.error('Error processing payment:', error);
     res.status(500).json({ error: 'Failed to process payment' });
