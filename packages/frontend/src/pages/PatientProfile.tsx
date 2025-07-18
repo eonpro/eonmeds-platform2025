@@ -93,7 +93,6 @@ export const PatientProfile: React.FC = () => {
     try {
       setLoading(true);
       const data = await patientService.getPatientById(id);
-      console.log('Patient data received:', data);
       setPatient(data);
       // Initialize hashtags from patient data
       if (data.membership_hashtags) {
@@ -108,20 +107,14 @@ export const PatientProfile: React.FC = () => {
   };
 
   const loadIntakeData = useCallback(async () => {
-    console.log('loadIntakeData called with id:', id, 'apiClient:', apiClient);
     if (!id || !apiClient) return;
     
     try {
       setIntakeLoading(true);
-      console.log('Fetching intake data from:', `/api/v1/patients/${id}/webhook-data`);
       const response = await apiClient.get(`/api/v1/patients/${id}/webhook-data`);
       
-      console.log('Intake API response:', response);
       if (response.data) {
-        console.log('Intake data received:', response.data);
         setIntakeFormData(response.data);
-      } else {
-        console.log('No data in response');
       }
     } catch (err) {
       console.error('Error loading intake data:', err);
@@ -137,9 +130,7 @@ export const PatientProfile: React.FC = () => {
 
   // Load intake data when intake tab is selected
   useEffect(() => {
-    console.log('Intake useEffect triggered - activeTab:', activeTab, 'intakeFormData:', intakeFormData, 'intakeLoading:', intakeLoading);
     if (activeTab === 'intake' && !intakeFormData && !intakeLoading && id && apiClient) {
-      console.log('Calling loadIntakeData from useEffect');
       loadIntakeData();
     }
   }, [activeTab, id, apiClient, intakeFormData, intakeLoading, loadIntakeData]); // Added all dependencies
@@ -863,7 +854,6 @@ export const PatientProfile: React.FC = () => {
 
               {activeTab === 'intake' && (
                 <div className="intake-form-section">
-                  {console.log('Rendering intake form - Loading:', intakeLoading, 'Data:', intakeFormData)}
                   {intakeLoading ? (
                     <div className="loading-container">
                       <p>Loading intake form data...</p>
