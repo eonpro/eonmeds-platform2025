@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
 import { pool } from '../config/database';
+import { getStateAbbreviation } from '../utils/states';
 
 /**
  * Verify HeyFlow webhook signature
@@ -223,6 +224,9 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       target_weight_lbs: parseFloat(extractedData.idealweight || extractedData.target_weight || extractedData.target_weight_lbs || extractedData.goal_weight || 0),
       bmi: parseFloat(extractedData.BMI || extractedData.bmi || 0),
       address: extractedData.address || extractedData.Address || null,
+      address_house: extractedData['address [house]'] || extractedData.address_house || null,
+      address_street: extractedData['address [street]'] || extractedData.address_street || null,
+      apartment_number: extractedData['apartment#'] || extractedData.apartment_number || extractedData.apt || null,
       city: extractedData['address [city]'] || extractedData.city || null,
       state: extractedData['address [state]'] || extractedData.state || null,
       zip: extractedData['address [zip]'] || extractedData.zip || null,
@@ -246,6 +250,9 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     // Get form type from various possible locations
     const formType = payload.flowID || payload.formType || payload.form_type || payload.type || 'unknown';
     
+    // Convert state to abbreviation if needed
+    const stateAbbreviation = getStateAbbreviation(patientData.state);
+    
     // Generate patient ID with new format
     const patientIdResult = await client.query(
       "SELECT 'P' || LPAD((COALESCE(MAX(SUBSTRING(patient_id FROM 2)::INTEGER), 0) + 1)::TEXT, 4, '0') as patient_id FROM patients WHERE patient_id ~ '^P[0-9]+$'"
@@ -268,6 +275,9 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         weight_lbs,
         bmi,
         address,
+        address_house,
+        address_street,
+        apartment_number,
         city,
         state,
         zip,
@@ -277,7 +287,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         consent_date,
         status
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24
       )
       ON CONFLICT (email) DO UPDATE SET
         updated_at = NOW(),
@@ -288,6 +298,9 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         weight_lbs = EXCLUDED.weight_lbs,
         bmi = EXCLUDED.bmi,
         address = EXCLUDED.address,
+        address_house = EXCLUDED.address_house,
+        address_street = EXCLUDED.address_street,
+        apartment_number = EXCLUDED.apartment_number,
         city = EXCLUDED.city,
         state = EXCLUDED.state,
         zip = EXCLUDED.zip
@@ -306,8 +319,11 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         patientData.weight_lbs,
         bmi,
         patientData.address,
+        patientData.address_house,
+        patientData.address_street,
+        patientData.apartment_number,
         patientData.city,
-        patientData.state,
+        stateAbbreviation, // Use abbreviated state
         patientData.zip,
         new Date(payload.createdAt || Date.now()), // submitted_at
         patientData.consent_treatment,

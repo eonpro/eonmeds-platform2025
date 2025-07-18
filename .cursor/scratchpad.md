@@ -1,5 +1,67 @@
 # EONMeds Platform - Project Scratchpad
 
+## IMPORTANT: Current Working State (July 2025) ✅
+
+### All Functionality Currently Working
+As of this session, the user has confirmed that **ALL functionality is currently working great**. We are proceeding with UI changes only that should NOT affect any existing functionality whatsoever.
+
+#### Working Components Confirmed:
+- ✅ Frontend application running without errors
+- ✅ Backend API fully functional
+- ✅ Database connections stable
+- ✅ Authentication flow working
+- ✅ Patient list display operational
+- ✅ Language switching functional
+- ✅ All API endpoints responding correctly
+- ✅ No TypeScript compilation errors
+- ✅ No runtime errors in console
+
+### UI Changes Context
+- **Type**: Visual/UI improvements only
+- **Scope**: Frontend presentation layer
+- **Backend Impact**: None expected
+- **Database Impact**: None expected
+- **API Impact**: None expected
+- **Risk Level**: Low (UI only)
+- **DEPLOYMENT TARGET**: Live Railway application (NOT localhost:3001)
+- **LIVE URL**: https://eonmeds-platform2025-production.up.railway.app
+
+### Key Principles for UI Changes:
+1. **Preserve All Functionality**: Do not modify any business logic
+2. **Component Logic Unchanged**: Only update visual styling/layout
+3. **API Calls Intact**: Do not change any data fetching mechanisms
+4. **State Management**: Keep existing state logic as-is
+5. **Testing**: Verify functionality remains intact after each UI change
+6. **DIRECT TO PRODUCTION**: All changes push directly to Railway live application
+7. **NO LOCAL TESTING**: Changes go straight to production environment
+
+### Pre-Change Checklist:
+- [ ] Document current UI state before changes
+- [ ] Identify specific UI elements to modify
+- [ ] Ensure no functional code is altered
+- [ ] Plan incremental changes with testing
+- [ ] Keep backup of working code
+- [ ] Verify Railway deployment pipeline is working
+- [ ] Confirm changes will auto-deploy to production
+- [ ] NO localhost:3001 testing - direct to production
+
+### Railway Direct Deployment Strategy
+
+#### CRITICAL REQUIREMENT: Direct to Production Only
+- **ALL changes deploy directly to**: https://eonmeds-platform2025-production.up.railway.app  
+- **NO local development server**: Do not use localhost:3001
+- **Git workflow**: Push to main → Railway auto-deploys → Live immediately
+- **Current status**: Railway deployment pipeline is active and working
+
+#### Safety Protocols for Direct Deployment
+1. Make small, atomic changes (one UI element at a time)
+2. Commit with clear messages for easy rollback
+3. Monitor Railway dashboard during deployment
+4. Test immediately after each deployment
+5. Have `git revert` ready if issues arise
+
+---
+
 ## CRITICAL ISSUE: Real-Time Patient Display Not Working (July 2025)
 
 ### Problem Statement
@@ -352,7 +414,7 @@ The user requires a sophisticated AI-powered assistant called "Becca AI" that fu
 - **Searchability**: Make documentation easily searchable and well-indexed
 - **Compliance Requirements**: Document all HIPAA-related procedures thoroughly
 
-## Railway Deployment Analysis (January 2025)
+## Railway Deployment Analysis (July 2025)
 
 ### Current Deployment Blocker
 Railway deployment is failing during the build phase due to TypeScript compilation errors. Despite multiple attempts to bypass TypeScript checking, Railway continues to run `tsc` with strict type checking.
@@ -649,7 +711,7 @@ export const LanguageSwitcher: React.FC = () => {
 - Additional development time: ~3-4 weeks
 - QA testing with native speakers: ~1 week
 
-## Railway Deployment Error Analysis (January 2025)
+## Railway Deployment Error Analysis (July 2025)
 
 ### Current Deployment Status
 - **Build Failed**: Railway build process failing with TypeScript compilation errors
@@ -731,9 +793,250 @@ If urgent deployment needed:
    - Regular TypeScript version updates
    - Team training on TypeScript best practices
 
+## UI Change Plan: Intake Form Timeline Card (July 2025)
+
+### Requirements
+1. **Background Color**: Change from blue (#f0f9ff) to yellow (#f7cf6c)
+2. **Text Color**: Change to black for all text
+3. **Button**: Change button to black background with white text
+4. **Layout**: Make the card shorter/more compact
+5. **Edit Button**: Move to the left corner of the container
+6. **Hover State**: Button should NOT change on hover
+
+### Current Implementation Location
+- **Component**: `packages/frontend/src/pages/PatientProfile.tsx` (lines 265-285)
+- **Styles**: `packages/frontend/src/pages/PatientProfile.css` (lines 800-850)
+- **Current Colors**:
+  - Background: #f0f9ff (light blue)
+  - Border: #3b82f6 (blue)
+  - Button: #3b82f6 (blue) → #2563eb (darker blue on hover)
+
+### Implementation Plan
+1. Update CSS for `.intake-form-note` background to #f7cf6c
+2. Change all text colors to black (#000000)
+3. Update `.view-form-btn` to black background
+4. Remove hover state from button
+5. Adjust padding/margins to make card more compact
+6. Restructure layout to move button to left corner
+
+### Safety Measures
+- Only modifying CSS, no functional changes
+- Testing immediately after deployment
+- Single file change for easy rollback
+
+### Changes Completed (Executor Mode)
+1. ✅ Updated `.intake-form-note` background to #f7cf6c (yellow)
+2. ✅ Changed all text colors to black (#000000)
+3. ✅ Updated `.view-form-btn` to black background
+4. ✅ Removed hover state changes from button
+5. ✅ Made card more compact (reduced padding and margins)
+6. ✅ Moved button to left corner of container
+7. ✅ Removed form icon to simplify layout
+8. ✅ Made date text black for consistency
+
+### Files Modified
+- `packages/frontend/src/pages/PatientProfile.css` - Updated styling
+- `packages/frontend/src/pages/PatientProfile.tsx` - Restructured layout (no functionality changed)
+
+### Additional Changes Completed (Round 2)
+1. ✅ Removed date and "Pinned" label from intake form card
+2. ✅ Centered the treatment type text and button
+3. ✅ Made container height shorter (reduced padding)
+4. ✅ Moved green Edit button to the opposite (right) corner
+5. ✅ Disabled hover color change on Edit button
+
+## Address Formatting Plan (July 2025)
+
+### Current Issue
+HeyFlow is sending address data in two formats:
+1. **Combined**: Full address in one field
+2. **Broken down**: Separate fields for house, street, city, state, zip
+
+This causes display issues where we see duplicate/poorly formatted address information.
+
+### Requirements Analysis
+
+#### Data Structure from HeyFlow
+- `address` - Full address line (e.g., "145 West Southgate Avenue, Fullerton, CA, USA")
+- `address[house]` - House number (e.g., "145")
+- `address[street]` - Street name (e.g., "West Southgate Avenue")
+- `address[city]` - City (e.g., "Fullerton")
+- `address[state]` - State (e.g., "California")
+- `address[zip]` - ZIP code (e.g., "92832")
+- `apartment#` - Apartment number (new field we need to capture)
+
+#### Display Requirements
+1. **Profile View**: 
+   - Show as single formatted address line
+   - Format: `[house] [street], [Apt #], [city], [state abbreviation] [zip]`
+   - Example: "145 West Southgate Avenue, Apt 2B, Fullerton, CA 92832"
+
+2. **Edit Form**:
+   - Separate input fields for each component:
+     - House Number
+     - Street Name
+     - Apartment Number (new field)
+     - City
+     - State (with abbreviation conversion)
+     - ZIP Code
+   - NO country field
+
+### Implementation Plan
+
+#### 1. Database Schema Update
+- Add `apartment_number` column to patients table
+- Ensure we have separate columns for:
+  - `address_house`
+  - `address_street`
+  - `apartment_number`
+  - `address_city`
+  - `address_state`
+  - `address_zip`
+
+#### 2. Backend Updates
+- Update patient model/interface to include apartment_number
+- Modify webhook processing to extract apartment# from HeyFlow
+- Add state abbreviation conversion logic
+- Update patient service to handle new fields
+
+#### 3. Frontend Updates
+- **PatientProfile.tsx**:
+  - Format address display to show properly combined
+  - Include apartment number if present
+  - Convert state to abbreviation for display
+  
+- **EditPatientModal.tsx**:
+  - Add separate input fields for each address component
+  - Add apartment number input field
+  - Implement state abbreviation dropdown/conversion
+  - Update save logic to handle individual fields
+
+#### 4. State Abbreviation Mapping
+Create a mapping for common states:
+- California → CA
+- New York → NY
+- Massachusetts → MA
+- Florida → FL
+- Texas → TX
+- etc.
+
+### Safety Considerations
+- Maintain backward compatibility with existing data
+- Don't break existing address display
+- Ensure edit form pre-populates correctly
+- Handle cases where apartment number is not provided
+
+### Testing Plan
+1. Verify existing addresses still display correctly
+2. Test new address format with apartment numbers
+3. Ensure edit form saves all fields properly
+4. Confirm state abbreviations work correctly
+5. Test with various address formats from HeyFlow
+
+### Findings from Code Analysis
+
+#### Current Database Schema
+From `add-webhook-fields.sql`:
+- `address_line1` VARCHAR(255)
+- `address_line2` VARCHAR(255) 
+- `city` VARCHAR(100)
+- `state` VARCHAR(50)
+- `zip_code` VARCHAR(20)
+- `country` VARCHAR(100)
+
+But main schema uses:
+- `address` (single field)
+- `city`
+- `state` 
+- `zip`
+
+#### Current Webhook Processing
+The webhook controller is extracting:
+- `address` - Full address
+- `city` - From `address [city]` field
+- `state` - From `address [state]` field  
+- `zip` - From `address [zip]` field
+
+But NOT extracting:
+- House number separately
+- Street name separately
+- Apartment number
+
+#### Frontend Current State
+- EditPatientModal has single address field
+- No apartment number field
+- State field is free text (no abbreviation)
+- Display shows address as one line
+
+### Detailed Implementation Steps
+
+#### Phase 1: Database Schema Update
+```sql
+ALTER TABLE patients 
+ADD COLUMN IF NOT EXISTS address_house VARCHAR(20),
+ADD COLUMN IF NOT EXISTS address_street VARCHAR(255),
+ADD COLUMN IF NOT EXISTS apartment_number VARCHAR(50);
+```
+
+#### Phase 2: Backend Updates
+1. Update webhook controller to parse address fields:
+   - Extract `address[house]`
+   - Extract `address[street]`
+   - Extract `apartment#` field
+   - Convert state names to abbreviations
+
+2. Create state abbreviation utility
+
+3. Update patient interface/types
+
+#### Phase 3: Frontend Updates
+1. Update types to include new fields
+2. Update PatientProfile display format
+3. Update EditPatientModal with separate fields
+4. Add state abbreviation dropdown
+
+### Migration Strategy
+- Keep existing `address` field for backward compatibility
+- Populate new fields from webhook data going forward
+- Create migration script for existing data
+
+### Implementation Status (Executor Mode) ✅
+
+#### Completed Tasks:
+1. ✅ **Database Schema Update**
+   - Created `add-address-fields.sql` with new columns
+   - Added `address_house`, `address_street`, `apartment_number`
+
+2. ✅ **Backend Updates**
+   - Created state abbreviation utility (`packages/backend/src/utils/states.ts`)
+   - Updated webhook controller to extract all address fields
+   - Added state name to abbreviation conversion
+   - Updated INSERT query to include new fields
+
+3. ✅ **Frontend Updates**
+   - Created patient types with new address fields
+   - Created frontend state utility
+   - Updated PatientProfile to format address display properly
+   - Updated EditPatientModal with separate input fields
+   - Added state dropdown with abbreviations
+
+#### Address Display Format:
+- Profile View: `[house] [street], Apt [#], [city], [state] [zip]`
+- Edit Form: Separate fields for each component
+- State automatically converted to abbreviation
+
+#### Files Modified:
+- `packages/backend/src/config/add-address-fields.sql` - New
+- `packages/backend/src/utils/states.ts` - New
+- `packages/backend/src/controllers/webhook.controller.ts` - Updated
+- `packages/frontend/src/types/patient.types.ts` - New
+- `packages/frontend/src/utils/states.ts` - New
+- `packages/frontend/src/pages/PatientProfile.tsx` - Updated
+- `packages/frontend/src/components/patients/EditPatientModal.tsx` - Updated
+
 ## Project Status Board
 
-### Critical Errors to Fix (January 2025) 🚨
+### Critical Errors to Fix (July 2025) 🚨
 - [x] **Backend Nodemon Issue**: `sh: nodemon: command not found` - nodemon not installed (FIXED - already installed, path issue resolved)
 - [x] **Backend TypeScript Errors**: auth0.ts middleware has TS7030 errors (FIXED - removed explicit return types)
 - [x] **Backend Webhook Controller Error**: webhook.controller.ts has TS7030 and TS18046 errors (Already fixed in code)

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { US_STATES } from '../../utils/states';
 import './EditPatientModal.css';
 
 interface EditPatientModalProps {
@@ -20,6 +21,9 @@ interface PatientData {
   height_inches?: number;
   weight_lbs?: number;
   address?: string;
+  address_house?: string;
+  address_street?: string;
+  apartment_number?: string;
   city?: string;
   state?: string;
   zip?: string;
@@ -50,6 +54,9 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
         height_inches: patient.height_inches,
         weight_lbs: patient.weight_lbs,
         address: patient.address,
+        address_house: patient.address_house,
+        address_street: patient.address_street,
+        apartment_number: patient.apartment_number,
         city: patient.city,
         state: patient.state,
         zip: patient.zip,
@@ -233,15 +240,39 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
               />
             </div>
 
-            <div className="form-group full-width">
-              <label htmlFor="address">Address</label>
+            <div className="form-group">
+              <label htmlFor="address_house">House Number</label>
               <input
                 type="text"
-                id="address"
-                name="address"
-                value={formData.address || ''}
+                id="address_house"
+                name="address_house"
+                value={formData.address_house || ''}
                 onChange={handleInputChange}
-                placeholder="123 Main Street"
+                placeholder="123"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="address_street">Street Name</label>
+              <input
+                type="text"
+                id="address_street"
+                name="address_street"
+                value={formData.address_street || ''}
+                onChange={handleInputChange}
+                placeholder="Main Street"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="apartment_number">Apartment/Unit Number</label>
+              <input
+                type="text"
+                id="apartment_number"
+                name="apartment_number"
+                value={formData.apartment_number || ''}
+                onChange={handleInputChange}
+                placeholder="Apt 2B"
               />
             </div>
 
@@ -258,13 +289,19 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
             <div className="form-group">
               <label htmlFor="state">State</label>
-              <input
-                type="text"
+              <select
                 id="state"
                 name="state"
                 value={formData.state || ''}
                 onChange={handleInputChange}
-              />
+              >
+                <option value="">Select State</option>
+                {US_STATES.map(state => (
+                  <option key={state.abbreviation} value={state.abbreviation}>
+                    {state.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">

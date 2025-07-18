@@ -35,6 +35,9 @@ interface PatientDetails {
   weight_lbs?: number;
   bmi?: number;
   address?: string;
+  address_house?: string;
+  address_street?: string;
+  apartment_number?: string;
   city?: string;
   state?: string;
   zip?: string;
@@ -125,6 +128,29 @@ export const PatientProfile: React.FC = () => {
       return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
     }
     return phone;
+  };
+
+  const formatAddress = (patient: PatientDetails) => {
+    // Build address line 1
+    let addressLine1 = '';
+    if (patient.address_house && patient.address_street) {
+      addressLine1 = `${patient.address_house} ${patient.address_street}`;
+      if (patient.apartment_number) {
+        addressLine1 += `, Apt ${patient.apartment_number}`;
+      }
+    } else if (patient.address) {
+      // Fallback to legacy address field
+      addressLine1 = patient.address;
+    }
+
+    // Build address line 2
+    const parts = [];
+    if (patient.city) parts.push(patient.city);
+    if (patient.state) parts.push(patient.state);
+    if (patient.zip) parts.push(patient.zip);
+    const addressLine2 = parts.join(', ');
+
+    return { addressLine1, addressLine2, fullAddress: `${addressLine1}, ${addressLine2}` };
   };
 
   const handleSavePatient = async (updatedData: Partial<PatientDetails>) => {
@@ -463,24 +489,23 @@ export const PatientProfile: React.FC = () => {
                       <div className="info-item">
                         <label>ADDRESS</label>
                         <p>
-                          {patient.address ? (
-                            <a 
-                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                `${patient.address}, ${patient.city || ''} ${patient.state || ''} ${patient.zip || ''}`
-                              )}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="address-link"
-                            >
-                              {patient.address}<br />
-                              {patient.city && patient.state && patient.zip && 
-                                `${patient.city}, ${patient.state} ${patient.zip}`
-                              }
-                              <MapIcon className="map-icon" />
-                            </a>
-                          ) : (
-                            'Not provided'
-                          )}
+                          {(() => {
+                            const { addressLine1, addressLine2, fullAddress } = formatAddress(patient);
+                            return addressLine1 ? (
+                              <a 
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="address-link"
+                              >
+                                {addressLine1}<br />
+                                {addressLine2}
+                                <MapIcon className="map-icon" />
+                              </a>
+                            ) : (
+                              'Not provided'
+                            );
+                          })()}
                         </p>
                       </div>
                       <div className="info-item">
