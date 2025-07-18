@@ -613,13 +613,14 @@ export const PatientProfile: React.FC = () => {
                     onClick={() => setShowHashtagInput(!showHashtagInput)}
                   >
                     <TagIcon className="tag-icon" />
+                    Hashtag
                   </button>
                   {showHashtagInput && (
                     <div className="header-tag-input-wrapper">
-                      <input
+                      <input 
                         type="text"
                         className="header-tag-input"
-                        placeholder="Add tag (e.g. #weightloss, #rep:laura)..."
+                        placeholder="Add hashtag (e.g. weightloss, rep:laura)..."
                         value={newHashtag}
                         onChange={(e) => setNewHashtag(e.target.value)}
                         onKeyPress={(e) => {

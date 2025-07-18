@@ -83,7 +83,8 @@ router.get('/', async (req, res) => {
         zip,
         height_inches,
         weight_lbs,
-        bmi
+        bmi,
+        membership_hashtags
       FROM patients
       ${whereClause}
       ORDER BY ${sortBy} ${sortOrder}

@@ -254,7 +254,7 @@ export const Clients: React.FC = () => {
             value={selectedTag}
             onChange={(e) => setSelectedTag(e.target.value)}
           >
-            <option value="">Filter by Tag</option>
+            <option value="">Filter by Hashtag</option>
             {availableTags.map(tag => (
               <option key={tag} value={tag}>#{tag}</option>
             ))}
