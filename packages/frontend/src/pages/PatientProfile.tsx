@@ -459,7 +459,6 @@ export const PatientProfile: React.FC = () => {
         ...patient,
         additional_info: additionalInfo
       });
-      setIsEditingAdditionalInfo(false);
     } catch (err) {
       console.error('Error updating additional info:', err);
       // Revert on error
