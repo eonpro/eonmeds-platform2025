@@ -11,6 +11,9 @@ restartPolicyMaxRetries = 10
 
 [env]
 DISABLE_ESLINT_PLUGIN = "true"
+CI = "false"
+TSC_COMPILE_ON_ERROR = "true"
+ESLINT_NO_DEV_ERRORS = "true"
 
 [service]
 internalPort = 3000 
