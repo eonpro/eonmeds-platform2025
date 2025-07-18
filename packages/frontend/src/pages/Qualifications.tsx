@@ -139,7 +139,6 @@ export const Qualifications: React.FC = () => {
     <div className="qualifications-container">
       <div className="qualifications-header">
         <h1>Qualifications</h1>
-        <p className="subtitle">Review patient submissions from HeyFlow</p>
       </div>
 
       <div className="qualifications-controls">

@@ -37,7 +37,6 @@
 
 .search-bar {
   flex: 1;
-  max-width: 500px;
 }
 
 .search-input {
@@ -45,10 +44,10 @@
   padding: 12px 16px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 14px;
+  font-family: var(--font-family);
   background-color: white;
   transition: all 0.2s;
-  font-family: var(--font-family);
 }
 
 .search-input:focus {

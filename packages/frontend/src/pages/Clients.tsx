@@ -240,7 +240,6 @@ export const Clients: React.FC = () => {
       
       <div className="clients-header">
         <h1>Clients</h1>
-        <p className="subtitle">Qualified patients who are paying customers</p>
       </div>
       
       <div className="search-section">
