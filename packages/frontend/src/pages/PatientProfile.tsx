@@ -324,23 +324,53 @@ export const PatientProfile: React.FC = () => {
     localStorage.setItem(`patient-notes-${id}`, JSON.stringify(updatedNotes));
   };
 
-  const addHashtag = () => {
-    if (!newHashtag.trim()) return;
+  const addHashtag = async () => {
+    if (!newHashtag.trim() || !patient) return;
     
-    const tag = newHashtag.startsWith('#') ? newHashtag : `#${newHashtag}`;
+    const tag = newHashtag.startsWith('#') ? newHashtag.substring(1) : newHashtag;
     if (!hashtags.includes(tag)) {
       const updatedTags = [...hashtags, tag];
       setHashtags(updatedTags);
-      // Save to backend here
+      
+      // Save to backend
+      try {
+        const updatedPatient = await patientService.updatePatient(patient.id, {
+          membership_hashtags: updatedTags
+        });
+        setPatient({
+          ...patient,
+          membership_hashtags: updatedTags
+        });
+      } catch (err) {
+        console.error('Error updating hashtags:', err);
+        // Revert on error
+        setHashtags(hashtags);
+      }
     }
     setNewHashtag('');
     setShowHashtagInput(false);
   };
 
-  const removeHashtag = (tag: string) => {
+  const removeHashtag = async (tag: string) => {
+    if (!patient) return;
+    
     const updatedTags = hashtags.filter(t => t !== tag);
     setHashtags(updatedTags);
-    // Update backend here
+    
+    // Update backend
+    try {
+      const updatedPatient = await patientService.updatePatient(patient.id, {
+        membership_hashtags: updatedTags
+      });
+      setPatient({
+        ...patient,
+        membership_hashtags: updatedTags
+      });
+    } catch (err) {
+      console.error('Error removing hashtag:', err);
+      // Revert on error
+      setHashtags(hashtags);
+    }
   };
 
   const handleStatusChange = async (newStatus: string) => {
@@ -542,7 +572,7 @@ export const PatientProfile: React.FC = () => {
                                        tag.includes('rep') ? '#a855f7' : '#3b82f6'
                       }}
                     >
-                      {tag}
+                      #{tag}
                       <button 
                         className="remove-tag-btn"
                         onClick={() => removeHashtag(tag)}
@@ -555,8 +585,6 @@ export const PatientProfile: React.FC = () => {
               </div>
 
               <div className="profile-actions">
-                <button className="profile-settings-btn">Profile settings</button>
-                <button className="more-options-btn"><MoreOptionsIcon className="more-options-icon" /></button>
                 <div className="tag-btn-wrapper">
                   <button 
                     className="tag-btn"
@@ -584,6 +612,8 @@ export const PatientProfile: React.FC = () => {
                     </div>
                   )}
                 </div>
+                <button className="profile-settings-btn">Profile settings</button>
+                <button className="more-options-btn"><MoreOptionsIcon className="more-options-icon" /></button>
               </div>
             </div>
           </div>
