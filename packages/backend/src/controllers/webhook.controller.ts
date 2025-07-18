@@ -294,9 +294,8 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       RETURNING id, patient_id, email, first_name, last_name`,
       [
         patientId,
-        formType,
-        '1.0', // HeyFlow doesn't send version in test data
-        new Date(payload.createdAt || Date.now()),
+        payload.id || payload.submissionId || null, // heyflow_submission_id
+        formType, // form_type
         patientData.first_name,
         patientData.last_name,
         patientData.email,
@@ -310,10 +309,11 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         patientData.city,
         patientData.state,
         patientData.zip,
+        new Date(payload.createdAt || Date.now()), // submitted_at
         patientData.consent_treatment,
         patientData.consent_telehealth,
-        new Date(), // consent date
-        'pending_review'
+        new Date(), // consent_date
+        'pending' // status
       ]
     );
     
