@@ -276,9 +276,7 @@ export const Clients: React.FC = () => {
 
       <div className="clients-table-container">
         <div className="empty-state">
-          <h2>No Paying Customers Yet</h2>
-          <p>All patients are currently in the Qualifications tab awaiting payment setup.</p>
-          <p>Once payment processing is enabled, qualified patients will appear here.</p>
+          <h2>No clients yet</h2>
         </div>
       </div>
 
