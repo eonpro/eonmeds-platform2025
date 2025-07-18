@@ -9669,3 +9669,216 @@ Find what's wrapping the apiClient in a Promise and remove it.
 3. Add root route handler to backend
 4. Test the fix thoroughly
 ## WORKING STATE CHECKPOINT - JULY 17, 2025 ✅
+
+## Stripe Payment Processing & Webhook Integration Plan (July 2025)
+
+### Background and Motivation
+The EONMeds platform has existing Stripe integration code but it's currently broken due to:
+1. Missing Stripe service files (TypeScript/JavaScript mismatch)
+2. Stripe webhook controller exists but references missing config/services
+3. Payment routes are temporarily disabled to prevent crashes
+4. Need proper Stripe API key and webhook secret configuration
+
+### Key Challenges and Analysis
+
+#### 1. File Organization Issues
+- **Problem**: Mixed TypeScript/JavaScript files causing import failures
+  - `stripe.service.js` exists but TypeScript is trying to import `.ts`
+  - `stripe.config.ts` exists and is properly typed
+  - `stripe-webhook.controller.ts` exists but depends on broken imports
+- **Solution**: Convert or properly reference all Stripe files
+
+#### 2. Missing Stripe Service Implementation
+- **Problem**: `StripeService` class referenced but not properly implemented
+- **Solution**: Create comprehensive Stripe service with all required methods:
+  - Customer management (create, update, retrieve)
+  - Payment method handling
+  - Payment intent creation
+  - Invoice charging
+  - Subscription management (if needed)
+
+#### 3. Webhook Security & Processing
+- **Problem**: Webhook endpoint disabled, signature verification not tested
+- **Solution**: 
+  - Enable webhook endpoint with proper signature verification
+  - Implement webhook event handlers for key events
+  - Add proper error handling and logging
+  - Store webhook events for audit trail
+
+#### 4. Environment Configuration
+- **Problem**: Stripe keys need proper setup for both dev and production
+- **Solution**:
+  - Backend: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+  - Frontend: `REACT_APP_STRIPE_PUBLISHABLE_KEY`
+  - Railway: Add all keys to environment variables
+
+### High-level Task Breakdown
+
+#### Phase 1: Fix File Structure & Imports (30 mins)
+- [ ] Convert `stripe.service.js` to TypeScript or fix imports
+- [ ] Verify `stripe.config.ts` has all required configuration
+- [ ] Fix import statements in `payment.routes.ts`
+- [ ] Ensure all Stripe files follow consistent naming/structure
+
+#### Phase 2: Implement Stripe Service (1 hour)
+- [ ] Create proper `StripeService` class with all methods:
+  - [ ] `createCustomer(patient)` - Create Stripe customer from patient
+  - [ ] `getCustomer(customerId)` - Retrieve customer details
+  - [ ] `attachPaymentMethod(methodId, customerId)` - Attach payment method
+  - [ ] `listPaymentMethods(customerId)` - List customer payment methods
+  - [ ] `createPaymentIntent(amount, customerId, metadata)` - Create payment
+  - [ ] `chargeInvoice(invoiceId, paymentMethodId)` - Charge an invoice
+- [ ] Add proper error handling and response formatting
+- [ ] Include logging for debugging
+
+#### Phase 3: Enable Webhook Processing (45 mins)
+- [ ] Re-enable webhook route in `payment.routes.ts`
+- [ ] Test webhook signature verification
+- [ ] Implement webhook event handlers:
+  - [ ] `payment_intent.succeeded` - Mark invoice as paid
+  - [ ] `payment_intent.failed` - Handle failed payments
+  - [ ] `customer.created/updated` - Sync customer data
+- [ ] Add webhook event storage to database
+- [ ] Create webhook testing endpoint for development
+
+#### Phase 4: Frontend Integration (30 mins)
+- [ ] Add Stripe.js script to index.html
+- [ ] Create Stripe Elements components if needed
+- [ ] Update PaymentModal to use Stripe payment methods
+- [ ] Add loading states and error handling
+- [ ] Test payment flow end-to-end
+
+#### Phase 5: Testing & Deployment (30 mins)
+- [ ] Test with Stripe test keys locally
+- [ ] Use Stripe CLI for webhook testing
+- [ ] Add all environment variables to Railway
+- [ ] Deploy and test with production keys
+- [ ] Set up webhook endpoint in Stripe dashboard
+
+### Implementation Details
+
+#### 1. Stripe Service Structure
+```typescript
+// services/stripe.service.ts
+import Stripe from 'stripe';
+import { stripeConfig } from '../config/stripe.config';
+
+export class StripeService {
+  private stripe: Stripe;
+
+  constructor() {
+    this.stripe = new Stripe(stripeConfig.apiKey, {
+      apiVersion: '2023-10-16',
+    });
+  }
+
+  async createCustomer(patient: any) {
+    try {
+      const customer = await this.stripe.customers.create({
+        email: patient.email,
+        name: `${patient.first_name} ${patient.last_name}`,
+        metadata: {
+          patient_id: patient.patient_id,
+          platform: 'eonmeds'
+        }
+      });
+      return { success: true, customer };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  // ... other methods
+}
+```
+
+#### 2. Webhook Handler Structure
+```typescript
+// Webhook signature verification and routing
+export const handleStripeWebhook = async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      stripeConfig.webhookSecret
+    );
+  } catch (err) {
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Route to appropriate handler
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      await handlePaymentSuccess(event.data.object);
+      break;
+    // ... other cases
+  }
+
+  res.json({ received: true });
+};
+```
+
+#### 3. Payment Processing Flow
+1. Frontend creates/retrieves Stripe customer
+2. Frontend creates payment intent for invoice amount
+3. User enters payment details (card)
+4. Frontend confirms payment intent
+5. Webhook receives success event
+6. Backend marks invoice as paid
+7. Frontend shows success message
+
+### Success Criteria
+- [ ] Can create Stripe customers from patient records
+- [ ] Can charge invoices using Stripe
+- [ ] Webhooks properly verify and process events
+- [ ] Invoices automatically marked as paid
+- [ ] All payment data properly logged
+- [ ] Works in both test and production modes
+
+### Current Status / Progress Tracking
+- **Status**: Phase 1 & 2 Complete, Phase 3 in progress
+- **Blockers**: None currently
+- **Next Action**: Test webhook handling and complete frontend integration
+
+### Progress Details:
+
+#### Phase 1: Fix File Structure & Imports ✅
+- [x] Created TypeScript version of Stripe service
+- [x] Fixed all imports in payment routes
+- [x] Removed old JavaScript file
+- [x] Installed Stripe npm package
+
+#### Phase 2: Implement Stripe Service ✅
+- [x] Created complete StripeService class with all methods
+- [x] Customer management (create, retrieve, update)
+- [x] Payment method handling
+- [x] Payment intent creation
+- [x] Invoice charging functionality
+- [x] Subscription management methods
+
+#### Phase 3: Enable Webhook Processing (In Progress)
+- [x] Re-enabled webhook route
+- [x] Updated payment intent succeeded handler to mark invoices as paid
+- [x] Added transaction handling for payment records
+- [ ] Test webhook signature verification
+- [ ] Add webhook event storage
+
+#### Phase 4: Frontend Integration (Partial)
+- [x] Added Stripe.js script to index.html
+- [x] Updated PaymentModal to use correct endpoint
+- [ ] Need to implement proper payment method collection
+- [ ] Add Stripe Elements for card input
+
+### Executor's Feedback or Assistance Requests
+1. **Test Payment Method**: Currently using `pm_card_visa` test payment method ID. Need to implement proper Stripe Elements for production.
+2. **Webhook Testing**: Need to test webhook handling with Stripe CLI
+3. **Environment Variables**: Need to add Stripe keys to .env files
+
+### Lessons
+- Always check file extensions when dealing with TypeScript/JavaScript mixed projects
+- Stripe webhook signatures require raw body, not parsed JSON
+- Keep Stripe service methods simple with consistent error handling
+- Test webhooks locally using Stripe CLI before production

@@ -29,9 +29,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     try {
       setProcessing(true);
       
-      const response = await apiClient.post('/api/v1/payments/charge-invoice', {
-        invoice_id: invoice.id,
-        stripe_customer_id: stripeCustomerId
+      // For now, we'll use a test payment method ID
+      // In production, you'd collect this via Stripe Elements
+      const testPaymentMethodId = 'pm_card_visa'; // Stripe test card
+      
+      const response = await apiClient.post(`/api/v1/payments/invoices/${invoice.id}/charge`, {
+        payment_method_id: testPaymentMethodId
       });
 
       if (response.data.success) {
