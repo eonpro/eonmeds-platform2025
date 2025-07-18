@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import './CreateInvoiceModal.css';
 
@@ -14,17 +14,17 @@ interface InvoiceItem {
   quantity: number;
   unit_price: number;
   service_type: string;
+  service_package_id?: string;
 }
 
-const SERVICE_TYPES = [
-  { value: 'weight_loss_monthly', label: 'Weight Loss - Monthly', price: 299 },
-  { value: 'weight_loss_quarterly', label: 'Weight Loss - Quarterly', price: 799 },
-  { value: 'testosterone_monthly', label: 'Testosterone - Monthly', price: 349 },
-  { value: 'testosterone_quarterly', label: 'Testosterone - Quarterly', price: 949 },
-  { value: 'consultation', label: 'Consultation', price: 99 },
-  { value: 'lab_work', label: 'Lab Work', price: 150 },
-  { value: 'custom', label: 'Custom', price: 0 }
-];
+interface ServicePackage {
+  id: string;
+  name: string;
+  category: string;
+  billing_period: string;
+  price: number;
+  description?: string;
+}
 
 export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   patientId,
@@ -33,11 +33,14 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   onSuccess
 }) => {
   const apiClient = useApi();
+  const [packages, setPackages] = useState<ServicePackage[]>([]);
+  const [loadingPackages, setLoadingPackages] = useState(true);
   const [items, setItems] = useState<InvoiceItem[]>([{
     description: '',
     quantity: 1,
     unit_price: 0,
-    service_type: ''
+    service_type: '',
+    service_package_id: undefined
   }]);
   const [dueDate, setDueDate] = useState(
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
@@ -45,16 +48,41 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   const [description, setDescription] = useState('');
   const [creating, setCreating] = useState(false);
 
-  const handleServiceTypeChange = (index: number, serviceType: string) => {
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+
+  const fetchPackages = async () => {
+    try {
+      setLoadingPackages(true);
+      const response = await apiClient.get('/api/v1/packages/active');
+      setPackages(response.data.packages || []);
+    } catch (error) {
+      console.error('Error fetching packages:', error);
+    } finally {
+      setLoadingPackages(false);
+    }
+  };
+
+  const handleServiceTypeChange = (index: number, packageId: string) => {
     const newItems = [...items];
-    const service = SERVICE_TYPES.find(s => s.value === serviceType);
+    const selectedPackage = packages.find(p => p.id === packageId);
     
-    if (service) {
+    if (selectedPackage) {
       newItems[index] = {
         ...newItems[index],
-        service_type: serviceType,
-        description: service.label,
-        unit_price: service.price
+        service_package_id: packageId,
+        service_type: selectedPackage.category,
+        description: selectedPackage.name,
+        unit_price: selectedPackage.price
+      };
+    } else if (packageId === 'custom') {
+      newItems[index] = {
+        ...newItems[index],
+        service_package_id: undefined,
+        service_type: 'custom',
+        description: '',
+        unit_price: 0
       };
     }
     
@@ -72,7 +100,8 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       description: '',
       quantity: 1,
       unit_price: 0,
-      service_type: ''
+      service_type: '',
+      service_package_id: undefined
     }]);
   };
 
@@ -148,16 +177,17 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               {items.map((item, index) => (
                 <div key={index} className="line-item">
                   <select
-                    value={item.service_type}
+                    value={item.service_package_id || ''}
                     onChange={(e) => handleServiceTypeChange(index, e.target.value)}
                     required
                   >
                     <option value="">Select service</option>
-                    {SERVICE_TYPES.map(service => (
-                      <option key={service.value} value={service.value}>
-                        {service.label}
+                    {packages.map(pkg => (
+                      <option key={pkg.id} value={pkg.id}>
+                        {pkg.name}
                       </option>
                     ))}
+                    <option value="custom">Custom</option>
                   </select>
                   
                   {item.service_type === 'custom' && (

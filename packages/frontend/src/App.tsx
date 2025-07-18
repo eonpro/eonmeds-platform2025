@@ -10,6 +10,7 @@ import { Clients } from './pages/Clients';
 import { Qualifications } from './pages/Qualifications';
 import { PatientProfile } from './pages/PatientProfile';
 import { IncomeReport } from './pages/IncomeReport';
+import { Packages } from './pages/Packages';
 import { UserProfile } from './components/auth/UserProfile';
 import { TestAuth } from './pages/TestAuth';
 import './i18n'; // Initialize i18n
@@ -40,6 +41,14 @@ function App() {
                         element={
                           <ProtectedRoute requiredRoles={['admin']}>
                             <IncomeReport />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route 
+                        path="/packages" 
+                        element={
+                          <ProtectedRoute requiredRoles={['admin']}>
+                            <Packages />
                           </ProtectedRoute>
                         }
                       />

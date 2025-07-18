@@ -13,6 +13,8 @@ import practitionerRoutes from './routes/practitioner.routes';
 import appointmentRoutes from './routes/appointment.routes';
 import documentRoutes from './routes/document.routes';
 import auditRoutes from './routes/audit.routes';
+import paymentRoutes from './routes/payment.routes';
+import packageRoutes from './routes/package.routes';
 
 // Load environment variables
 dotenv.config();
@@ -51,7 +53,9 @@ app.get('/api/v1', (_req, res) => {
       practitioners: '/api/v1/practitioners',
       appointments: '/api/v1/appointments',
       documents: '/api/v1/documents',
-      audit: '/api/v1/audit'
+      audit: '/api/v1/audit',
+      payments: '/api/v1/payments',
+      packages: '/api/v1/packages'
     }
   });
 });
@@ -67,6 +71,8 @@ app.use('/api/v1/practitioners', practitionerRoutes);
 app.use('/api/v1/appointments', appointmentRoutes);
 app.use('/api/v1/documents', documentRoutes);
 app.use('/api/v1/audit', auditRoutes);
+app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/packages', packageRoutes);
 console.log('✅ All routes registered (database check happens per route)');
 
 // Start server
