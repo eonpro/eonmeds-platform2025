@@ -235,7 +235,6 @@
   padding: 30px;
   background-color: white;
   border-bottom: none;
-  position: relative;
 }
 
 .patient-avatar {
@@ -310,12 +309,16 @@
   letter-spacing: 0.5px;
 }
 
+/* Tag Button Wrapper */
+.tag-btn-wrapper {
+  position: relative;
+}
+
 /* Header Tag Input */
 .header-tag-input-wrapper {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 10px);
   right: 0;
-  margin-top: 10px;
   background: white;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -324,6 +327,7 @@
   display: flex;
   gap: 8px;
   z-index: 100;
+  min-width: 300px;
 }
 
 .header-tag-input {

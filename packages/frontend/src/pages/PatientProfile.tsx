@@ -432,34 +432,35 @@ export const PatientProfile: React.FC = () => {
               <div className="profile-actions">
                 <button className="profile-settings-btn">Profile settings</button>
                 <button className="more-options-btn"><MoreOptionsIcon className="more-options-icon" /></button>
-                <button 
-                  className="tag-btn"
-                  onClick={() => setShowHashtagInput(!showHashtagInput)}
-                >
-                  <TagIcon className="tag-icon" />
-                </button>
+                <div className="tag-btn-wrapper">
+                  <button 
+                    className="tag-btn"
+                    onClick={() => setShowHashtagInput(!showHashtagInput)}
+                  >
+                    <TagIcon className="tag-icon" />
+                  </button>
+                  {showHashtagInput && (
+                    <div className="header-tag-input-wrapper">
+                      <input
+                        type="text"
+                        className="header-tag-input"
+                        placeholder="Add tag (e.g. #weightloss, #rep:laura)..."
+                        value={newHashtag}
+                        onChange={(e) => setNewHashtag(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            addHashtag();
+                          }
+                        }}
+                      />
+                      <button className="add-tag-confirm-btn" onClick={addHashtag}>
+                        Add
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-
-            {showHashtagInput && (
-              <div className="header-tag-input-wrapper">
-                <input
-                  type="text"
-                  className="header-tag-input"
-                  placeholder="Add tag (e.g. #weightloss, #rep:laura)..."
-                  value={newHashtag}
-                  onChange={(e) => setNewHashtag(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      addHashtag();
-                    }
-                  }}
-                />
-                <button className="add-tag-confirm-btn" onClick={addHashtag}>
-                  Add
-                </button>
-              </div>
-            )}
           </div>
 
           <div className="profile-info-section">
