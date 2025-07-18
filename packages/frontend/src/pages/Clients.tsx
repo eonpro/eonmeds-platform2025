@@ -40,6 +40,8 @@ export const Clients: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTag, setSelectedTag] = useState('');
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousPatientCountRef = useRef<number>(0);
@@ -118,6 +120,27 @@ export const Clients: React.FC = () => {
       fetchPatients();
     }
   }, [searchTerm, debouncedSearch, fetchPatients]);
+
+  // Extract unique tags from all patients
+  useEffect(() => {
+    const tags = new Set<string>();
+    patients.forEach(patient => {
+      if (patient.membership_hashtags && Array.isArray(patient.membership_hashtags)) {
+        patient.membership_hashtags.forEach(tag => tags.add(tag));
+      }
+    });
+    setAvailableTags(Array.from(tags).sort());
+  }, [patients]);
+
+  // Filter patients based on selected tag
+  const displayedPatients = useMemo(() => {
+    if (!selectedTag) return patients;
+    
+    return patients.filter(patient => 
+      patient.membership_hashtags && 
+      patient.membership_hashtags.includes(selectedTag)
+    );
+  }, [patients, selectedTag]);
 
   // Format date for display
   const formatDate = (date: string | Date) => {
@@ -214,29 +237,36 @@ export const Clients: React.FC = () => {
         </div>
       )}
       
-      <div className="page-header">
-        <h1>Welcome, Italo</h1>
-        <div className="header-actions">
-          <button 
-            className="add-new-client-btn"
-            onClick={handleAddNewClient}
-          >
-            Add New Client
-          </button>
-          <button className="logout-btn" onClick={handleLogout}>
-            Log out
-          </button>
+      <div className="search-section">
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Search for Clients"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
         </div>
-      </div>
-
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Search for Clients"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
+        
+        <div className="filter-section">
+          <select 
+            className="tag-filter-dropdown"
+            value={selectedTag}
+            onChange={(e) => setSelectedTag(e.target.value)}
+          >
+            <option value="">Filter by Tag</option>
+            {availableTags.map(tag => (
+              <option key={tag} value={tag}>#{tag}</option>
+            ))}
+          </select>
+        </div>
+        
+        <button 
+          className="add-new-client-btn"
+          onClick={handleAddNewClient}
+        >
+          Add New Client
+        </button>
       </div>
 
       <div className="clients-table-container">
@@ -257,14 +287,14 @@ export const Clients: React.FC = () => {
               <tr>
                 <td colSpan={7} className="loading-cell">Loading clients...</td>
               </tr>
-            ) : patients.length === 0 ? (
+            ) : displayedPatients.length === 0 ? (
               <tr>
                 <td colSpan={7} className="empty-cell">
                   {searchTerm ? 'No clients found matching your search' : 'No clients yet'}
                 </td>
               </tr>
             ) : (
-              patients.map((patient) => (
+              displayedPatients.map((patient) => (
                 <tr 
                   key={patient.id} 
                   className="client-row"

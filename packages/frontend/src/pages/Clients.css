@@ -1,30 +1,65 @@
 /* Clients Page Styles */
 .clients-page {
-  padding: 20px 40px;
-  background-color: var(--color-white);
+  padding: 40px;
+  background-color: #faf7f2;
   min-height: 100vh;
   font-family: var(--font-family);
 }
 
-/* Page Header */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.page-header h1 {
-  font-size: 32px;
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-gray-900);
-  margin: 0;
-}
-
-.header-actions {
+/* Search Section */
+.search-section {
   display: flex;
   gap: 16px;
   align-items: center;
+  margin-bottom: 30px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.search-bar {
+  flex: 1;
+  max-width: 500px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: white;
+  transition: all 0.2s;
+  font-family: var(--font-family);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary-teal);
+  box-shadow: 0 0 0 3px rgba(20, 169, 123, 0.1);
+}
+
+/* Tag Filter Dropdown */
+.filter-section {
+  min-width: 200px;
+}
+
+.tag-filter-dropdown {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-family);
+}
+
+.tag-filter-dropdown:focus {
+  outline: none;
+  border-color: var(--color-primary-teal);
+  box-shadow: 0 0 0 3px rgba(20, 169, 123, 0.1);
 }
 
 /* Add New Client Button */
@@ -39,32 +74,13 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: var(--font-family);
+  white-space: nowrap;
 }
 
 .add-new-client-btn:hover {
   background-color: var(--color-primary-green);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(174, 229, 72, 0.3);
-}
-
-/* Logout Button */
-.logout-btn {
-  background-color: transparent;
-  color: var(--color-gray-600);
-  border: 1px solid var(--color-gray-300);
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: var(--font-family);
-}
-
-.logout-btn:hover {
-  background-color: var(--color-gray-50);
-  color: var(--color-gray-800);
-  border-color: var(--color-gray-400);
 }
 
 /* Update Info Section */
@@ -136,133 +152,14 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Search Bar - Updated */
-.search-bar {
-  padding: 50px 0;
-  display: flex;
-  justify-content: center;
-}
-
-.search-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.search-wrapper {
-  position: relative;
-  max-width: 500px;
-}
-
-.search-input {
-  width: 600px;
-  padding: 12px 20px;
-  border: 2px solid var(--color-gray-200);
-  border-radius: 8px;
-  font-size: 16px;
-  font-family: var(--font-family);
-  transition: all 0.2s ease;
-  background-color: var(--color-white);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--color-primary-teal);
-  box-shadow: 0 0 0 3px rgba(20, 169, 123, 0.1);
-}
-
-.search-input::placeholder {
-  color: var(--color-gray-400);
-}
-
-.search-icon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-gray-400);
-  font-size: 20px;
-}
-
-/* Filter Tags */
-.filter-tags {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.filter-tag {
-  background-color: var(--color-white);
-  color: var(--color-gray-700);
-  border: 1px solid var(--color-gray-300);
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: var(--font-family);
-}
-
-.filter-tag:hover {
-  background-color: var(--color-gray-100);
-  border-color: var(--color-gray-400);
-}
-
-.filter-tag.active {
-  background-color: var(--color-primary-teal);
-  color: var(--color-white);
-  border-color: var(--color-primary-teal);
-}
-
-/* Stats Overview */
-.stats-overview {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.stat-card {
-  background-color: var(--color-white);
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  text-align: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.stat-value {
-  font-size: 36px;
-  font-weight: var(--font-weight-bold);
-  color: var(--color-primary-teal);
-  margin-bottom: 8px;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: var(--color-gray-600);
-  font-weight: var(--font-weight-medium);
-}
-
-/* Patient List */
-.patient-list {
-  background-color: var(--color-white);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-/* Clients Table Container - Updated */
+/* Table Container */
 .clients-table-container {
-  background-color: #efece7;
-  padding: 20px;
+  background-color: var(--color-white);
   border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* Clients Table - Updated */
