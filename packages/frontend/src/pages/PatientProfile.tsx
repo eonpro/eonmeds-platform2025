@@ -135,6 +135,7 @@ export const PatientProfile: React.FC = () => {
       intakeLoadedRef.current = true;
       loadIntakeData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, id, apiClient, loadIntakeData]);
 
   // Reset intake data when patient changes
