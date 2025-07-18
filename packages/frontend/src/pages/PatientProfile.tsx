@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { patientService } from '../services/patient.service';
 import { EditPatientModal } from '../components/patients/EditPatientModal';
@@ -107,7 +107,7 @@ export const PatientProfile: React.FC = () => {
     }
   };
 
-  const loadIntakeData = async () => {
+  const loadIntakeData = useCallback(async () => {
     console.log('loadIntakeData called with id:', id, 'apiClient:', apiClient);
     if (!id || !apiClient) return;
     
@@ -133,7 +133,7 @@ export const PatientProfile: React.FC = () => {
     } finally {
       setIntakeLoading(false);
     }
-  };
+  }, [id, apiClient]);
 
   // Load intake data when intake tab is selected
   useEffect(() => {
@@ -142,7 +142,7 @@ export const PatientProfile: React.FC = () => {
       console.log('Calling loadIntakeData from useEffect');
       loadIntakeData();
     }
-  }, [activeTab, id, apiClient]); // Added proper dependencies
+  }, [activeTab, id, apiClient, intakeFormData, intakeLoading, loadIntakeData]); // Added all dependencies
 
   useEffect(() => {
     loadPatient();
