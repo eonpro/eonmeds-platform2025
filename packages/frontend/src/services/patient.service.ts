@@ -20,6 +20,15 @@ export interface Patient {
   bmi?: number;
   membership_hashtags?: string[];
   membership_status?: string;
+  
+  // Address fields
+  address?: string; // Legacy full address
+  address_house?: string;
+  address_street?: string;
+  apartment_number?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
 }
 
 export interface PatientListResponse {
