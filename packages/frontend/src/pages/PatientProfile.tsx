@@ -368,11 +368,7 @@ export const PatientProfile: React.FC = () => {
   return (
     <div className="patient-profile-container">
       <div className="profile-header-bar">
-        <button className="back-button" onClick={() => navigate('/clients')}>
-          <ArrowBackIcon className="back-icon" /> Back to Clients
-        </button>
-        
-        <div className="header-right-section">
+        <div className="header-center-section">
           <div className="search-bar-wrapper">
             <input
               type="text"
@@ -407,9 +403,6 @@ export const PatientProfile: React.FC = () => {
           </div>
           <button className="add-client-btn" onClick={() => setIsCreateModalOpen(true)}>
             + Client
-          </button>
-          <button className="dashboard-btn" onClick={() => navigate('/dashboard')}>
-            Dashboard
           </button>
         </div>
       </div>
