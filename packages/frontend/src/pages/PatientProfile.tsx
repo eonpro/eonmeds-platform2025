@@ -24,6 +24,15 @@ interface PatientDetails {
   zip?: string;
   membership_status?: string;
   membership_hashtags?: string[];
+  tracking_number?: string;
+  additional_info?: string;
+}
+
+interface TimelineNote {
+  id: string;
+  content: string;
+  createdAt: Date;
+  isPinned: boolean;
 }
 
 export const PatientProfile: React.FC = () => {
@@ -32,8 +41,13 @@ export const PatientProfile: React.FC = () => {
   const [patient, setPatient] = useState<PatientDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('intake');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [timelineNotes, setTimelineNotes] = useState<TimelineNote[]>([]);
+  const [newNote, setNewNote] = useState('');
+  const [hashtags, setHashtags] = useState<string[]>([]);
+  const [showHashtagInput, setShowHashtagInput] = useState(false);
+  const [newHashtag, setNewHashtag] = useState('');
 
   const loadPatient = async () => {
     if (!id) return;
@@ -41,8 +55,12 @@ export const PatientProfile: React.FC = () => {
     try {
       setLoading(true);
       const data = await patientService.getPatientById(id);
-      console.log('Patient data received:', data); // Debug log
+      console.log('Patient data received:', data);
       setPatient(data);
+      // Initialize hashtags from patient data
+      if (data.membership_hashtags) {
+        setHashtags(data.membership_hashtags);
+      }
     } catch (err) {
       console.error('Error loading patient:', err);
       setError('Failed to load patient details');
@@ -53,7 +71,11 @@ export const PatientProfile: React.FC = () => {
 
   useEffect(() => {
     loadPatient();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Load saved timeline notes from localStorage for now
+    const savedNotes = localStorage.getItem(`patient-notes-${id}`);
+    if (savedNotes) {
+      setTimelineNotes(JSON.parse(savedNotes));
+    }
   }, [id]);
 
   const calculateAge = (dob: string) => {
@@ -91,6 +113,57 @@ export const PatientProfile: React.FC = () => {
     }
   };
 
+  const addTimelineNote = () => {
+    if (!newNote.trim()) return;
+    
+    const note: TimelineNote = {
+      id: Date.now().toString(),
+      content: newNote,
+      createdAt: new Date(),
+      isPinned: false
+    };
+    
+    const updatedNotes = [note, ...timelineNotes];
+    setTimelineNotes(updatedNotes);
+    localStorage.setItem(`patient-notes-${id}`, JSON.stringify(updatedNotes));
+    setNewNote('');
+  };
+
+  const togglePinNote = (noteId: string) => {
+    const updatedNotes = timelineNotes.map(note => 
+      note.id === noteId ? { ...note, isPinned: !note.isPinned } : note
+    );
+    // Sort to put pinned notes first
+    updatedNotes.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+    setTimelineNotes(updatedNotes);
+    localStorage.setItem(`patient-notes-${id}`, JSON.stringify(updatedNotes));
+  };
+
+  const deleteNote = (noteId: string) => {
+    const updatedNotes = timelineNotes.filter(note => note.id !== noteId);
+    setTimelineNotes(updatedNotes);
+    localStorage.setItem(`patient-notes-${id}`, JSON.stringify(updatedNotes));
+  };
+
+  const addHashtag = () => {
+    if (!newHashtag.trim()) return;
+    
+    const tag = newHashtag.startsWith('#') ? newHashtag : `#${newHashtag}`;
+    if (!hashtags.includes(tag)) {
+      const updatedTags = [...hashtags, tag];
+      setHashtags(updatedTags);
+      // Save to backend here
+    }
+    setNewHashtag('');
+    setShowHashtagInput(false);
+  };
+
+  const removeHashtag = (tag: string) => {
+    const updatedTags = hashtags.filter(t => t !== tag);
+    setHashtags(updatedTags);
+    // Update backend here
+  };
+
   if (loading) {
     return (
       <div className="patient-profile-loading">
@@ -109,281 +182,348 @@ export const PatientProfile: React.FC = () => {
     );
   }
 
-  const getStatusBadge = (status: string) => {
-    const statusMap: { [key: string]: { color: string; text: string } } = {
-      'qualified': { color: '#00C851', text: 'Qualified' },
-      'pending_review': { color: '#FFBB33', text: 'Pending Review' },
-      'active': { color: '#33B5E5', text: 'Active' },
-      'paused': { color: '#FFA500', text: 'Paused' },
-      'cancelled': { color: '#FF4444', text: 'Cancelled' }
+  const getStatusColor = (status: string) => {
+    const statusColors: { [key: string]: string } = {
+      'qualified': '#10b981',
+      'not-qualified': '#ef4444',
+      'processing': '#f59e0b',
+      'pending': '#f59e0b',
+      'active': '#10b981'
     };
-    
-    const config = statusMap[status] || { color: '#666', text: status };
-    return (
-      <span className="status-badge" style={{ backgroundColor: config.color }}>
-        {config.text}
-      </span>
-    );
-  };
-
-  const getHashtagBadge = (tag: string) => {
-    const hashtagMap: { [key: string]: { color: string; icon: string } } = {
-      '#activemember': { color: '#00C851', icon: '✓' },
-      '#qualified': { color: '#33B5E5', icon: '👤' },
-      '#paused': { color: '#FFA500', icon: '⏸' },
-      '#cancelled': { color: '#FF4444', icon: '✕' }
-    };
-    
-    const config = hashtagMap[tag] || { color: '#666', icon: '#' };
-    return (
-      <span key={tag} className="hashtag-badge" style={{ backgroundColor: config.color }}>
-        <span className="hashtag-icon">{config.icon}</span>
-        {tag}
-      </span>
-    );
+    return statusColors[status.toLowerCase().replace(/ /g, '-')] || '#6b7280';
   };
 
   return (
-    <div className="patient-profile">
-      <div className="profile-header">
+    <div className="patient-profile-container">
+      <div className="profile-header-bar">
         <button className="back-button" onClick={() => navigate('/clients')}>
           ← Back to Clients
         </button>
-        
-        <div className="header-content">
-          <div className="patient-avatar">
-            {patient.first_name[0]}{patient.last_name[0]}
+      </div>
+
+      <div className="profile-main-content">
+        <div className="timeline-section">
+          <div className="timeline-header">
+            <h3>Timeline</h3>
+            <button className="add-note-btn">+</button>
           </div>
           
-          <div className="header-info">
-            <h1>{patient.first_name} {patient.last_name}</h1>
-            <div className="header-badges">
-              {getStatusBadge(patient.status)}
-              {patient.membership_hashtags?.map(tag => getHashtagBadge(tag))}
+          <div className="timeline-content">
+            <div className="note-input-wrapper">
+              <textarea
+                className="note-input"
+                placeholder="Add a note..."
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                rows={3}
+              />
+              <button 
+                className="save-note-btn"
+                onClick={addTimelineNote}
+                disabled={!newNote.trim()}
+              >
+                Save Note
+              </button>
+            </div>
+
+            <div className="timeline-notes">
+              {timelineNotes.map(note => (
+                <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''}`}>
+                  <div className="note-header">
+                    <span className="note-date">
+                      {note.createdAt.toLocaleDateString()}
+                    </span>
+                    <div className="note-actions">
+                      <button 
+                        className="pin-btn"
+                        onClick={() => togglePinNote(note.id)}
+                        title={note.isPinned ? 'Unpin' : 'Pin'}
+                      >
+                        📌
+                      </button>
+                      <button 
+                        className="delete-note-btn"
+                        onClick={() => deleteNote(note.id)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                  <p className="note-content">{note.content}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="profile-tabs">
-        <button 
-          className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
-          onClick={() => setActiveTab('overview')}
-        >
-          👤 Overview
-        </button>
-        <button 
-          className={`tab ${activeTab === 'progress' ? 'active' : ''}`}
-          onClick={() => setActiveTab('progress')}
-        >
-          📊 Progress
-        </button>
-        <button 
-          className={`tab ${activeTab === 'invoices' ? 'active' : ''}`}
-          onClick={() => setActiveTab('invoices')}
-        >
-          💳 Invoices
-        </button>
-        <button 
-          className={`tab ${activeTab === 'comments' ? 'active' : ''}`}
-          onClick={() => setActiveTab('comments')}
-        >
-          💬 Comments
-        </button>
-        <button 
-          className={`tab ${activeTab === 'fullscript' ? 'active' : ''}`}
-          onClick={() => setActiveTab('fullscript')}
-        >
-          💊 Fullscript
-        </button>
-        <button 
-          className={`tab ${activeTab === 'prescriptions' ? 'active' : ''}`}
-          onClick={() => setActiveTab('prescriptions')}
-        >
-          📋 Prescriptions
-        </button>
-        <button 
-          className={`tab ${activeTab === 'intake' ? 'active' : ''}`}
-          onClick={() => setActiveTab('intake')}
-        >
-          📄 Intake Forms
-        </button>
-      </div>
-
-      <div className="profile-content">
-        {activeTab === 'overview' && (
-          <div className="overview-tab">
-            <section className="info-section">
-              <h2>Basic Information</h2>
-              <button className="edit-button" onClick={() => setIsEditModalOpen(true)}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '6px' }}>
-                  <path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 01-.927-.928l.929-3.25a1.75 1.75 0 01.445-.758l8.61-8.61zm1.414 1.06a.25.25 0 00-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 000-.354l-1.086-1.086zM11.189 6.25L9.75 4.81l-6.286 6.287a.25.25 0 00-.064.108l-.558 1.953 1.953-.558a.249.249 0 00.108-.064l6.286-6.286z" />
-                </svg>
-                Edit
-              </button>
-              
-              <div className="info-grid">
-                <div className="info-item">
-                  <label>NAME</label>
-                  <p>{patient.first_name} {patient.last_name}</p>
-                </div>
-                
-                <div className="info-item">
-                  <label>DATE OF BIRTH</label>
-                  <p>
-                    {new Date(patient.date_of_birth).toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })} (age {calculateAge(patient.date_of_birth)})
-                  </p>
-                </div>
-                
-                <div className="info-item">
-                  <label>EMAIL ADDRESS</label>
-                  <p>{patient.email}</p>
-                </div>
-                
-                <div className="info-item">
-                  <label>CLIENT ID</label>
-                  <p>{patient.patient_id}</p>
-                </div>
-                
-                <div className="info-item">
-                  <label>GENDER</label>
-                  <p>{patient.gender || 'Not specified'}</p>
-                </div>
-                
-                <div className="info-item">
-                  <label>SEX</label>
-                  <p>{patient.gender || 'Not specified'}</p>
-                </div>
-                
-                <div className="info-item">
-                  <label>MOBILE PHONE</label>
-                  <p>{patient.phone ? formatPhone(patient.phone) : 'Not provided'}</p>
-                </div>
-                
-                <div className="info-item">
-                  <label>ADDRESS</label>
-                  <p>
-                    {patient.address ? (
-                      <>
-                        <a 
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                            `${patient.address} ${patient.city || ''} ${patient.state || ''} ${patient.zip || ''}`
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="google-maps-link"
-                        >
-                          {patient.address}<br />
-                          {patient.city && patient.state && patient.zip && 
-                            `${patient.city}, ${patient.state} ${patient.zip}`
-                          }
-                          <span className="map-icon">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-                              <path d="M5.25 0a5.25 5.25 0 110 10.5 5.25 5.25 0 010-10.5zm0 1.5a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5zm0 1.5a2.25 2.25 0 110 4.5 2.25 2.25 0 010-4.5z" />
-                              <path d="M8.4 8.4l2.1 2.1a.75.75 0 001.06-1.06l-2.1-2.1a5.25 5.25 0 00-1.06 1.06z" />
-                            </svg>
-                          </span>
-                        </a>
-                      </>
-                    ) : (
-                      'Not provided'
-                    )}
-                  </p>
-                </div>
-                
-                {patient.height_inches && patient.weight_lbs && (
-                  <>
-                    <div className="info-item">
-                      <label>HEIGHT</label>
-                      <p>{Math.floor(patient.height_inches / 12)}' {patient.height_inches % 12}"</p>
-                    </div>
-                    
-                    <div className="info-item">
-                      <label>WEIGHT</label>
-                      <p>{patient.weight_lbs} lbs</p>
-                    </div>
-                    
-                    {patient.bmi && (
-                      <div className="info-item">
-                        <label>BMI</label>
-                        <p>{patient.bmi}</p>
-                      </div>
-                    )}
-                  </>
+        <div className="profile-content-section">
+          <div className="patient-header">
+            <div className="patient-avatar">
+              {patient.first_name[0]}{patient.last_name[0]}
+            </div>
+            
+            <div className="patient-header-info">
+              <h1>{patient.first_name} {patient.last_name}</h1>
+              <div className="patient-tags">
+                <span 
+                  className="weight-loss-tag"
+                  style={{ backgroundColor: getStatusColor(patient.status) }}
+                >
+                  WEIGHT LOSS ✕
+                </span>
+                <span className="rep-tag">REP: LAURA</span>
+                {patient.status === 'pending' && (
+                  <span className="pending-tag">PENDING REVIEW</span>
                 )}
               </div>
-            </section>
-          </div>
-        )}
+            </div>
 
-        {activeTab === 'intake' && (
-          <div className="intake-tab">
-            <h2>Intake Forms</h2>
-            <div className="intake-forms-list">
-              <div className="intake-form-item">
-                <div className="form-icon">📄</div>
-                <div className="form-details">
-                  <h3>Weight Loss Intake Form</h3>
-                  <p>Submitted on {new Date(patient.created_at).toLocaleDateString()}</p>
-                </div>
-                <div className="form-actions">
-                  <button 
-                    className="view-button"
-                    onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
-                  >
-                    View PDF
-                  </button>
-                  <a 
-                    href={`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`}
-                    download={`${patient.patient_id || 'patient'}_intake_form.pdf`}
-                    className="download-button"
-                  >
-                    Download
-                  </a>
-                </div>
-              </div>
+            <div className="profile-actions">
+              <button className="profile-settings-btn">Profile settings</button>
+              <button className="more-options-btn">⋮</button>
+              <button className="tag-btn">🏷</button>
             </div>
           </div>
-        )}
 
-        {activeTab === 'progress' && (
-          <div className="progress-tab">
-            <h2>Progress Tracking</h2>
-            <p className="coming-soon">Progress tracking features coming soon!</p>
+          <div className="profile-tabs">
+            <button 
+              className={`tab ${activeTab === 'timeline' ? 'active' : ''}`}
+              onClick={() => setActiveTab('timeline')}
+            >
+              Timeline
+            </button>
+            <button 
+              className={`tab plus-tab`}
+              onClick={() => console.log('Add new tab')}
+            >
+              +
+            </button>
+            <button 
+              className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              👤 Overview
+            </button>
+            <button 
+              className={`tab ${activeTab === 'progress' ? 'active' : ''}`}
+              onClick={() => setActiveTab('progress')}
+            >
+              📊 Progress
+            </button>
+            <button 
+              className={`tab ${activeTab === 'invoices' ? 'active' : ''}`}
+              onClick={() => setActiveTab('invoices')}
+            >
+              💳 Invoices
+            </button>
+            <button 
+              className={`tab ${activeTab === 'soap' ? 'active' : ''}`}
+              onClick={() => setActiveTab('soap')}
+            >
+              📝 SOAP Notes
+            </button>
+            <button 
+              className={`tab ${activeTab === 'intake' ? 'active' : ''}`}
+              onClick={() => setActiveTab('intake')}
+            >
+              📄 Intake Form
+            </button>
+            <button 
+              className={`tab ${activeTab === 'prescriptions' ? 'active' : ''}`}
+              onClick={() => setActiveTab('prescriptions')}
+            >
+              💊 Prescriptions
+            </button>
           </div>
-        )}
 
-        {activeTab === 'invoices' && (
-          <div className="invoices-tab">
-            <h2>Invoices</h2>
-            <p className="coming-soon">Invoice management coming soon!</p>
-          </div>
-        )}
+          <div className="tab-content">
+            {activeTab === 'intake' && (
+              <div className="intake-form-section">
+                <div className="section-header">
+                  <span className="client-id">CLIENT ID</span>
+                  <span className="patient-id">{patient.patient_id}</span>
+                  <button className="edit-btn" onClick={() => setIsEditModalOpen(true)}>
+                    Edit ✏️
+                  </button>
+                </div>
 
-        {activeTab === 'comments' && (
-          <div className="comments-tab">
-            <h2>Comments & Notes</h2>
-            <p className="coming-soon">Comments feature coming soon!</p>
-          </div>
-        )}
+                <div className="basic-info-section">
+                  <h3>Basic Information</h3>
+                  <div className="info-grid">
+                    <div className="info-row">
+                      <div className="info-item">
+                        <label>NAME</label>
+                        <p>{patient.first_name} {patient.last_name}</p>
+                      </div>
+                      <div className="info-item">
+                        <label>DATE OF BIRTH</label>
+                        <p>
+                          {new Date(patient.date_of_birth).toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })} ({calculateAge(patient.date_of_birth)} y/o)
+                        </p>
+                      </div>
+                      <div className="info-item">
+                        <label>SEX</label>
+                        <p>{patient.gender === 'female' ? 'Female' : patient.gender || 'Not specified'}</p>
+                      </div>
+                    </div>
 
-        {activeTab === 'fullscript' && (
-          <div className="fullscript-tab">
-            <h2>Fullscript Orders</h2>
-            <p className="coming-soon">Fullscript integration coming soon!</p>
-          </div>
-        )}
+                    <div className="info-row">
+                      <div className="info-item">
+                        <label>ADDRESS</label>
+                        <p>
+                          {patient.address ? (
+                            <>
+                              {patient.address}<br />
+                              {patient.city && patient.state && patient.zip && 
+                                `${patient.city} ${patient.state} ${patient.zip}`
+                              }
+                            </>
+                          ) : (
+                            'Not provided'
+                          )}
+                        </p>
+                      </div>
+                      <div className="info-item">
+                        <label>EMAIL</label>
+                        <p>{patient.email}</p>
+                      </div>
+                      <div className="info-item">
+                        <label>PHONE #</label>
+                        <p>{patient.phone ? formatPhone(patient.phone) : 'Not provided'}</p>
+                      </div>
+                    </div>
 
-        {activeTab === 'prescriptions' && (
-          <div className="prescriptions-tab">
-            <h2>Prescriptions</h2>
-            <p className="coming-soon">Prescription tracking coming soon!</p>
+                    <div className="info-row">
+                      <div className="info-item">
+                        <label>HEIGHT</label>
+                        <p>{patient.height_inches ? `${Math.floor(patient.height_inches / 12)}' ${patient.height_inches % 12}"` : 'Not provided'}</p>
+                      </div>
+                      <div className="info-item">
+                        <label>WEIGHT</label>
+                        <p>{patient.weight_lbs ? `${patient.weight_lbs} lbs` : 'Not provided'}</p>
+                      </div>
+                      <div className="info-item">
+                        <label>BMI</label>
+                        <p>{patient.bmi || 'Not calculated'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="additional-info">
+                    <div className="info-item">
+                      <label>TRACKING #</label>
+                      <p>{patient.tracking_number || 'Not available'}</p>
+                    </div>
+                    <div className="info-item">
+                      <label>CLIENT CONSENTS TO DOWNLOAD MEDICATION HISTORY.</label>
+                      <p>Yes</p>
+                    </div>
+                  </div>
+
+                  <div className="additional-info-section">
+                    <label>ADDITIONAL INFORMATION</label>
+                    <div className="additional-info-box">
+                      <p>{patient.additional_info || 'No additional information provided.'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="hashtags-section">
+                  <h3>Tags</h3>
+                  <div className="hashtags-container">
+                    {hashtags.map(tag => (
+                      <span key={tag} className="hashtag">
+                        {tag}
+                        <button 
+                          className="remove-hashtag"
+                          onClick={() => removeHashtag(tag)}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    {showHashtagInput ? (
+                      <div className="hashtag-input-wrapper">
+                        <input
+                          type="text"
+                          className="hashtag-input"
+                          placeholder="Add tag..."
+                          value={newHashtag}
+                          onChange={(e) => setNewHashtag(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && addHashtag()}
+                          onBlur={() => !newHashtag && setShowHashtagInput(false)}
+                          autoFocus
+                        />
+                      </div>
+                    ) : (
+                      <button 
+                        className="add-hashtag-btn"
+                        onClick={() => setShowHashtagInput(true)}
+                      >
+                        + Add Tag
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-actions-section">
+                  <button 
+                    className="view-pdf-btn"
+                    onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                  >
+                    View Intake Form PDF
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'overview' && (
+              <div className="overview-tab">
+                <h2>Patient Overview</h2>
+                <p className="coming-soon">Detailed overview coming soon!</p>
+              </div>
+            )}
+
+            {activeTab === 'progress' && (
+              <div className="progress-tab">
+                <h2>Progress Tracking</h2>
+                <p className="coming-soon">Progress tracking features coming soon!</p>
+              </div>
+            )}
+
+            {activeTab === 'invoices' && (
+              <div className="invoices-tab">
+                <h2>Invoices</h2>
+                <p className="coming-soon">Invoice management coming soon!</p>
+              </div>
+            )}
+
+            {activeTab === 'soap' && (
+              <div className="soap-tab">
+                <h2>SOAP Notes</h2>
+                <p className="coming-soon">SOAP notes feature coming soon!</p>
+              </div>
+            )}
+
+            {activeTab === 'prescriptions' && (
+              <div className="prescriptions-tab">
+                <h2>Prescriptions</h2>
+                <p className="coming-soon">Prescription tracking coming soon!</p>
+              </div>
+            )}
+
+            {activeTab === 'timeline' && (
+              <div className="timeline-tab">
+                <h2>Timeline</h2>
+                <p className="coming-soon">Timeline view coming soon!</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {patient && (
