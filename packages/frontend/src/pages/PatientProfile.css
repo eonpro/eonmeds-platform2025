@@ -1200,24 +1200,38 @@
 } 
 
 /* Intake Form Styles */
-.intake-form-section {
-  max-width: 1200px;
-}
-
-.intake-form-data {
+.intake-form-content {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 20px;
 }
 
-.info-section {
+/* Make sure tab content has the warm beige background */
+.tab-content {
+  background-color: #faf7f2;
+  min-height: calc(100vh - 300px);
+}
+
+/* Override for intake form sections to match Overview */
+.overview-section .basic-info-section {
   background: white;
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
 }
 
-.info-section h3 {
+.overview-section .basic-info-section:last-child {
+  margin-bottom: 0;
+}
+
+/* GLP-1 History Section - Special Yellow Background */
+.glp1-section {
+  background-color: #fefea7 !important;
+}
+
+/* Ensure consistent styling */
+.basic-info-section h3 {
   font-size: 18px;
   font-weight: 600;
   color: #1a1a1a;
@@ -1262,11 +1276,6 @@
   margin: 0;
   font-family: 'Poppins', sans-serif;
   line-height: 1.5;
-}
-
-/* GLP-1 History Section - Special Background */
-.glp1-section {
-  background-color: #fefea7 !important;
 }
 
 /* Consent checkmarks/crosses */
