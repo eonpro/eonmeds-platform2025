@@ -125,7 +125,10 @@ export const PatientProfile: React.FC = () => {
       }
     } catch (err) {
       console.error('Error loading intake data:', err);
-      console.error('Error details:', err.response?.data || err.message);
+      if (err && typeof err === 'object' && 'response' in err) {
+        const error = err as any;
+        console.error('Error details:', error.response?.data || error.message);
+      }
       // If webhook data fails, we'll just show the simple form
     } finally {
       setIntakeLoading(false);
