@@ -107,7 +107,7 @@ export const PatientProfile: React.FC = () => {
   };
 
   const loadIntakeData = useCallback(async () => {
-    if (!id || !apiClient || intakeLoading || intakeFormData) return;
+    if (!id || !apiClient) return;
     
     try {
       setIntakeLoading(true);
@@ -126,14 +126,24 @@ export const PatientProfile: React.FC = () => {
     } finally {
       setIntakeLoading(false);
     }
-  }, [id, apiClient, intakeLoading, intakeFormData]);
+  }, [id, apiClient]);
+
+  // Track if intake data has been loaded for current patient
+  const [hasLoadedIntake, setHasLoadedIntake] = useState(false);
+
+  // Reset when patient changes
+  useEffect(() => {
+    setHasLoadedIntake(false);
+    setIntakeFormData(null);
+  }, [id]);
 
   // Load intake data when intake tab is selected
   useEffect(() => {
-    if (activeTab === 'intake' && id && apiClient) {
+    if (activeTab === 'intake' && id && apiClient && !hasLoadedIntake) {
+      setHasLoadedIntake(true);
       loadIntakeData();
     }
-  }, [activeTab, id, apiClient, loadIntakeData]);
+  }, [activeTab, id, apiClient, hasLoadedIntake, loadIntakeData]);
 
   useEffect(() => {
     loadPatient();
