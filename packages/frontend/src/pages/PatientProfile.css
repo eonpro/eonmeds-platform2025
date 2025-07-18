@@ -9,6 +9,76 @@
   background-color: white;
   padding: 15px 30px;
   border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-right-section {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.search-bar-wrapper {
+  position: relative;
+}
+
+.client-search-input {
+  padding: 10px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 300px;
+  outline: none;
+  font-family: 'Poppins', sans-serif;
+  background-color: #fafafa;
+}
+
+.client-search-input:focus {
+  border-color: #14a97b;
+  background-color: white;
+}
+
+.client-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.add-client-btn {
+  padding: 10px 20px;
+  background-color: #14a97b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.add-client-btn:hover {
+  background-color: #0e8a5f;
+}
+
+.dashboard-btn {
+  padding: 10px 20px;
+  background-color: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.dashboard-btn:hover {
+  background-color: #dc8a09;
 }
 
 .back-button {
@@ -318,7 +388,7 @@
 .header-tag-input-wrapper {
   position: absolute;
   top: calc(100% + 10px);
-  right: 0;
+  right: -100px; /* Shift it left to prevent wrapping */
   background: white;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -327,7 +397,8 @@
   display: flex;
   gap: 8px;
   z-index: 100;
-  min-width: 300px;
+  min-width: 350px;
+  white-space: nowrap;
 }
 
 .header-tag-input {
@@ -823,6 +894,26 @@
     right: 20px;
     left: 20px;
     margin-top: 0;
+  }
+  
+  .profile-header-bar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+  }
+  
+  .header-right-section {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .client-search-input {
+    width: 100%;
+  }
+  
+  .search-bar-wrapper {
+    width: 100%;
   }
 } 
 

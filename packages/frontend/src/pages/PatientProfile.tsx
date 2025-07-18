@@ -319,6 +319,22 @@ export const PatientProfile: React.FC = () => {
         <button className="back-button" onClick={() => navigate('/clients')}>
           <ArrowBackIcon className="back-icon" /> Back to Clients
         </button>
+        
+        <div className="header-right-section">
+          <div className="search-bar-wrapper">
+            <input
+              type="text"
+              className="client-search-input"
+              placeholder="Search for Client"
+            />
+          </div>
+          <button className="add-client-btn" onClick={() => navigate('/clients')}>
+            + Client
+          </button>
+          <button className="dashboard-btn" onClick={() => navigate('/dashboard')}>
+            Dashboard
+          </button>
+        </div>
       </div>
 
       <div className="profile-main-content">
