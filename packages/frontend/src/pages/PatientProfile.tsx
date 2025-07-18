@@ -395,286 +395,287 @@ export const PatientProfile: React.FC = () => {
           </div>
         </div>
 
-        <div className="profile-content-section">
-          <div className="patient-header">
-            <div className="patient-avatar">
-              {patient.first_name[0]}{patient.last_name[0]}
-            </div>
-            
-            <div className="patient-header-info">
-              <h1>{patient.first_name} {patient.last_name}</h1>
-              <div className="patient-tags">
-                {hashtags.map(tag => (
-                  <span 
-                    key={tag}
-                    className="header-tag"
-                    style={{ 
-                      backgroundColor: tag.includes('weight') ? getStatusColor(patient.status) : 
-                                     tag.includes('rep') ? '#a855f7' : '#3b82f6'
-                    }}
-                  >
-                    {tag}
-                    <button 
-                      className="remove-tag-btn"
-                      onClick={() => removeHashtag(tag)}
+        <div className="profile-content-wrapper">
+          <div className="profile-content-section">
+            <div className="patient-header">
+              <div className="patient-avatar">
+                {patient.first_name[0]}{patient.last_name[0]}
+              </div>
+              
+              <div className="patient-header-info">
+                <h1>{patient.first_name} {patient.last_name}</h1>
+                <div className="patient-tags">
+                  {hashtags.map(tag => (
+                    <span 
+                      key={tag}
+                      className="header-tag"
+                      style={{ 
+                        backgroundColor: tag.includes('weight') ? getStatusColor(patient.status) : 
+                                       tag.includes('rep') ? '#a855f7' : '#3b82f6'
+                      }}
                     >
-                      ×
-                    </button>
-                  </span>
-                ))}
-                {patient.status === 'pending' && (
-                  <span className="pending-tag">PENDING REVIEW</span>
-                )}
-              </div>
-            </div>
-
-            <div className="profile-actions">
-              <button className="profile-settings-btn">Profile settings</button>
-              <button className="more-options-btn"><MoreOptionsIcon className="more-options-icon" /></button>
-              <button 
-                className="tag-btn"
-                onClick={() => setShowHashtagInput(!showHashtagInput)}
-              >
-                <TagIcon className="tag-icon" />
-              </button>
-            </div>
-          </div>
-
-          {showHashtagInput && (
-            <div className="header-tag-input-wrapper">
-              <input
-                type="text"
-                className="header-tag-input"
-                placeholder="Add tag (e.g. #weightloss, #rep:laura)..."
-                value={newHashtag}
-                onChange={(e) => setNewHashtag(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    addHashtag();
-                  }
-                }}
-                autoFocus
-              />
-              <button 
-                className="add-tag-confirm-btn"
-                onClick={addHashtag}
-              >
-                Add
-              </button>
-            </div>
-          )}
-
-          <div className="profile-tabs">
-            <button 
-              className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              <UserIcon className="tab-icon" /> Overview
-            </button>
-            <button 
-              className={`tab ${activeTab === 'progress' ? 'active' : ''}`}
-              onClick={() => setActiveTab('progress')}
-            >
-              <ChartIcon className="tab-icon" /> Progress
-            </button>
-            <button 
-              className={`tab ${activeTab === 'invoices' ? 'active' : ''}`}
-              onClick={() => setActiveTab('invoices')}
-            >
-              <InvoiceIcon className="tab-icon" /> Invoices
-            </button>
-            <button 
-              className={`tab ${activeTab === 'soap' ? 'active' : ''}`}
-              onClick={() => setActiveTab('soap')}
-            >
-              <DocumentIcon className="tab-icon" /> SOAP Notes
-            </button>
-            <button 
-              className={`tab ${activeTab === 'intake' ? 'active' : ''}`}
-              onClick={() => setActiveTab('intake')}
-            >
-              <FormIcon className="tab-icon" /> Intake Form
-            </button>
-            <button 
-              className={`tab ${activeTab === 'prescriptions' ? 'active' : ''}`}
-              onClick={() => setActiveTab('prescriptions')}
-            >
-              <PrescriptionIcon className="tab-icon" /> Prescriptions
-            </button>
-            <button 
-              className={`tab plus-tab`}
-              onClick={() => console.log('Add new tab')}
-            >
-              <PlusIcon className="tab-icon" />
-            </button>
-          </div>
-
-          <div className="tab-content">
-            {activeTab === 'overview' && (
-              <div className="overview-section">
-                <div className="section-header">
-                  <div>
-                    <span className="client-id">CLIENT ID</span>
-                    <span className="patient-id">{patient.patient_id}</span>
-                  </div>
-                  <button className="edit-btn" onClick={() => setIsEditModalOpen(true)}>
-                    <EditIcon className="edit-icon" /> Edit
-                  </button>
-                </div>
-
-                <div className="basic-info-section">
-                  <h3>Basic Information</h3>
-                  <div className="info-grid">
-                    <div className="info-row">
-                      <div className="info-item">
-                        <label>NAME</label>
-                        <p>{patient.first_name} {patient.last_name}</p>
-                      </div>
-                      <div className="info-item">
-                        <label>DATE OF BIRTH</label>
-                        <p>
-                          {new Date(patient.date_of_birth).toLocaleDateString('en-US', {
-                            month: 'long',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })} ({calculateAge(patient.date_of_birth)} y/o)
-                        </p>
-                      </div>
-                      <div className="info-item">
-                        <label>SEX</label>
-                        <p>{patient.gender === 'female' ? 'Female' : patient.gender || 'Not specified'}</p>
-                      </div>
-                    </div>
-
-                    <div className="info-row">
-                      <div className="info-item">
-                        <label>ADDRESS</label>
-                        <p>
-                          {(() => {
-                            const { addressLine1, addressLine2, fullAddress } = formatAddress();
-                            return addressLine1 ? (
-                              <a 
-                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="address-link"
-                              >
-                                {addressLine1}
-                                {addressLine2 && (
-                                  <>
-                                    <br />
-                                    {addressLine2}
-                                  </>
-                                )}
-                                <MapIcon className="map-icon" />
-                              </a>
-                            ) : (
-                              'Not provided'
-                            );
-                          })()}
-                        </p>
-                      </div>
-                      <div className="info-item">
-                        <label>EMAIL</label>
-                        <p>{patient.email}</p>
-                      </div>
-                      <div className="info-item">
-                        <label>PHONE #</label>
-                        <p>{patient.phone ? formatPhone(patient.phone) : 'Not provided'}</p>
-                      </div>
-                    </div>
-
-                    <div className="info-row">
-                      <div className="info-item">
-                        <label>HEIGHT</label>
-                        <p>{patient.height_inches ? `${Math.floor(patient.height_inches / 12)}' ${patient.height_inches % 12}"` : 'Not provided'}</p>
-                      </div>
-                      <div className="info-item">
-                        <label>WEIGHT</label>
-                        <p>{patient.weight_lbs ? `${patient.weight_lbs} lbs` : 'Not provided'}</p>
-                      </div>
-                      <div className="info-item">
-                        <label>BMI</label>
-                        <p>{patient.bmi || 'Not calculated'}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="additional-info">
-                    <div className="info-item">
-                      <label>TRACKING #</label>
-                      <p>{patient.tracking_number || 'Not available'}</p>
-                    </div>
-                    <div className="info-item">
-                      <label>CLIENT CONSENTS TO DOWNLOAD MEDICATION HISTORY.</label>
-                      <p>Yes</p>
-                    </div>
-                  </div>
-
-                  <div className="additional-info-section">
-                    <label>ADDITIONAL INFORMATION</label>
-                    <div className="additional-info-box">
-                      <p>{patient.additional_info || 'No additional information provided.'}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'intake' && (
-              <div className="intake-form-tab">
-                <h2>Intake Form</h2>
-                <div className="intake-form-content">
-                  <div className="intake-form-card">
-                    <div className="form-icon"><FormIcon className="form-icon-large" /></div>
-                    <div className="form-details">
-                      <h3>Weight Loss Intake Form</h3>
-                      <p>Submitted on {new Date(patient.created_at).toLocaleDateString()}</p>
-                      <p className="form-id">Form ID: {patient.patient_id}</p>
-                    </div>
-                    <div className="form-actions">
+                      {tag}
                       <button 
-                        className="view-pdf-btn"
-                        onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                        className="remove-tag-btn"
+                        onClick={() => removeHashtag(tag)}
                       >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
-                          <path d="M8.5 1v7.5H15m-6.5 0L15 2M1 9v5a1 1 0 001 1h12a1 1 0 001-1V9M8 11.5v3m0 0l-2.5-2.5M8 14.5l2.5-2.5"/>
-                        </svg>
-                        View Intake Form PDF
+                        ×
                       </button>
+                    </span>
+                  ))}
+                  {patient.status === 'pending' && (
+                    <span className="pending-tag">PENDING REVIEW</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="profile-actions">
+                <button className="profile-settings-btn">Profile settings</button>
+                <button className="more-options-btn"><MoreOptionsIcon className="more-options-icon" /></button>
+                <button 
+                  className="tag-btn"
+                  onClick={() => setShowHashtagInput(!showHashtagInput)}
+                >
+                  <TagIcon className="tag-icon" />
+                </button>
+              </div>
+            </div>
+
+            {showHashtagInput && (
+              <div className="header-tag-input-wrapper">
+                <input
+                  type="text"
+                  className="header-tag-input"
+                  placeholder="Add tag (e.g. #weightloss, #rep:laura)..."
+                  value={newHashtag}
+                  onChange={(e) => setNewHashtag(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      addHashtag();
+                    }
+                  }}
+                />
+                <button className="add-tag-confirm-btn" onClick={addHashtag}>
+                  Add
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="profile-info-section">
+            <div className="profile-tabs">
+              <button 
+                className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
+                onClick={() => setActiveTab('overview')}
+              >
+                <UserIcon className="tab-icon" />
+                Overview
+              </button>
+              <button 
+                className={`tab ${activeTab === 'progress' ? 'active' : ''}`}
+                onClick={() => setActiveTab('progress')}
+              >
+                <ChartIcon className="tab-icon" />
+                Progress
+              </button>
+              <button 
+                className={`tab ${activeTab === 'invoices' ? 'active' : ''}`}
+                onClick={() => setActiveTab('invoices')}
+              >
+                <InvoiceIcon className="tab-icon" />
+                Invoices
+              </button>
+              <button 
+                className={`tab ${activeTab === 'soap' ? 'active' : ''}`}
+                onClick={() => setActiveTab('soap')}
+              >
+                <DocumentIcon className="tab-icon" />
+                SOAP Notes
+              </button>
+              <button 
+                className={`tab ${activeTab === 'intake' ? 'active' : ''}`}
+                onClick={() => setActiveTab('intake')}
+              >
+                <FormIcon className="tab-icon" />
+                Intake Form
+              </button>
+              <button 
+                className={`tab ${activeTab === 'prescriptions' ? 'active' : ''}`}
+                onClick={() => setActiveTab('prescriptions')}
+              >
+                <PrescriptionIcon className="tab-icon" />
+                Prescriptions
+              </button>
+              <button className="tab plus-tab">+</button>
+            </div>
+
+            <div className="tab-content">
+              {activeTab === 'overview' && (
+                <div className="overview-section">
+                  <div className="section-header">
+                    <div>
+                      <span className="client-id">CLIENT ID</span>
+                      <span className="patient-id">{patient.patient_id}</span>
+                    </div>
+                    <button className="edit-btn" onClick={() => setIsEditModalOpen(true)}>
+                      <EditIcon className="edit-icon" /> Edit
+                    </button>
+                  </div>
+
+                  <div className="basic-info-section">
+                    <h3>Basic Information</h3>
+                    <div className="info-grid">
+                      <div className="info-row">
+                        <div className="info-item">
+                          <label>NAME</label>
+                          <p>{patient.first_name} {patient.last_name}</p>
+                        </div>
+                        <div className="info-item">
+                          <label>DATE OF BIRTH</label>
+                          <p>
+                            {new Date(patient.date_of_birth).toLocaleDateString('en-US', {
+                              month: 'long',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })} ({calculateAge(patient.date_of_birth)} y/o)
+                          </p>
+                        </div>
+                        <div className="info-item">
+                          <label>SEX</label>
+                          <p>{patient.gender === 'female' ? 'Female' : patient.gender || 'Not specified'}</p>
+                        </div>
+                      </div>
+
+                      <div className="info-row">
+                        <div className="info-item">
+                          <label>ADDRESS</label>
+                          <p>
+                            {(() => {
+                              const { addressLine1, addressLine2, fullAddress } = formatAddress();
+                              return addressLine1 ? (
+                                <a 
+                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="address-link"
+                                >
+                                  {addressLine1}
+                                  {addressLine2 && (
+                                    <>
+                                      <br />
+                                      {addressLine2}
+                                    </>
+                                  )}
+                                  <MapIcon className="map-icon" />
+                                </a>
+                              ) : (
+                                'Not provided'
+                              );
+                            })()}
+                          </p>
+                        </div>
+                        <div className="info-item">
+                          <label>EMAIL</label>
+                          <p>{patient.email}</p>
+                        </div>
+                        <div className="info-item">
+                          <label>PHONE #</label>
+                          <p>{patient.phone ? formatPhone(patient.phone) : 'Not provided'}</p>
+                        </div>
+                      </div>
+
+                      <div className="info-row">
+                        <div className="info-item">
+                          <label>HEIGHT</label>
+                          <p>{patient.height_inches ? `${Math.floor(patient.height_inches / 12)}' ${patient.height_inches % 12}"` : 'Not provided'}</p>
+                        </div>
+                        <div className="info-item">
+                          <label>WEIGHT</label>
+                          <p>{patient.weight_lbs ? `${patient.weight_lbs} lbs` : 'Not provided'}</p>
+                        </div>
+                        <div className="info-item">
+                          <label>BMI</label>
+                          <p>{patient.bmi || 'Not calculated'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="additional-info">
+                      <div className="info-item">
+                        <label>TRACKING #</label>
+                        <p>{patient.tracking_number || 'Not available'}</p>
+                      </div>
+                      <div className="info-item">
+                        <label>CLIENT CONSENTS TO DOWNLOAD MEDICATION HISTORY.</label>
+                        <p>Yes</p>
+                      </div>
+                    </div>
+
+                    <div className="additional-info-section">
+                      <label>ADDITIONAL INFORMATION</label>
+                      <div className="additional-info-box">
+                        <p>{patient.additional_info || 'No additional information provided.'}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {activeTab === 'progress' && (
-              <div className="progress-tab">
-                <h2>Progress Tracking</h2>
-                <p className="coming-soon">Progress tracking features coming soon!</p>
-              </div>
-            )}
+              {activeTab === 'intake' && (
+                <div className="intake-form-tab">
+                  <h2>Intake Form</h2>
+                  <div className="intake-form-content">
+                    <div className="intake-form-card">
+                      <div className="form-icon"><FormIcon className="form-icon-large" /></div>
+                      <div className="form-details">
+                        <h3>Weight Loss Intake Form</h3>
+                        <p>Submitted on {new Date(patient.created_at).toLocaleDateString()}</p>
+                        <p className="form-id">Form ID: {patient.patient_id}</p>
+                      </div>
+                      <div className="form-actions">
+                        <button 
+                          className="view-pdf-btn"
+                          onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
+                            <path d="M8.5 1v7.5H15m-6.5 0L15 2M1 9v5a1 1 0 001 1h12a1 1 0 001-1V9M8 11.5v3m0 0l-2.5-2.5M8 14.5l2.5-2.5"/>
+                          </svg>
+                          View Intake Form PDF
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-            {activeTab === 'invoices' && (
-              <div className="invoices-tab">
-                <h2>Invoices</h2>
-                <p className="coming-soon">Invoice management coming soon!</p>
-              </div>
-            )}
+              {activeTab === 'progress' && (
+                <div className="progress-tab">
+                  <h2>Progress Tracking</h2>
+                  <p className="coming-soon">Progress tracking features coming soon!</p>
+                </div>
+              )}
 
-            {activeTab === 'soap' && (
-              <div className="soap-tab">
-                <h2>SOAP Notes</h2>
-                <p className="coming-soon">SOAP notes feature coming soon!</p>
-              </div>
-            )}
+              {activeTab === 'invoices' && (
+                <div className="invoices-tab">
+                  <h2>Invoices</h2>
+                  <p className="coming-soon">Invoice management coming soon!</p>
+                </div>
+              )}
 
-            {activeTab === 'prescriptions' && (
-              <div className="prescriptions-tab">
-                <h2>Prescriptions</h2>
-                <p className="coming-soon">Prescription tracking coming soon!</p>
-              </div>
-            )}
+              {activeTab === 'soap' && (
+                <div className="soap-tab">
+                  <h2>SOAP Notes</h2>
+                  <p className="coming-soon">SOAP notes feature coming soon!</p>
+                </div>
+              )}
+
+              {activeTab === 'prescriptions' && (
+                <div className="prescriptions-tab">
+                  <h2>Prescriptions</h2>
+                  <p className="coming-soon">Prescription tracking coming soon!</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
