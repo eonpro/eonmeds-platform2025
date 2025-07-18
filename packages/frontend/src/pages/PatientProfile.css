@@ -475,6 +475,13 @@
   align-items: center;
   gap: 15px;
   margin-bottom: 30px;
+  justify-content: space-between; /* Push edit button to the right */
+}
+
+.section-header > div {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .client-id {
@@ -514,8 +521,8 @@
 }
 
 .edit-btn:hover {
-  background-color: #f5f5f5;
-  border-color: #ccc;
+  background-color: #14a97b; /* Keep same color on hover */
+  transform: none;
 }
 
 /* Basic Info Section */
@@ -801,18 +808,19 @@
 .intake-form-note {
   background-color: #f7cf6c !important;
   border-color: #f7cf6c !important;
-  padding: 12px !important; /* Make more compact */
+  padding: 8px 12px !important; /* Reduced vertical padding for shorter height */
 }
 
 .intake-form-note-content {
   display: flex;
   gap: 10px;
-  align-items: center; /* Changed from flex-start to center for compact look */
-  margin-top: 8px; /* Reduced from 10px */
+  align-items: center;
+  justify-content: center; /* Center the content */
+  margin-top: 0; /* Remove top margin since no header */
 }
 
 .intake-form-info {
-  flex: 1;
+  text-align: center; /* Center the text */
 }
 
 .form-icon-small {
@@ -821,13 +829,13 @@
 }
 
 .note-title {
-  margin: 0 0 2px 0; /* Reduced bottom margin */
+  margin: 0;
   font-weight: 600;
   color: #000000; /* Changed to black */
 }
 
 .note-subtitle {
-  margin: 0 0 6px 0; /* Reduced bottom margin */
+  margin: 0;
   font-size: 12px; /* Reduced from 13px */
   color: #000000; /* Changed to black */
 }

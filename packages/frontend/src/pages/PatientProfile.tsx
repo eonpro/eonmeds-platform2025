@@ -264,14 +264,6 @@ export const PatientProfile: React.FC = () => {
                 <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''} ${note.id === 'intake-form' ? 'intake-form-note' : ''}`}>
                   {note.id === 'intake-form' ? (
                     <>
-                      <div className="note-header">
-                        <span className="note-date">
-                          {new Date(note.createdAt).toLocaleDateString()}
-                        </span>
-                        <div className="note-actions">
-                          <span className="pinned-label"><PinIcon className="pin-icon" filled={true} /> Pinned</span>
-                        </div>
-                      </div>
                       <div className="intake-form-note-content">
                         <button 
                           className="view-form-btn"
@@ -434,8 +426,10 @@ export const PatientProfile: React.FC = () => {
             {activeTab === 'overview' && (
               <div className="overview-section">
                 <div className="section-header">
-                  <span className="client-id">CLIENT ID</span>
-                  <span className="patient-id">{patient.patient_id}</span>
+                  <div>
+                    <span className="client-id">CLIENT ID</span>
+                    <span className="patient-id">{patient.patient_id}</span>
+                  </div>
                   <button className="edit-btn" onClick={() => setIsEditModalOpen(true)}>
                     <EditIcon className="edit-icon" /> Edit
                   </button>
