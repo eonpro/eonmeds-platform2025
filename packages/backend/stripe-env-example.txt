@@ -1,31 +1,26 @@
-# Stripe Configuration for EONMeds
-# Copy these values to your .env file and fill in your actual values
+# Stripe Environment Variables Setup
 
-# Stripe API Keys (get from https://dashboard.stripe.com/apikeys)
-STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
-STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+## For Railway (Production):
 
-# Stripe Webhook Secret (get from https://dashboard.stripe.com/webhooks)
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+### Backend Service Variables:
+STRIPE_SECRET_KEY=sk_live_51ABC...xyz
+STRIPE_WEBHOOK_SECRET=whsec_ABC123...
 
-# Subscription Settings
-STRIPE_TRIAL_DAYS=0
-INVOICE_DUE_DAYS=30
+### Frontend Service Variables:
+REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_live_51ABC...xyz
 
-# Product IDs (create in Stripe Dashboard)
-# Weight Loss Program
-STRIPE_PRODUCT_WEIGHT_LOSS_MONTHLY=prod_xxxxxxxxxxxxx
-STRIPE_PRODUCT_WEIGHT_LOSS_QUARTERLY=prod_xxxxxxxxxxxxx
+## For Local Development:
 
-# Testosterone Program  
-STRIPE_PRODUCT_TESTOSTERONE_MONTHLY=prod_xxxxxxxxxxxxx
-STRIPE_PRODUCT_TESTOSTERONE_QUARTERLY=prod_xxxxxxxxxxxxx
+### Backend (.env file):
+STRIPE_SECRET_KEY=sk_test_51ABC...xyz
+STRIPE_WEBHOOK_SECRET=whsec_TEST123...
 
-# Price IDs (create in Stripe Dashboard)
-# Weight Loss Pricing
-STRIPE_PRICE_WEIGHT_LOSS_MONTHLY=price_xxxxxxxxxxxxx
-STRIPE_PRICE_WEIGHT_LOSS_QUARTERLY=price_xxxxxxxxxxxxx
+### Frontend (.env file):
+REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_51ABC...xyz
 
-# Testosterone Pricing
-STRIPE_PRICE_TESTOSTERONE_MONTHLY=price_xxxxxxxxxxxxx
-STRIPE_PRICE_TESTOSTERONE_QUARTERLY=price_xxxxxxxxxxxxx 
+## Important Notes:
+1. NEVER commit .env files to Git
+2. Use test keys for development
+3. Use live keys only in production
+4. Webhook secret is obtained after creating webhook endpoint in Stripe Dashboard
+5. Make sure to restart your services after adding environment variables 

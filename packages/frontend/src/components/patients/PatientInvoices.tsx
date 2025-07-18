@@ -44,6 +44,11 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
+  const [summaryData, setSummaryData] = useState({
+    outstanding: 0,
+    uninvoiced: 0,
+    totalPaid: 0
+  });
 
   // Fetch invoices
   useEffect(() => {
@@ -54,7 +59,23 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
     try {
       setLoading(true);
       const response = await apiClient.get(`/api/v1/payments/invoices/patient/${patientId}`);
-      setInvoices(response.data.invoices || []);
+      const invoiceData = response.data.invoices || [];
+      setInvoices(invoiceData);
+      
+      // Calculate summary data
+      const outstanding = invoiceData
+        .filter((inv: Invoice) => inv.status === 'open')
+        .reduce((sum: number, inv: Invoice) => sum + inv.amount_due, 0);
+      
+      const totalPaid = invoiceData
+        .filter((inv: Invoice) => inv.status === 'paid')
+        .reduce((sum: number, inv: Invoice) => sum + inv.amount_paid, 0);
+      
+      setSummaryData({
+        outstanding,
+        uninvoiced: 0, // This would come from a separate API call for unbilled services
+        totalPaid
+      });
     } catch (error) {
       console.error('Error fetching invoices:', error);
     } finally {
@@ -89,30 +110,38 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
 
   return (
     <div className="patient-invoices">
-      <div className="invoices-header">
-        <h3>Invoices & Billing</h3>
+      {/* Summary Cards */}
+      <div className="invoice-summary-cards">
+        <div className="summary-card outstanding">
+          <h4>OUTSTANDING</h4>
+          <p className="amount">{formatCurrency(summaryData.outstanding)}</p>
+        </div>
+        <div className="summary-card uninvoiced">
+          <h4>UNINVOICED</h4>
+          <p className="amount">{formatCurrency(summaryData.uninvoiced)}</p>
+        </div>
+        <div className="summary-card paid">
+          <h4>TOTAL PAID</h4>
+          <p className="amount">{formatCurrency(summaryData.totalPaid)}</p>
+        </div>
+      </div>
+
+      {/* Create Invoice Button */}
+      <div className="invoice-actions">
         <button 
           className="create-invoice-btn"
           onClick={() => setShowCreateModal(true)}
         >
-          <span className="plus-icon">+</span>
-          Create Invoice
+          CREATE INVOICE
         </button>
       </div>
 
+      {/* Invoices List */}
       {loading ? (
         <div className="loading-state">Loading invoices...</div>
       ) : invoices.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">📄</div>
-          <h4>No invoices yet</h4>
-          <p>Create the first invoice for {patientName}</p>
-          <button 
-            className="create-first-btn"
-            onClick={() => setShowCreateModal(true)}
-          >
-            Create Invoice
-          </button>
+        <div className="no-invoices">
+          <p>No Invoices for this client yet</p>
         </div>
       ) : (
         <div className="invoices-table">
