@@ -110,7 +110,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   return (
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-logo">
-        {!isCollapsed && <Logo height={30} className="sidebar-logo-img" />}
+        {!isCollapsed ? (
+          <Logo height={30} className="sidebar-logo-img" />
+        ) : (
+          <img 
+            src="/logo-collapsed.png" 
+            alt="Logo" 
+            className="sidebar-logo-collapsed"
+          />
+        )}
         <button className="sidebar-toggle" onClick={onToggle}>
           {isCollapsed ? (
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
