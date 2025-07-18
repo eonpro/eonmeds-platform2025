@@ -144,18 +144,16 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Create Invoice</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
-        </div>
+        <h2>Create Invoice</h2>
+        <button className="close-btn" onClick={onClose}>×</button>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-section">
+          <div className="form-group">
             <label>Patient</label>
             <input type="text" value={patientName} disabled />
           </div>
 
-          <div className="form-section">
+          <div className="form-group">
             <label>Due Date</label>
             <input
               type="date"
@@ -165,79 +163,110 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
             />
           </div>
 
-          <div className="form-section">
+          <div className="form-group">
             <label>Description (Optional)</label>
-            <input
-              type="text"
+            <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Invoice description"
+              rows={2}
             />
           </div>
 
-          <div className="form-section">
-            <label>Line Items</label>
+          <div className="line-items-section">
+            <div className="line-items-header">
+              <h3>Line Items</h3>
+            </div>
             <div className="line-items">
               {items.map((item, index) => (
                 <div key={index} className="line-item">
-                  <select
-                    value={item.service_package_id || ''}
-                    onChange={(e) => handleServiceTypeChange(index, e.target.value)}
-                  >
-                    <option value="">Select service or enter custom</option>
-                    {packages.map(pkg => (
-                      <option key={pkg.id} value={pkg.id}>
-                        {pkg.name}
-                      </option>
-                    ))}
-                    <option value="custom">Custom Service</option>
-                  </select>
+                  <div className="line-item-row">
+                    <div className="line-item-field">
+                      <label>Service</label>
+                      <select
+                        value={item.service_package_id || ''}
+                        onChange={(e) => handleServiceTypeChange(index, e.target.value)}
+                      >
+                        <option value="">Select service or enter custom</option>
+                        {packages.map(pkg => (
+                          <option key={pkg.id} value={pkg.id}>
+                            {pkg.name}
+                          </option>
+                        ))}
+                        <option value="custom">Custom Service</option>
+                      </select>
+                    </div>
+                    <div className="line-item-field">
+                      <label>Quantity</label>
+                      <input
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                        min="1"
+                        required
+                      />
+                    </div>
+                  </div>
                   
-                  <input
-                    type="text"
-                    value={item.description}
-                    onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                    placeholder="Service description"
-                    required
-                    style={{ display: item.service_type === 'custom' || !item.service_package_id ? 'block' : 'none' }}
-                  />
+                  {(item.service_type === 'custom' || !item.service_package_id) && (
+                    <div className="line-item-row full-width">
+                      <div className="line-item-field">
+                        <label>Description</label>
+                        <input
+                          type="text"
+                          value={item.description}
+                          onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                          placeholder="Service description"
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
                   
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
-                    min="1"
-                    required
-                  />
-                  
-                  <input
-                    type="number"
-                    value={item.unit_price}
-                    onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                  
-                  <span className="item-total">
-                    ${(item.quantity * item.unit_price).toFixed(2)}
-                  </span>
+                  <div className="line-item-row">
+                    <div className="line-item-field">
+                      <label>Unit Price</label>
+                      <input
+                        type="number"
+                        value={item.unit_price}
+                        onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                        min="0"
+                        step="0.01"
+                        required
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div className="line-item-field">
+                      <label>Total</label>
+                      <input
+                        type="text"
+                        value={`$${(item.quantity * item.unit_price).toFixed(2)}`}
+                        disabled
+                      />
+                    </div>
+                  </div>
                   
                   {items.length > 1 && (
-                    <button
-                      type="button"
-                      className="remove-item-btn"
-                      onClick={() => removeItem(index)}
-                    >
-                      ×
-                    </button>
+                    <div className="line-item-footer">
+                      <span className="item-total">Item Total: ${(item.quantity * item.unit_price).toFixed(2)}</span>
+                      <button
+                        type="button"
+                        className="remove-item-btn"
+                        onClick={() => removeItem(index)}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}
             </div>
             
             <button type="button" className="add-item-btn" onClick={addItem}>
-              + Add Item
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 4a.5.5 0 01.5.5v3h3a.5.5 0 010 1h-3v3a.5.5 0 01-1 0v-3h-3a.5.5 0 010-1h3v-3A.5.5 0 018 4z"/>
+              </svg>
+              Add Line Item
             </button>
           </div>
 
