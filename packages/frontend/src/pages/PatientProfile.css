@@ -190,7 +190,7 @@
 }
 
 .pin-btn:hover {
-  background-color: #f0f0f0;
+  background-color: #efece7;
 }
 
 .delete-note-btn {
@@ -235,6 +235,7 @@
   padding: 30px;
   background-color: white;
   border-bottom: none;
+  position: relative;
 }
 
 .patient-avatar {
@@ -422,7 +423,7 @@
 .profile-tabs {
   display: flex;
   gap: 0;
-  background-color: #f0f0f0;
+  background-color: #efece7;
   padding: 0 30px;
   overflow-x: auto;
 }
