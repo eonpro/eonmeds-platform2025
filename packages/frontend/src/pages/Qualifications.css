@@ -25,9 +25,11 @@
 
 .qualifications-controls {
   display: flex;
+  justify-content: space-between;
   gap: 20px;
   margin-bottom: 30px;
   align-items: center;
+  max-width: 1400px;
 }
 
 .search-section {
@@ -79,11 +81,31 @@
   box-shadow: 0 0 0 3px rgba(20, 169, 123, 0.1);
 }
 
+.add-new-client-btn {
+  padding: 12px 24px;
+  background-color: #14a97b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.add-new-client-btn:hover {
+  background-color: #0f8a63;
+  transform: translateY(-1px);
+}
+
 .qualifications-table-container {
   background: white;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-width: 1400px;
 }
 
 .qualifications-table {
@@ -110,6 +132,7 @@
 .qualifications-table tbody tr {
   border-bottom: 1px solid #f3f4f6;
   transition: background-color 0.2s;
+  cursor: pointer;
 }
 
 .qualifications-table tbody tr:hover {
@@ -126,83 +149,51 @@
   font-weight: 600;
   color: #14a97b;
   font-family: 'SF Mono', Monaco, monospace;
-  cursor: pointer;
 }
 
 .patient-name {
   font-weight: 500;
-  cursor: pointer;
 }
 
 .patient-email,
 .patient-phone {
   color: #6b7280;
-  cursor: pointer;
 }
 
-.patient-bmi {
-  cursor: pointer;
-}
-
-.bmi-badge {
+.status-badge {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 600;
+  text-transform: capitalize;
 }
 
-.bmi-badge.qualified {
+.status-badge.qualified {
   background-color: #d1fae5;
   color: #065f46;
 }
 
-.bmi-badge.not-qualified {
-  background-color: #fee2e2;
-  color: #991b1b;
-}
-
-.patient-submitted {
+.patient-created {
   color: #6b7280;
-  cursor: pointer;
 }
 
 .patient-actions {
-  display: flex;
-  gap: 8px;
+  text-align: right;
 }
 
-.qualify-btn,
-.disqualify-btn {
-  padding: 6px 16px;
+.delete-btn {
+  padding: 8px;
+  background: none;
   border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  font-family: 'Poppins', sans-serif;
+  color: #dc2626;
   cursor: pointer;
   transition: all 0.2s;
-  white-space: nowrap;
+  border-radius: 4px;
 }
 
-.qualify-btn {
-  background-color: #14a97b;
-  color: white;
-}
-
-.qualify-btn:hover {
-  background-color: #0f8a63;
-  transform: translateY(-1px);
-}
-
-.disqualify-btn {
-  background-color: #ef4444;
-  color: white;
-}
-
-.disqualify-btn:hover {
-  background-color: #dc2626;
-  transform: translateY(-1px);
+.delete-btn:hover {
+  background-color: #fee2e2;
 }
 
 .loading-cell,

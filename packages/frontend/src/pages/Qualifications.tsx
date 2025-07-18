@@ -24,7 +24,7 @@ export const Qualifications: React.FC = () => {
       const response = await apiClient.get<PatientListResponse>('/api/v1/patients', {
         params: {
           search,
-          status: 'pending', // Only fetch patients with pending status
+          // Remove status filter to show all patients
           limit: 100,
           offset: 0
         }
@@ -139,14 +139,14 @@ export const Qualifications: React.FC = () => {
     <div className="qualifications-container">
       <div className="qualifications-header">
         <h1>Qualifications</h1>
-        <p className="subtitle">Review and qualify new patient submissions from HeyFlow</p>
+        <p className="subtitle">Review patient submissions from HeyFlow</p>
       </div>
 
       <div className="qualifications-controls">
         <div className="search-section">
           <input
             type="text"
-            placeholder="Search by name, email, or phone..."
+            placeholder="Search for Client"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -164,6 +164,10 @@ export const Qualifications: React.FC = () => {
               <option key={tag} value={tag}>#{tag}</option>
             ))}
           </select>
+          
+          <button className="add-new-client-btn">
+            Add New Client
+          </button>
         </div>
       </div>
 
@@ -175,59 +179,58 @@ export const Qualifications: React.FC = () => {
               <th>NAME</th>
               <th>EMAIL</th>
               <th>PHONE</th>
-              <th>BMI</th>
-              <th>SUBMITTED</th>
+              <th>STATUS</th>
+              <th>CREATED</th>
               <th>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="loading-cell">Loading submissions...</td>
+                <td colSpan={7} className="loading-cell">Loading patients...</td>
               </tr>
             ) : displayedPatients.length === 0 ? (
               <tr>
                 <td colSpan={7} className="empty-cell">
-                  {searchTerm ? 'No submissions found matching your search' : 'No pending qualifications'}
+                  {searchTerm ? 'No patients found matching your search' : 'No patients yet'}
                 </td>
               </tr>
             ) : (
               displayedPatients.map((patient) => (
-                <tr key={patient.id} className="qualification-row">
-                  <td className="patient-id" onClick={() => handlePatientClick(patient.id)}>
+                <tr key={patient.id} className="qualification-row" onClick={() => handlePatientClick(patient.id)}>
+                  <td className="patient-id">
                     {patient.patient_id || '-'}
                   </td>
-                  <td className="patient-name" onClick={() => handlePatientClick(patient.id)}>
+                  <td className="patient-name">
                     {patient.name || `${patient.first_name} ${patient.last_name}`}
                   </td>
-                  <td className="patient-email" onClick={() => handlePatientClick(patient.id)}>
+                  <td className="patient-email">
                     {patient.email}
                   </td>
-                  <td className="patient-phone" onClick={() => handlePatientClick(patient.id)}>
+                  <td className="patient-phone">
                     {formatPhoneNumber(patient.phone)}
                   </td>
-                  <td className="patient-bmi" onClick={() => handlePatientClick(patient.id)}>
-                    <span className={`bmi-badge ${patient.bmi && patient.bmi >= 27 ? 'qualified' : 'not-qualified'}`}>
-                      {patient.bmi || '-'}
+                  <td className="patient-status">
+                    <span className="status-badge qualified">
+                      Qualified
                     </span>
                   </td>
-                  <td className="patient-submitted" onClick={() => handlePatientClick(patient.id)}>
+                  <td className="patient-created">
                     {formatDate(patient.created_at)}
                   </td>
                   <td className="patient-actions">
                     <button 
-                      className="qualify-btn"
-                      onClick={() => handleQualifyPatient(patient.id, 'qualified')}
-                      title="Qualify as client"
+                      className="delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Delete functionality if needed
+                      }}
+                      title="Delete patient"
                     >
-                      ✓ Qualify
-                    </button>
-                    <button 
-                      className="disqualify-btn"
-                      onClick={() => handleQualifyPatient(patient.id, 'not_qualified')}
-                      title="Disqualify"
-                    >
-                      ✗ Disqualify
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                        <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4L4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                      </svg>
                     </button>
                   </td>
                 </tr>
