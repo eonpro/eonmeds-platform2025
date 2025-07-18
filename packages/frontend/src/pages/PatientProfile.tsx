@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { patientService } from '../services/patient.service';
 import { EditPatientModal } from '../components/patients/EditPatientModal';
@@ -80,6 +80,7 @@ export const PatientProfile: React.FC = () => {
   const [additionalInfo, setAdditionalInfo] = useState('');
   const [intakeFormData, setIntakeFormData] = useState<IntakeFormData | null>(null);
   const [intakeLoading, setIntakeLoading] = useState(false);
+  const intakeLoadedRef = useRef(false);
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,22 +129,19 @@ export const PatientProfile: React.FC = () => {
     }
   }, [id, apiClient]);
 
-  // Track if intake data has been loaded for current patient
-  const [hasLoadedIntake, setHasLoadedIntake] = useState(false);
-
-  // Reset when patient changes
-  useEffect(() => {
-    setHasLoadedIntake(false);
-    setIntakeFormData(null);
-  }, [id]);
-
   // Load intake data when intake tab is selected
   useEffect(() => {
-    if (activeTab === 'intake' && id && apiClient && !hasLoadedIntake) {
-      setHasLoadedIntake(true);
+    if (activeTab === 'intake' && id && apiClient && !intakeLoadedRef.current) {
+      intakeLoadedRef.current = true;
       loadIntakeData();
     }
-  }, [activeTab, id, apiClient, hasLoadedIntake, loadIntakeData]);
+  }, [activeTab, id, apiClient, loadIntakeData]);
+
+  // Reset intake data when patient changes
+  useEffect(() => {
+    setIntakeFormData(null);
+    intakeLoadedRef.current = false;
+  }, [id]);
 
   useEffect(() => {
     loadPatient();
