@@ -76,7 +76,21 @@ export const PatientProfile: React.FC = () => {
     if (savedNotes) {
       setTimelineNotes(JSON.parse(savedNotes));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Add intake form as a pinned note when component loads
+  useEffect(() => {
+    if (patient && !timelineNotes.some(note => note.id === 'intake-form')) {
+      const intakeNote: TimelineNote = {
+        id: 'intake-form',
+        content: `Intake Form - ${patient.patient_id}\nSubmitted on ${new Date(patient.created_at).toLocaleDateString()}`,
+        createdAt: new Date(patient.created_at),
+        isPinned: true
+      };
+      setTimelineNotes(prev => [intakeNote, ...prev]);
+    }
+  }, [patient]);
 
   const calculateAge = (dob: string) => {
     const birthDate = new Date(dob);
@@ -140,6 +154,9 @@ export const PatientProfile: React.FC = () => {
   };
 
   const deleteNote = (noteId: string) => {
+    // Don't allow deleting the intake form note
+    if (noteId === 'intake-form') return;
+    
     const updatedNotes = timelineNotes.filter(note => note.id !== noteId);
     setTimelineNotes(updatedNotes);
     localStorage.setItem(`patient-notes-${id}`, JSON.stringify(updatedNotes));
@@ -228,28 +245,56 @@ export const PatientProfile: React.FC = () => {
 
             <div className="timeline-notes">
               {timelineNotes.map(note => (
-                <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''}`}>
-                  <div className="note-header">
-                    <span className="note-date">
-                      {note.createdAt.toLocaleDateString()}
-                    </span>
-                    <div className="note-actions">
-                      <button 
-                        className="pin-btn"
-                        onClick={() => togglePinNote(note.id)}
-                        title={note.isPinned ? 'Unpin' : 'Pin'}
-                      >
-                        📌
-                      </button>
-                      <button 
-                        className="delete-note-btn"
-                        onClick={() => deleteNote(note.id)}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </div>
-                  <p className="note-content">{note.content}</p>
+                <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''} ${note.id === 'intake-form' ? 'intake-form-note' : ''}`}>
+                  {note.id === 'intake-form' ? (
+                    <>
+                      <div className="note-header">
+                        <span className="note-date">
+                          {new Date(note.createdAt).toLocaleDateString()}
+                        </span>
+                        <div className="note-actions">
+                          <span className="pinned-label">📌 Pinned</span>
+                        </div>
+                      </div>
+                      <div className="intake-form-note-content">
+                        <div className="form-icon-small">📄</div>
+                        <div>
+                          <p className="note-title">Intake Form - {patient.patient_id}</p>
+                          <p className="note-subtitle">Weight Loss Program</p>
+                          <button 
+                            className="view-form-btn"
+                            onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                          >
+                            View Form
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="note-header">
+                        <span className="note-date">
+                          {new Date(note.createdAt).toLocaleDateString()}
+                        </span>
+                        <div className="note-actions">
+                          <button 
+                            className="pin-btn"
+                            onClick={() => togglePinNote(note.id)}
+                            title={note.isPinned ? 'Unpin' : 'Pin'}
+                          >
+                            📌
+                          </button>
+                          <button 
+                            className="delete-note-btn"
+                            onClick={() => deleteNote(note.id)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                      <p className="note-content">{note.content}</p>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -265,13 +310,24 @@ export const PatientProfile: React.FC = () => {
             <div className="patient-header-info">
               <h1>{patient.first_name} {patient.last_name}</h1>
               <div className="patient-tags">
-                <span 
-                  className="weight-loss-tag"
-                  style={{ backgroundColor: getStatusColor(patient.status) }}
-                >
-                  WEIGHT LOSS ✕
-                </span>
-                <span className="rep-tag">REP: LAURA</span>
+                {hashtags.map(tag => (
+                  <span 
+                    key={tag}
+                    className="header-tag"
+                    style={{ 
+                      backgroundColor: tag.includes('weight') ? getStatusColor(patient.status) : 
+                                     tag.includes('rep') ? '#a855f7' : '#3b82f6'
+                    }}
+                  >
+                    {tag}
+                    <button 
+                      className="remove-tag-btn"
+                      onClick={() => removeHashtag(tag)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
                 {patient.status === 'pending' && (
                   <span className="pending-tag">PENDING REVIEW</span>
                 )}
@@ -281,23 +337,40 @@ export const PatientProfile: React.FC = () => {
             <div className="profile-actions">
               <button className="profile-settings-btn">Profile settings</button>
               <button className="more-options-btn">⋮</button>
-              <button className="tag-btn">🏷</button>
+              <button 
+                className="tag-btn"
+                onClick={() => setShowHashtagInput(!showHashtagInput)}
+              >
+                🏷
+              </button>
             </div>
           </div>
 
+          {showHashtagInput && (
+            <div className="header-tag-input-wrapper">
+              <input
+                type="text"
+                className="header-tag-input"
+                placeholder="Add tag (e.g. #weightloss, #rep:laura)..."
+                value={newHashtag}
+                onChange={(e) => setNewHashtag(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    addHashtag();
+                  }
+                }}
+                autoFocus
+              />
+              <button 
+                className="add-tag-confirm-btn"
+                onClick={addHashtag}
+              >
+                Add
+              </button>
+            </div>
+          )}
+
           <div className="profile-tabs">
-            <button 
-              className={`tab ${activeTab === 'timeline' ? 'active' : ''}`}
-              onClick={() => setActiveTab('timeline')}
-            >
-              Timeline
-            </button>
-            <button 
-              className={`tab plus-tab`}
-              onClick={() => console.log('Add new tab')}
-            >
-              +
-            </button>
             <button 
               className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
               onClick={() => setActiveTab('overview')}
@@ -334,11 +407,17 @@ export const PatientProfile: React.FC = () => {
             >
               💊 Prescriptions
             </button>
+            <button 
+              className={`tab plus-tab`}
+              onClick={() => console.log('Add new tab')}
+            >
+              +
+            </button>
           </div>
 
           <div className="tab-content">
-            {activeTab === 'intake' && (
-              <div className="intake-form-section">
+            {activeTab === 'overview' && (
+              <div className="overview-section">
                 <div className="section-header">
                   <span className="client-id">CLIENT ID</span>
                   <span className="patient-id">{patient.patient_id}</span>
@@ -431,60 +510,33 @@ export const PatientProfile: React.FC = () => {
                     </div>
                   </div>
                 </div>
-
-                <div className="hashtags-section">
-                  <h3>Tags</h3>
-                  <div className="hashtags-container">
-                    {hashtags.map(tag => (
-                      <span key={tag} className="hashtag">
-                        {tag}
-                        <button 
-                          className="remove-hashtag"
-                          onClick={() => removeHashtag(tag)}
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                    {showHashtagInput ? (
-                      <div className="hashtag-input-wrapper">
-                        <input
-                          type="text"
-                          className="hashtag-input"
-                          placeholder="Add tag..."
-                          value={newHashtag}
-                          onChange={(e) => setNewHashtag(e.target.value)}
-                          onKeyPress={(e) => e.key === 'Enter' && addHashtag()}
-                          onBlur={() => !newHashtag && setShowHashtagInput(false)}
-                          autoFocus
-                        />
-                      </div>
-                    ) : (
-                      <button 
-                        className="add-hashtag-btn"
-                        onClick={() => setShowHashtagInput(true)}
-                      >
-                        + Add Tag
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="form-actions-section">
-                  <button 
-                    className="view-pdf-btn"
-                    onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
-                  >
-                    View Intake Form PDF
-                  </button>
-                </div>
               </div>
             )}
 
-            {activeTab === 'overview' && (
-              <div className="overview-tab">
-                <h2>Patient Overview</h2>
-                <p className="coming-soon">Detailed overview coming soon!</p>
+            {activeTab === 'intake' && (
+              <div className="intake-form-tab">
+                <h2>Intake Form</h2>
+                <div className="intake-form-content">
+                  <div className="intake-form-card">
+                    <div className="form-icon">📄</div>
+                    <div className="form-details">
+                      <h3>Weight Loss Intake Form</h3>
+                      <p>Submitted on {new Date(patient.created_at).toLocaleDateString()}</p>
+                      <p className="form-id">Form ID: {patient.patient_id}</p>
+                    </div>
+                    <div className="form-actions">
+                      <button 
+                        className="view-pdf-btn"
+                        onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
+                          <path d="M8.5 1v7.5H15m-6.5 0L15 2M1 9v5a1 1 0 001 1h12a1 1 0 001-1V9M8 11.5v3m0 0l-2.5-2.5M8 14.5l2.5-2.5"/>
+                        </svg>
+                        View Intake Form PDF
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -513,13 +565,6 @@ export const PatientProfile: React.FC = () => {
               <div className="prescriptions-tab">
                 <h2>Prescriptions</h2>
                 <p className="coming-soon">Prescription tracking coming soon!</p>
-              </div>
-            )}
-
-            {activeTab === 'timeline' && (
-              <div className="timeline-tab">
-                <h2>Timeline</h2>
-                <p className="coming-soon">Timeline view coming soon!</p>
               </div>
             )}
           </div>

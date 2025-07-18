@@ -238,9 +238,38 @@
   flex-wrap: wrap;
 }
 
-.weight-loss-tag,
-.rep-tag,
+.header-tag {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.remove-tag-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 4px;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.remove-tag-btn:hover {
+  opacity: 1;
+}
+
 .pending-tag {
+  background-color: #f59e0b;
+  color: white;
   padding: 4px 12px;
   border-radius: 4px;
   font-size: 11px;
@@ -249,18 +278,49 @@
   letter-spacing: 0.5px;
 }
 
-.weight-loss-tag {
-  color: white;
+/* Header Tag Input */
+.header-tag-input-wrapper {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 10px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 8px;
+  z-index: 100;
 }
 
-.rep-tag {
-  background-color: #a855f7;
-  color: white;
+.header-tag-input {
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 250px;
+  outline: none;
 }
 
-.pending-tag {
-  background-color: #f59e0b;
+.header-tag-input:focus {
+  border-color: #14a97b;
+}
+
+.add-tag-confirm-btn {
+  padding: 8px 16px;
+  background-color: #14a97b;
   color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-tag-confirm-btn:hover {
+  background-color: #0e8a5f;
 }
 
 .profile-actions {
@@ -670,4 +730,147 @@
   .profile-actions {
     margin-top: 15px;
   }
+  
+  .header-tag-input-wrapper {
+    position: fixed;
+    top: auto;
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+    margin-top: 0;
+  }
+} 
+
+/* Special Intake Form Note in Timeline */
+.intake-form-note {
+  background-color: #f0f9ff !important;
+  border-color: #3b82f6 !important;
+}
+
+.intake-form-note-content {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 10px;
+}
+
+.form-icon-small {
+  font-size: 24px;
+  opacity: 0.8;
+}
+
+.note-title {
+  margin: 0 0 4px 0;
+  font-weight: 600;
+  color: #333;
+}
+
+.note-subtitle {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.view-form-btn {
+  padding: 4px 12px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-form-btn:hover {
+  background-color: #2563eb;
+}
+
+.pinned-label {
+  font-size: 12px;
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+/* Overview Section (renamed from intake-form-section) */
+.overview-section {
+  max-width: 900px;
+}
+
+/* Intake Form Tab */
+.intake-form-tab {
+  padding: 20px 0;
+}
+
+.intake-form-tab h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 30px 0;
+}
+
+.intake-form-content {
+  display: flex;
+  justify-content: center;
+}
+
+.intake-form-card {
+  background-color: #f8f8f8;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.intake-form-card .form-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.intake-form-card .form-details h3 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.intake-form-card .form-details p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.intake-form-card .form-id {
+  font-family: 'SF Mono', Monaco, monospace;
+  color: #14a97b;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.intake-form-card .form-actions {
+  margin-top: 30px;
+}
+
+.intake-form-card .view-pdf-btn {
+  padding: 12px 24px;
+  background-color: #14a97b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.intake-form-card .view-pdf-btn:hover {
+  background-color: #0e8a5f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(20, 169, 123, 0.3);
 } 

@@ -68,12 +68,12 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
     e.preventDefault();
     setLoading(true);
     setError(null);
-
+    
     try {
       await onSave(formData);
       onClose();
     } catch (err) {
-      setError('Failed to update patient information');
+      setError('Failed to update patient. Please try again.');
       console.error('Error updating patient:', err);
     } finally {
       setLoading(false);
