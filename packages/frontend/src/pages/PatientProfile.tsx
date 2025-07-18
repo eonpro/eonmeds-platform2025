@@ -108,7 +108,7 @@ export const PatientProfile: React.FC = () => {
   };
 
   const loadIntakeData = useCallback(async () => {
-    if (!id || !apiClient) return;
+    if (!id) return;
     
     try {
       setIntakeLoading(true);
@@ -131,12 +131,12 @@ export const PatientProfile: React.FC = () => {
 
   // Load intake data when intake tab is selected
   useEffect(() => {
-    if (activeTab === 'intake' && id && apiClient && !intakeLoadedRef.current) {
+    if (activeTab === 'intake' && id && !intakeLoadedRef.current) {
       intakeLoadedRef.current = true;
       loadIntakeData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, id, apiClient, loadIntakeData]);
+  }, [activeTab, id, loadIntakeData]);
 
   // Reset intake data when patient changes
   useEffect(() => {
