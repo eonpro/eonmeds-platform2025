@@ -45,11 +45,7 @@ CREATE TABLE IF NOT EXISTS invoices (
   voided_at TIMESTAMP,
   
   -- Indexes for performance
-  CONSTRAINT fk_patient FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
-  INDEX idx_invoice_patient (patient_id),
-  INDEX idx_invoice_status (status),
-  INDEX idx_invoice_date (invoice_date),
-  INDEX idx_stripe_invoice (stripe_invoice_id)
+  CONSTRAINT fk_patient FOREIGN KEY (patient_id) REFERENCES patients(patient_id)
 );
 
 -- Invoice line items table
@@ -69,9 +65,7 @@ CREATE TABLE IF NOT EXISTS invoice_items (
   
   -- Metadata
   metadata JSONB DEFAULT '{}',
-  created_at TIMESTAMP DEFAULT NOW(),
-  
-  INDEX idx_item_invoice (invoice_id)
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Invoice payment history
@@ -94,10 +88,7 @@ CREATE TABLE IF NOT EXISTS invoice_payments (
   
   -- Metadata
   metadata JSONB DEFAULT '{}',
-  created_at TIMESTAMP DEFAULT NOW(),
-  
-  INDEX idx_payment_invoice (invoice_id),
-  INDEX idx_payment_date (payment_date)
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Invoice sync log for tracking Stripe synchronization
@@ -141,4 +132,13 @@ BEGIN
   new_number := 'INV-' || TO_CHAR(NOW(), 'YYYY') || '-' || LPAD(nextval('invoice_number_seq')::text, 5, '0');
   RETURN new_number;
 END;
-$$ LANGUAGE plpgsql; 
+$$ LANGUAGE plpgsql;
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_invoice_patient ON invoices(patient_id);
+CREATE INDEX IF NOT EXISTS idx_invoice_status ON invoices(status);
+CREATE INDEX IF NOT EXISTS idx_invoice_date ON invoices(invoice_date);
+CREATE INDEX IF NOT EXISTS idx_stripe_invoice ON invoices(stripe_invoice_id);
+CREATE INDEX IF NOT EXISTS idx_item_invoice ON invoice_items(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_payment_invoice ON invoice_payments(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_payment_date ON invoice_payments(payment_date); 
