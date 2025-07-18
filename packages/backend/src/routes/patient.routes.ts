@@ -713,4 +713,45 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// Debug endpoint to check patient data
+router.get('/:id/debug', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get all columns for this patient
+    const result = await pool.query(`
+      SELECT * FROM patients
+      WHERE id::text = $1 OR patient_id = $1
+    `, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    
+    const patient = result.rows[0];
+    
+    // Check which address fields have values
+    const addressInfo = {
+      patient_id: patient.patient_id,
+      legacy_address: patient.address,
+      new_fields: {
+        address_house: patient.address_house,
+        address_street: patient.address_street,
+        apartment_number: patient.apartment_number
+      },
+      location: {
+        city: patient.city,
+        state: patient.state,
+        zip: patient.zip
+      },
+      has_new_format: !!(patient.address_house || patient.address_street || patient.apartment_number)
+    };
+    
+    res.json(addressInfo);
+  } catch (error) {
+    console.error('Debug error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router; 

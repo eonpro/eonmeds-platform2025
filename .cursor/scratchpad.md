@@ -1040,6 +1040,20 @@ ADD COLUMN IF NOT EXISTS apartment_number VARCHAR(50);
 - Smart detection to only show city/state/zip separately when not already in address
 - Conditional line break - only shows second line when there's content
 
+### Database Migration Completed
+- ✅ Ran SQL migration to add address_house, address_street, apartment_number columns
+- ✅ Fixed patient GET endpoints to return new address fields
+- ✅ Updated PUT endpoint to allow updating new address fields
+- ✅ Address fields now properly populate in edit form
+- ✅ Apartment number field ready for new HeyFlow submissions
+
+### Current Status
+- Existing patients show legacy address format (single field)
+- New patients from HeyFlow will have structured address fields
+- Edit form now shows separate fields for house, street, apartment
+- State dropdown with abbreviations working
+- Both legacy and new formats display correctly on profile
+
 ## Project Status Board
 
 ### Critical Errors to Fix (July 2025) 🚨

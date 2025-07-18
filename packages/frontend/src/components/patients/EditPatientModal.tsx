@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { US_STATES } from '../../utils/states';
+import { US_STATES, getStateAbbreviation } from '../../utils/states';
 import './EditPatientModal.css';
 
 interface EditPatientModalProps {
@@ -44,6 +44,23 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
   useEffect(() => {
     if (patient) {
+      // Check if we have new format fields or need to parse legacy address
+      let addressData = {
+        address_house: patient.address_house || '',
+        address_street: patient.address_street || '',
+        apartment_number: patient.apartment_number || ''
+      };
+      
+      // If new fields are empty but we have a legacy address, try to parse it
+      if (!patient.address_house && !patient.address_street && patient.address) {
+        // Try to extract house number and street from legacy address
+        const addressMatch = patient.address.match(/^(\d+)\s+(.+)$/);
+        if (addressMatch) {
+          addressData.address_house = addressMatch[1];
+          addressData.address_street = addressMatch[2];
+        }
+      }
+      
       setFormData({
         first_name: patient.first_name,
         last_name: patient.last_name,
@@ -54,11 +71,11 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
         height_inches: patient.height_inches,
         weight_lbs: patient.weight_lbs,
         address: patient.address,
-        address_house: patient.address_house,
-        address_street: patient.address_street,
-        apartment_number: patient.apartment_number,
+        address_house: addressData.address_house,
+        address_street: addressData.address_street,
+        apartment_number: addressData.apartment_number,
         city: patient.city,
-        state: patient.state,
+        state: getStateAbbreviation(patient.state),
         zip: patient.zip,
         status: patient.status
       });
@@ -248,7 +265,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 name="address_house"
                 value={formData.address_house || ''}
                 onChange={handleInputChange}
-                placeholder="123"
+                placeholder=""
               />
             </div>
 
@@ -260,7 +277,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 name="address_street"
                 value={formData.address_street || ''}
                 onChange={handleInputChange}
-                placeholder="Main Street"
+                placeholder=""
               />
             </div>
 
@@ -272,7 +289,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 name="apartment_number"
                 value={formData.apartment_number || ''}
                 onChange={handleInputChange}
-                placeholder="Apt 2B"
+                placeholder=""
               />
             </div>
 
