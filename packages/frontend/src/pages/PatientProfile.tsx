@@ -265,15 +265,15 @@ export const PatientProfile: React.FC = () => {
                   {note.id === 'intake-form' ? (
                     <>
                       <div className="intake-form-note-content">
-                        <button 
-                          className="view-form-btn"
-                          onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
-                        >
-                          View Form
-                        </button>
                         <div className="intake-form-info">
-                          <p className="note-title">Intake Form - {patient.patient_id}</p>
+                          <p className="note-title">{patient.patient_id} - Intake Form</p>
                           <p className="note-subtitle">Weight Loss Program</p>
+                          <button 
+                            className="view-form-btn"
+                            onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                          >
+                            View Form
+                          </button>
                         </div>
                       </div>
                     </>

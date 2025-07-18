@@ -808,19 +808,21 @@
 .intake-form-note {
   background-color: #f7cf6c !important;
   border-color: #f7cf6c !important;
-  padding: 8px 12px !important; /* Reduced vertical padding for shorter height */
+  border: none !important;
+  padding: 20px !important;
+  border-radius: 12px !important;
 }
 
 .intake-form-note-content {
   display: flex;
-  gap: 10px;
   align-items: center;
-  justify-content: center; /* Center the content */
-  margin-top: 0; /* Remove top margin since no header */
+  justify-content: center;
+  margin: 0;
 }
 
 .intake-form-info {
-  text-align: center; /* Center the text */
+  text-align: center;
+  width: 100%;
 }
 
 .form-icon-small {
@@ -828,32 +830,53 @@
   opacity: 0.8;
 }
 
+.intake-form-note .note-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000000;
+  font-family: 'Poppins', sans-serif;
+}
+
+.intake-form-note .note-subtitle {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: #666666; /* Gray color for subtitle */
+  font-family: 'Poppins', sans-serif;
+}
+
+.intake-form-note .view-form-btn {
+  padding: 10px 30px;
+  background-color: #000000;
+  color: white;
+  border: none;
+  border-radius: 25px; /* Rounded button */
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: none;
+  font-family: 'Poppins', sans-serif;
+  width: auto;
+  display: inline-block;
+}
+
+.intake-form-note .view-form-btn:hover {
+  background-color: #000000;
+  transform: none;
+}
+
+/* General note styles for other notes */
 .note-title {
-  margin: 0;
+  margin: 0 0 4px 0;
   font-weight: 600;
-  color: #000000; /* Changed to black */
+  color: #333;
 }
 
 .note-subtitle {
-  margin: 0;
-  font-size: 12px; /* Reduced from 13px */
-  color: #000000; /* Changed to black */
-}
-
-.view-form-btn {
-  padding: 6px 14px; /* Slightly increased padding for better button appearance */
-  background-color: #000000; /* Changed to black */
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: none; /* Removed transition */
-}
-
-.view-form-btn:hover {
-  background-color: #000000; /* Keep same color on hover */
-  transform: none; /* No transformation on hover */
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #666;
 }
 
 .pinned-label {
