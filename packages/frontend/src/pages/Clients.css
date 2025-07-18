@@ -1,9 +1,28 @@
 /* Clients Page Styles */
 .clients-page {
-  padding: 40px;
+  padding: 30px;
   background-color: #faf7f2;
   min-height: 100vh;
   font-family: var(--font-family);
+}
+
+.clients-header {
+  margin-bottom: 30px;
+}
+
+.clients-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.clients-header .subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Search Section */

@@ -40,13 +40,12 @@ router.get('/', async (req, res) => {
       paramCount++;
     }
     
-    // REMOVED status filter to show ALL patients
     // Filter by status
-    // if (status) {
-    //   whereConditions.push(`status = $${paramCount}`);
-    //   queryParams.push(status);
-    //   paramCount++;
-    // }
+    if (status) {
+      whereConditions.push(`status = $${paramCount}`);
+      queryParams.push(status);
+      paramCount++;
+    }
     
     const whereClause = whereConditions.length > 0 
       ? `WHERE ${whereConditions.join(' AND ')}` 

@@ -61,6 +61,7 @@ export const Clients: React.FC = () => {
       const response = await apiClient.get<PatientListResponse>('/api/v1/patients', {
         params: {
           search,
+          status: 'qualified', // Only fetch qualified patients (paying customers)
           limit: 100,
           offset: 0
         }
@@ -236,6 +237,11 @@ export const Clients: React.FC = () => {
           <button onClick={() => setNewPatientNotification(null)}>×</button>
         </div>
       )}
+      
+      <div className="clients-header">
+        <h1>Clients</h1>
+        <p className="subtitle">Qualified patients who are paying customers</p>
+      </div>
       
       <div className="search-section">
         <div className="search-bar">

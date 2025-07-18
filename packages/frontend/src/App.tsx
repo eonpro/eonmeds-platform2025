@@ -7,6 +7,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { Clients } from './pages/Clients';
+import { Qualifications } from './pages/Qualifications';
 import { PatientProfile } from './pages/PatientProfile';
 import { UserProfile } from './components/auth/UserProfile';
 import { TestAuth } from './pages/TestAuth';
@@ -29,6 +30,7 @@ function App() {
                     <Routes>
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/clients" element={<Clients />} />
+                      <Route path="/qualifications" element={<Qualifications />} />
                       <Route path="/clients/:id" element={<PatientProfile />} />
                       <Route path="/patients/:id" element={<PatientProfile />} />
                       <Route path="/profile" element={<UserProfile />} />
