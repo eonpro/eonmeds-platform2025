@@ -5,16 +5,13 @@ import { EditPatientModal } from '../components/patients/EditPatientModal';
 import { CreatePatientModal } from '../components/patients/CreatePatientModal';
 import { useApi } from '../hooks/useApi';
 import { 
-  ArrowBackIcon, 
   UserIcon, 
   ChartIcon, 
   InvoiceIcon, 
   DocumentIcon, 
   FormIcon, 
   PrescriptionIcon,
-  PlusIcon,
   PinIcon,
-  TagIcon,
   EditIcon,
   MoreOptionsIcon,
   CloseIcon,
@@ -76,7 +73,6 @@ export const PatientProfile: React.FC = () => {
   const [showHashtagInput, setShowHashtagInput] = useState(false);
   const [newHashtag, setNewHashtag] = useState('');
   const [patientStatus, setPatientStatus] = useState<string>('pending');
-  const [isEditingAdditionalInfo, setIsEditingAdditionalInfo] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState('');
   const [intakeFormData, setIntakeFormData] = useState<IntakeFormData | null>(null);
   const [intakeLoading, setIntakeLoading] = useState(false);
