@@ -8,7 +8,8 @@
     "start": "node simple-server.js",
     "start:full": "node dist/index.js",
     "build:full": "babel src --out-dir dist --extensions '.ts,.js' --copy-files",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate:invoices": "ts-node --transpile-only -P tsconfig.loose.json src/scripts/run-invoice-migration.ts"
   },
   "keywords": [],
   "author": "",
