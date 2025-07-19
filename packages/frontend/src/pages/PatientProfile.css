@@ -632,41 +632,36 @@
 }
 
 .info-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 24px;
 }
 
 .info-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 48px;
-  align-items: start;
-}
-
-.info-row:nth-child(2) {
-  grid-template-columns: 1fr 1fr 1fr;
-}
-
-.info-row:nth-child(3) {
-  grid-template-columns: 1fr 1fr 1fr;
+  display: table-row;
 }
 
 .info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
+  display: table-cell;
+  padding-right: 48px;
+  vertical-align: top;
+  width: 33.333%;
+}
+
+.info-item:last-child {
+  padding-right: 0;
 }
 
 .info-item label {
+  display: block;
   font-size: 12px;
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   line-height: 1.2;
-  min-height: 16px;
+  margin-bottom: 8px;
 }
 
 .info-item p {
@@ -675,9 +670,6 @@
   color: #111827;
   line-height: 1.5;
   font-weight: 500;
-  min-height: 24px;
-  display: flex;
-  align-items: center;
 }
 
 /* Address styling */
@@ -1382,9 +1374,24 @@
 
 /* Responsive Design for Basic Info */
 @media (max-width: 1024px) {
+  .info-grid {
+    display: block;
+  }
+  
   .info-row {
-    grid-template-columns: 1fr !important;
-    gap: 24px;
+    display: block;
+    margin-bottom: 24px;
+  }
+  
+  .info-item {
+    display: block;
+    width: 100%;
+    padding-right: 0;
+    margin-bottom: 16px;
+  }
+  
+  .info-item:last-child {
+    margin-bottom: 0;
   }
   
   .additional-info {
