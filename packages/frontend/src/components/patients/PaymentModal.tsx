@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import './PaymentModal.css';
 
@@ -17,35 +17,98 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 }) => {
   const apiClient = useApi();
   const [processing, setProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('card');
-  const [cardLast4, setCardLast4] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'saved' | 'new'>('saved');
+  const [savedCards, setSavedCards] = useState<any[]>([]);
+  const [selectedCardId, setSelectedCardId] = useState<string>('');
+  const [loadingCards, setLoadingCards] = useState(false);
+  const [cardForm, setCardForm] = useState({
+    card_number: '',
+    exp_month: '',
+    exp_year: '',
+    cvc: '',
+    save_card: false
+  });
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (stripeCustomerId) {
+      loadSavedCards();
+    } else {
+      setPaymentMethod('new');
+    }
+  }, [stripeCustomerId]);
+
+  const loadSavedCards = async () => {
+    try {
+      setLoadingCards(true);
+      const response = await apiClient.get(`/api/v1/payments/patients/${invoice.patient_id}/cards`);
+      setSavedCards(response.data.cards || []);
+      if (response.data.cards.length > 0) {
+        setSelectedCardId(response.data.cards[0].id);
+      } else {
+        setPaymentMethod('new');
+      }
+    } catch (err) {
+      console.error('Error loading saved cards:', err);
+    } finally {
+      setLoadingCards(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    
+    if (name === 'card_number') {
+      const formatted = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+      setCardForm(prev => ({ ...prev, [name]: formatted }));
+    } else {
+      setCardForm(prev => ({ 
+        ...prev, 
+        [name]: type === 'checkbox' ? checked : value 
+      }));
+    }
+  };
 
   const handleChargeInvoice = async () => {
-    if (!stripeCustomerId) {
-      alert('Customer does not have a payment method on file. Please add a payment method first.');
-      return;
-    }
-
+    setError(null);
+    
     try {
       setProcessing(true);
       
-      // For now, we'll use a test payment method ID
-      // In production, you'd collect this via Stripe Elements
-      const testPaymentMethodId = 'pm_card_visa'; // Stripe test card
-      
-      const response = await apiClient.post(`/api/v1/payments/invoices/${invoice.id}/charge`, {
-        payment_method_id: testPaymentMethodId
-      });
+      if (paymentMethod === 'saved' && selectedCardId) {
+        // Charge with saved card
+        const response = await apiClient.post(`/api/v1/payments/invoices/${invoice.id}/charge`, {
+          payment_method_id: selectedCardId
+        });
 
-      if (response.data.success) {
-        alert('Invoice charged successfully!');
-        onSuccess();
+        if (response.data.success) {
+          alert('Invoice charged successfully!');
+          onSuccess();
+        } else {
+          setError(response.data.error || 'Failed to charge invoice');
+        }
       } else {
-        alert(response.data.error || 'Failed to charge invoice');
+        // Charge with new card
+        const cardData = {
+          card_number: cardForm.card_number.replace(/\s/g, ''),
+          exp_month: parseInt(cardForm.exp_month),
+          exp_year: parseInt(cardForm.exp_year),
+          cvc: cardForm.cvc,
+          save_card: cardForm.save_card
+        };
+
+        const response = await apiClient.post(`/api/v1/payments/invoices/${invoice.id}/charge-manual`, cardData);
+
+        if (response.data.success) {
+          alert('Invoice charged successfully!');
+          onSuccess();
+        } else {
+          setError(response.data.error || 'Failed to charge invoice');
+        }
       }
     } catch (error: any) {
       console.error('Error charging invoice:', error);
-      alert(error.response?.data?.error || 'Failed to charge invoice. Please try again.');
+      setError(error.response?.data?.error || 'Failed to charge invoice. Please try again.');
     } finally {
       setProcessing(false);
     }
@@ -104,29 +167,131 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         <div className="payment-section">
           <h4>Payment Method</h4>
           
-          {stripeCustomerId ? (
-            <div className="payment-method-info">
-              <div className="method-option selected">
-                <input 
-                  type="radio" 
-                  id="saved-card" 
-                  checked 
-                  readOnly
-                />
-                <label htmlFor="saved-card">
-                  <span className="card-icon">💳</span>
-                  Card on file {cardLast4 && `ending in ${cardLast4}`}
-                </label>
-              </div>
-              <p className="payment-note">
-                The customer's default payment method will be charged.
-              </p>
-            </div>
+          {error && <div className="error-message">{error}</div>}
+          
+          {loadingCards ? (
+            <div className="loading-cards">Loading payment methods...</div>
           ) : (
-            <div className="no-payment-method">
-              <p>No payment method on file for this customer.</p>
-              <p>Please add a payment method before charging invoices.</p>
-            </div>
+            <>
+              {savedCards.length > 0 && (
+                <div className="payment-method-options">
+                  <div className="method-option">
+                    <input 
+                      type="radio" 
+                      id="saved-card" 
+                      name="payment-method"
+                      value="saved"
+                      checked={paymentMethod === 'saved'}
+                      onChange={() => setPaymentMethod('saved')}
+                    />
+                    <label htmlFor="saved-card">Use saved card</label>
+                  </div>
+                  
+                  {paymentMethod === 'saved' && (
+                    <div className="saved-cards-list">
+                      {savedCards.map(card => (
+                        <div key={card.id} className="saved-card-option">
+                          <input
+                            type="radio"
+                            id={`card-${card.id}`}
+                            name="selected-card"
+                            value={card.id}
+                            checked={selectedCardId === card.id}
+                            onChange={() => setSelectedCardId(card.id)}
+                          />
+                          <label htmlFor={`card-${card.id}`}>
+                            <span className="card-icon">💳</span>
+                            {card.brand} •••• {card.last4} (Exp: {card.exp_month}/{card.exp_year})
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="method-option">
+                    <input 
+                      type="radio" 
+                      id="new-card" 
+                      name="payment-method"
+                      value="new"
+                      checked={paymentMethod === 'new'}
+                      onChange={() => setPaymentMethod('new')}
+                    />
+                    <label htmlFor="new-card">Enter new card</label>
+                  </div>
+                </div>
+              )}
+              
+              {(paymentMethod === 'new' || savedCards.length === 0) && (
+                <div className="new-card-form">
+                  <div className="form-group">
+                    <label>Card Number</label>
+                    <input
+                      type="text"
+                      name="card_number"
+                      value={cardForm.card_number}
+                      onChange={handleInputChange}
+                      placeholder="1234 5678 9012 3456"
+                      maxLength={19}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Exp Month</label>
+                      <input
+                        type="number"
+                        name="exp_month"
+                        value={cardForm.exp_month}
+                        onChange={handleInputChange}
+                        placeholder="MM"
+                        min="1"
+                        max="12"
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Exp Year</label>
+                      <input
+                        type="number"
+                        name="exp_year"
+                        value={cardForm.exp_year}
+                        onChange={handleInputChange}
+                        placeholder="YYYY"
+                        min={new Date().getFullYear()}
+                        max={new Date().getFullYear() + 20}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>CVC</label>
+                      <input
+                        type="text"
+                        name="cvc"
+                        value={cardForm.cvc}
+                        onChange={handleInputChange}
+                        placeholder="123"
+                        maxLength={4}
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="form-group checkbox-group">
+                    <label>
+                      <input
+                        type="checkbox"
+                        name="save_card"
+                        checked={cardForm.save_card}
+                        onChange={handleInputChange}
+                      />
+                      Save card for future payments
+                    </label>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -143,7 +308,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             type="button" 
             className="charge-btn" 
             onClick={handleChargeInvoice}
-            disabled={processing || !stripeCustomerId}
+            disabled={processing || (paymentMethod === 'new' && (!cardForm.card_number || !cardForm.exp_month || !cardForm.exp_year || !cardForm.cvc))}
           >
             {processing ? 'Processing...' : `Charge ${formatCurrency(invoice.amount_due)}`}
           </button>

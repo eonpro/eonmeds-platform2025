@@ -103,6 +103,144 @@ router.get('/payment-methods/:customerId', async (req, res) => {
   }
 });
 
+// Add a card to patient
+router.post('/patients/:patientId/cards', async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const { card_number, exp_month, exp_year, cvc, set_as_default = false } = req.body;
+    
+    // Get patient with Stripe customer ID
+    const patientResult = await pool.query(
+      'SELECT * FROM patients WHERE patient_id = $1',
+      [patientId]
+    );
+    
+    if (patientResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    
+    const patient = patientResult.rows[0];
+    
+    // Create Stripe customer if doesn't exist
+    let customerId = patient.stripe_customer_id;
+    if (!customerId) {
+      const customerResult = await stripeService.createCustomer(patient);
+      
+      if (!customerResult.success) {
+        return res.status(400).json({ error: 'Failed to create customer' });
+      }
+      
+      customerId = customerResult.customer.id;
+      
+      // Update patient with customer ID
+      await pool.query(
+        'UPDATE patients SET stripe_customer_id = $1 WHERE patient_id = $2',
+        [customerId, patientId]
+      );
+    }
+    
+    // Create payment method from card
+    const paymentMethodResult = await stripeService.createPaymentMethodFromCard({
+      card_number,
+      exp_month,
+      exp_year,
+      cvc
+    });
+    
+    if (!paymentMethodResult.success) {
+      return res.status(400).json({ error: paymentMethodResult.error });
+    }
+    
+    // Attach payment method to customer
+    const attachResult = await stripeService.attachPaymentMethod(
+      paymentMethodResult.paymentMethod.id,
+      customerId
+    );
+    
+    if (!attachResult.success) {
+      return res.status(400).json({ error: attachResult.error });
+    }
+    
+    // Set as default if requested
+    if (set_as_default) {
+      await stripeService.setDefaultPaymentMethod(customerId, paymentMethodResult.paymentMethod.id);
+    }
+    
+    res.json({
+      success: true,
+      paymentMethod: paymentMethodResult.paymentMethod
+    });
+  } catch (error) {
+    console.error('Error adding card:', error);
+    res.status(500).json({ error: 'Failed to add card' });
+  }
+});
+
+// List patient's saved cards
+router.get('/patients/:patientId/cards', async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    
+    // Get patient with Stripe customer ID
+    const patientResult = await pool.query(
+      'SELECT stripe_customer_id FROM patients WHERE patient_id = $1',
+      [patientId]
+    );
+    
+    if (patientResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    
+    const customerId = patientResult.rows[0].stripe_customer_id;
+    
+    if (!customerId) {
+      // No Stripe customer yet, return empty list
+      return res.json({ success: true, cards: [] });
+    }
+    
+    // Get payment methods from Stripe
+    const result = await stripeService.listPaymentMethods(customerId);
+    
+    if (result.success) {
+      // Transform payment methods to card format
+      const cards = result.paymentMethods.map((pm: any) => ({
+        id: pm.id,
+        brand: pm.card.brand,
+        last4: pm.card.last4,
+        exp_month: pm.card.exp_month,
+        exp_year: pm.card.exp_year,
+        created: pm.created,
+        is_default: false // You can check customer's default payment method
+      }));
+      
+      res.json({ success: true, cards });
+    } else {
+      res.status(400).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error('Error listing cards:', error);
+    res.status(500).json({ error: 'Failed to list cards' });
+  }
+});
+
+// Delete a card
+router.delete('/cards/:paymentMethodId', async (req, res) => {
+  try {
+    const { paymentMethodId } = req.params;
+    
+    const result = await stripeService.detachPaymentMethod(paymentMethodId);
+    
+    if (result.success) {
+      res.json({ success: true, message: 'Card removed successfully' });
+    } else {
+      res.status(400).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error('Error deleting card:', error);
+    res.status(500).json({ error: 'Failed to delete card' });
+  }
+});
+
 // ==================== Subscriptions ====================
 
 // Create subscription
@@ -448,6 +586,103 @@ router.post('/invoices/:invoiceId/charge', async (req, res) => {
   } catch (error) {
     console.error('Error charging invoice:', error);
     res.status(500).json({ error: 'Failed to charge invoice' });
+  }
+});
+
+// Process manual card payment for invoice
+router.post('/invoices/:invoiceId/charge-manual', async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+    const { card_number, exp_month, exp_year, cvc, save_card = false } = req.body;
+    
+    // Get invoice details with patient info
+    const invoiceResult = await pool.query(
+      `SELECT i.*, p.email, p.first_name, p.last_name 
+       FROM invoices i
+       JOIN patients p ON i.patient_id = p.patient_id
+       WHERE i.id = $1`,
+      [invoiceId]
+    );
+    
+    if (invoiceResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+    
+    const invoice = invoiceResult.rows[0];
+    
+    if (invoice.status === 'paid') {
+      return res.status(400).json({ error: 'Invoice is already paid' });
+    }
+    
+    // Create Stripe customer if doesn't exist
+    let customerId = invoice.stripe_customer_id;
+    if (!customerId) {
+      const customerResult = await stripeService.createCustomer({
+        patient_id: invoice.patient_id,
+        email: invoice.email,
+        first_name: invoice.first_name,
+        last_name: invoice.last_name
+      });
+      
+      if (!customerResult.success) {
+        return res.status(400).json({ error: 'Failed to create customer' });
+      }
+      
+      customerId = customerResult.customer.id;
+      
+      // Update patient and invoice with customer ID
+      await pool.query(
+        'UPDATE patients SET stripe_customer_id = $1 WHERE patient_id = $2',
+        [customerId, invoice.patient_id]
+      );
+      await pool.query(
+        'UPDATE invoices SET stripe_customer_id = $1 WHERE id = $2',
+        [customerId, invoiceId]
+      );
+    }
+    
+    // Create payment method
+    const paymentMethodResult = await stripeService.createPaymentMethodFromCard({
+      card_number,
+      exp_month,
+      exp_year,
+      cvc
+    });
+    
+    if (!paymentMethodResult.success) {
+      return res.status(400).json({ error: paymentMethodResult.error });
+    }
+    
+    // Attach payment method to customer if saving
+    if (save_card) {
+      await stripeService.attachPaymentMethod(paymentMethodResult.paymentMethod.id, customerId);
+    }
+    
+    // Charge the invoice
+    const result = await stripeService.chargeInvoice({
+      amount: invoice.amount_due,
+      customerId: customerId,
+      paymentMethodId: paymentMethodResult.paymentMethod.id,
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoice_number,
+      patientId: invoice.patient_id
+    });
+    
+    if (result.success) {
+      res.json({ 
+        success: true,
+        paymentIntent: result.paymentIntent 
+      });
+    } else {
+      res.status(400).json({ 
+        success: false,
+        error: result.error,
+        requiresAction: result.requiresAction 
+      });
+    }
+  } catch (error) {
+    console.error('Error processing manual payment:', error);
+    res.status(500).json({ error: 'Failed to process payment' });
   }
 });
 

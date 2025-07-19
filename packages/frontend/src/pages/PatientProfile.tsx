@@ -15,10 +15,12 @@ import {
   EditIcon,
   MoreOptionsIcon,
   CloseIcon,
-  MapIcon
+  MapIcon,
+  CardIcon
 } from '../components/common/Icons';
 import './PatientProfile.css';
 import { PatientInvoices } from '../components/patients/PatientInvoices';
+import { PatientCards } from '../components/patients/PatientCards';
 
 interface PatientDetails {
   id: string;
@@ -747,6 +749,13 @@ export const PatientProfile: React.FC = () => {
                 <PrescriptionIcon className="tab-icon" />
                 Prescriptions
               </button>
+              <button 
+                className={`tab ${activeTab === 'cards' ? 'active' : ''}`}
+                onClick={() => setActiveTab('cards')}
+              >
+                <CardIcon className="tab-icon" />
+                Cards
+              </button>
             </div>
 
             <div className="tab-content">
@@ -1319,6 +1328,12 @@ export const PatientProfile: React.FC = () => {
                 <div className="prescriptions-tab">
                   <h2>Prescriptions</h2>
                   <p className="coming-soon">Prescription tracking coming soon!</p>
+                </div>
+              )}
+
+              {activeTab === 'cards' && (
+                <div className="cards-tab">
+                  <PatientCards patientId={patient.patient_id} />
                 </div>
               )}
             </div>
