@@ -14,11 +14,31 @@ async function runInvoiceMigration() {
     const sqlPath = path.join(__dirname, '../config/invoice-schema.sql');
     const sql = fs.readFileSync(sqlPath, 'utf8');
     
-    // Split by semicolons but be careful with functions
-    const statements = sql
-      .split(/;\s*$/m)
-      .filter(stmt => stmt.trim())
-      .map(stmt => stmt.trim() + ';');
+    // Split SQL statements more carefully to handle functions with $$ delimiters
+    const statements: string[] = [];
+    let currentStatement = '';
+    let inFunction = false;
+    
+    const lines = sql.split('\n');
+    for (const line of lines) {
+      currentStatement += line + '\n';
+      
+      // Check if we're entering or leaving a function definition
+      if (line.includes('$$')) {
+        inFunction = !inFunction;
+      }
+      
+      // If we hit a semicolon and we're not in a function, it's the end of a statement
+      if (line.trim().endsWith(';') && !inFunction) {
+        statements.push(currentStatement.trim());
+        currentStatement = '';
+      }
+    }
+    
+    // Don't forget the last statement if it exists
+    if (currentStatement.trim()) {
+      statements.push(currentStatement.trim());
+    }
     
     console.log(`📝 Found ${statements.length} SQL statements to execute\n`);
     

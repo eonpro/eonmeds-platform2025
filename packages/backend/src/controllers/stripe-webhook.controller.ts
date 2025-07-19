@@ -3,11 +3,20 @@ import Stripe from 'stripe';
 import { stripeConfig } from '../config/stripe.config';
 import pool from '../config/database';
 
-const stripe = new Stripe(stripeConfig.apiKey, {
-  apiVersion: '2023-10-16',
-});
+// Only initialize Stripe if API key is available
+let stripe: Stripe | null = null;
+if (stripeConfig.apiKey) {
+  stripe = new Stripe(stripeConfig.apiKey, {
+    apiVersion: '2023-10-16',
+  });
+}
 
 export const handleStripeWebhook = async (req: Request, res: Response) => {
+  // Check if Stripe is configured
+  if (!stripe) {
+    console.warn('⚠️  Stripe not configured - skipping webhook processing');
+    return res.status(200).json({ received: true, warning: 'Stripe not configured' });
+  }
   const sig = req.headers['stripe-signature'] as string;
   let event: Stripe.Event;
 
