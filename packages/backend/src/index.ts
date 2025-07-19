@@ -99,6 +99,42 @@ async function initializeDatabase() {
     if (isConnected) {
       console.log('✅ Database connected successfully');
       databaseConnected = true;
+      
+      // Ensure critical tables exist
+      try {
+        // Import pool for direct queries
+        const { pool } = await import('./config/database');
+        
+        // Create invoice_payments table if it doesn't exist
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS invoice_payments (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            invoice_id UUID NOT NULL REFERENCES invoices(id),
+            amount DECIMAL(10,2) NOT NULL,
+            payment_method VARCHAR(50) NOT NULL,
+            payment_date TIMESTAMP NOT NULL DEFAULT NOW(),
+            stripe_payment_intent_id VARCHAR(255),
+            stripe_charge_id VARCHAR(255),
+            status VARCHAR(50) NOT NULL DEFAULT 'succeeded',
+            failure_reason TEXT,
+            metadata JSONB DEFAULT '{}',
+            created_at TIMESTAMP DEFAULT NOW()
+          );
+        `);
+        
+        // Create indexes
+        await pool.query(`
+          CREATE INDEX IF NOT EXISTS idx_payment_invoice ON invoice_payments(invoice_id);
+        `);
+        
+        await pool.query(`
+          CREATE INDEX IF NOT EXISTS idx_payment_date ON invoice_payments(payment_date);
+        `);
+        
+        console.log('✅ Database tables verified/created');
+      } catch (tableError) {
+        console.log('Note: Could not verify/create tables:', (tableError as Error).message);
+      }
     } else {
       console.log('⚠️  Database connection failed - some functionality may be limited');
     }

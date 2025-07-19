@@ -196,6 +196,30 @@ The user has requested a thorough audit of the entire Stripe integration to ensu
 - Payment confirmations and notifications
 - Production deployment on Railway
 
+### Payment Processing Issue Resolution
+
+#### Problem:
+- Payment succeeded on Stripe's side ($1.00 charged successfully)
+- Backend returned 500 error "Failed to process payment"
+- Invoice remained showing "Failed to process payment" in UI
+- User saw error despite payment going through
+
+#### Root Cause:
+- The `invoice_payments` table was missing in the production database
+- Backend tried to insert payment record but table didn't exist
+- Transaction rolled back but Stripe payment already processed
+
+#### Solution Implemented:
+1. Created `invoice_payments` table in production database
+2. Updated PaymentModal error handling to detect this specific case
+3. Added auto-refresh after potential successful payment
+4. Shows helpful message: "Payment may have been processed. Please refresh..."
+
+#### Prevention:
+- Always run database migrations before deploying payment features
+- Implement webhook fallback to update invoice status
+- Add idempotency keys to prevent duplicate charges
+
 ### Lessons Learned
 - Always use environment variables for API keys, never hardcode
 - Frontend needs REACT_APP_ prefix for environment variables
