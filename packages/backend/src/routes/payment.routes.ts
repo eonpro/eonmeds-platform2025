@@ -689,6 +689,9 @@ router.post('/invoices/:invoiceId/charge-manual', async (req, res) => {
         );
         
         // Create payment record
+        console.log('Creating payment record with invoice.id:', invoice.id);
+        console.log('Invoice object keys:', Object.keys(invoice));
+        
         await pool.query(
           `INSERT INTO invoice_payments (
             invoice_id, 

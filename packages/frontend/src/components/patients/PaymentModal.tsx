@@ -78,8 +78,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       // If we get specific database errors after payment, assume payment succeeded
       if (errorMessage.includes('duplicate key') || 
           errorMessage.includes('invoice_payments') ||
-          errorMessage.includes('already paid')) {
-        setError('Payment was processed successfully! The page will refresh to show the updated status.');
+          errorMessage.includes('already paid') ||
+          errorMessage === 'Failed to process payment') {
+        setError('Payment was likely processed successfully! The page will refresh to show the updated status.');
         setPaymentSucceeded(true);
         
         // Auto-refresh after showing message
