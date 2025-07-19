@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { stripeConfig } from '../config/stripe.config';
-import pool from '../config/database';
+import { pool } from '../config/database';
 
 // Only initialize Stripe if API key is available
 let stripe: Stripe | null = null;

@@ -3,7 +3,7 @@ import express from 'express';
 import { checkJwt, handleAuthError } from '../middleware/auth0';
 import { handleStripeWebhook } from '../controllers/stripe-webhook.controller';
 import stripeService from '../services/stripe.service';
-import pool from '../config/database';
+import { pool } from '../config/database';
 import { validateStripeConfig } from '../config/stripe.config';
 
 const router = Router();
