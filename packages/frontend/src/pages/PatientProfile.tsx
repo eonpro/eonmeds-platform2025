@@ -554,6 +554,41 @@ export const PatientProfile: React.FC = () => {
           </div>
           
           <div className="timeline-content">
+            {/* Intake Form Note - moved to top */}
+            {timelineNotes.filter(note => note.id === 'intake-form').map(note => (
+              <div key={note.id} className="timeline-note intake-form-note">
+                <div className="intake-form-note-content">
+                  <div className="intake-form-info">
+                    <p className="note-title">{patient.patient_id} - Intake Form</p>
+                    <p className="note-subtitle">Weight Loss Program</p>
+                    <button 
+                      className="view-form-btn"
+                      onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                    >
+                      View Form
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Status Dropdown - moved up */}
+            <div className="status-dropdown-section">
+              <select 
+                className="status-dropdown"
+                value={patientStatus}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                style={{ backgroundColor: getStatusColor(patientStatus) }}
+              >
+                <option value="pending">PENDING REVIEW</option>
+                <option value="qualified">QUALIFIED</option>
+                <option value="not_qualified">NOT QUALIFIED</option>
+                <option value="follow_up">FOLLOW UP</option>
+                <option value="enrolled">ENROLLED</option>
+              </select>
+            </div>
+
+            {/* Add Note Section */}
             <div className="note-input-wrapper">
               <textarea
                 className="note-input"
@@ -571,66 +606,33 @@ export const PatientProfile: React.FC = () => {
               </button>
             </div>
 
+            {/* Regular Timeline Notes */}
             <div className="timeline-notes">
-              {timelineNotes.map(note => (
-                <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''} ${note.id === 'intake-form' ? 'intake-form-note' : ''}`}>
-                  {note.id === 'intake-form' ? (
-                    <>
-                      <div className="intake-form-note-content">
-                        <div className="intake-form-info">
-                          <p className="note-title">{patient.patient_id} - Intake Form</p>
-                          <p className="note-subtitle">Weight Loss Program</p>
-                          <button 
-                            className="view-form-btn"
-                            onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
-                          >
-                            View Form
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="note-header">
-                        <span className="note-date">
-                          {new Date(note.createdAt).toLocaleDateString()}
-                        </span>
-                        <div className="note-actions">
-                          <button 
-                            className="pin-btn"
-                            onClick={() => togglePinNote(note.id)}
-                            title={note.isPinned ? 'Unpin' : 'Pin'}
-                          >
-                            <PinIcon className="pin-icon" filled={note.isPinned} />
-                          </button>
-                          <button 
-                            className="delete-note-btn"
-                            onClick={() => deleteNote(note.id)}
-                          >
-                            <CloseIcon />
-                          </button>
-                        </div>
-                      </div>
-                      <p className="note-content">{note.content}</p>
-                    </>
-                  )}
+              {timelineNotes.filter(note => note.id !== 'intake-form').map(note => (
+                <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''}`}>
+                  <div className="note-header">
+                    <span className="note-date">
+                      {new Date(note.createdAt).toLocaleDateString()}
+                    </span>
+                    <div className="note-actions">
+                      <button 
+                        className="pin-btn"
+                        onClick={() => togglePinNote(note.id)}
+                        title={note.isPinned ? 'Unpin' : 'Pin'}
+                      >
+                        <PinIcon className="pin-icon" filled={note.isPinned} />
+                      </button>
+                      <button 
+                        className="delete-note-btn"
+                        onClick={() => deleteNote(note.id)}
+                      >
+                        <CloseIcon />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="note-content">{note.content}</p>
                 </div>
               ))}
-            </div>
-            
-            <div className="status-dropdown-section">
-              <select 
-                className="status-dropdown"
-                value={patientStatus}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                style={{ backgroundColor: getStatusColor(patientStatus) }}
-              >
-                <option value="pending">PENDING REVIEW</option>
-                <option value="qualified">QUALIFIED</option>
-                <option value="not_qualified">NOT QUALIFIED</option>
-                <option value="follow_up">FOLLOW UP</option>
-                <option value="enrolled">ENROLLED</option>
-              </select>
             </div>
           </div>
         </div>

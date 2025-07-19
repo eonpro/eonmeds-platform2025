@@ -1004,6 +1004,7 @@
   border: none !important;
   padding: 20px !important;
   border-radius: 12px !important;
+  margin-bottom: 16px !important;
 }
 
 .intake-form-note-content {
@@ -1197,6 +1198,7 @@
 /* Status Dropdown Section */
 .status-dropdown-section {
   padding: 0 20px 20px 20px;
+  margin-bottom: 16px;
 }
 
 .status-dropdown {
