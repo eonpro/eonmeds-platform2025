@@ -583,16 +583,46 @@ router.post('/invoices/:invoiceId/charge-manual', async (req, res) => {
     const { invoiceId } = req.params;
     const { payment_method_id } = req.body;
     
+    console.log('=== CHARGE MANUAL DEBUG ===');
+    console.log('Invoice ID from URL:', invoiceId);
+    console.log('Payment Method ID:', payment_method_id);
+    
     // Get invoice details with patient info
-    const invoiceResult = await pool.query(
+    // First try as UUID, then try as numeric ID if that fails
+    let invoiceResult = await pool.query(
       `SELECT i.*, p.email, p.first_name, p.last_name 
        FROM invoices i
        JOIN patients p ON i.patient_id = p.patient_id
-       WHERE i.id = $1`,
+       WHERE i.id::text = $1`,
       [invoiceId]
     );
     
+    console.log('Invoice query result count:', invoiceResult.rows.length);
+    
+    // If not found by UUID, try by numeric id if column exists
     if (invoiceResult.rows.length === 0) {
+      // Check if there's a numeric_id or old_id column
+      const columnCheck = await pool.query(
+        `SELECT column_name FROM information_schema.columns 
+         WHERE table_name = 'invoices' 
+         AND column_name IN ('numeric_id', 'old_id', 'legacy_id')
+         LIMIT 1`
+      );
+      
+      if (columnCheck.rows.length > 0) {
+        const numericColumn = columnCheck.rows[0].column_name;
+        invoiceResult = await pool.query(
+          `SELECT i.*, p.email, p.first_name, p.last_name 
+           FROM invoices i
+           JOIN patients p ON i.patient_id = p.patient_id
+           WHERE i.${numericColumn} = $1`,
+          [parseInt(invoiceId)]
+        );
+      }
+    }
+    
+    if (invoiceResult.rows.length === 0) {
+      console.log('Invoice not found for ID:', invoiceId);
       return res.status(404).json({ error: 'Invoice not found' });
     }
     
@@ -670,7 +700,7 @@ router.post('/invoices/:invoiceId/charge-manual', async (req, res) => {
             metadata
           ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
           [
-            invoiceId,
+            invoice.id,  // Use the actual UUID from the database, not the URL parameter
             new Date(),
             invoice.amount_due,
             'stripe',
@@ -692,6 +722,7 @@ router.post('/invoices/:invoiceId/charge-manual', async (req, res) => {
         });
       } catch (err) {
         await pool.query('ROLLBACK');
+        console.error('Database transaction error:', err);
         throw err;
       }
     } else {
@@ -703,7 +734,11 @@ router.post('/invoices/:invoiceId/charge-manual', async (req, res) => {
     }
   } catch (error) {
     console.error('Error processing manual payment:', error);
-    res.status(500).json({ error: 'Failed to process payment' });
+    console.error('Stack trace:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to process payment',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
   }
 });
 
