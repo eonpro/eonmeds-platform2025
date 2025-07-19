@@ -639,23 +639,24 @@
 
 .info-row {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 0.5fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 48px;
   align-items: start;
 }
 
 .info-row:nth-child(2) {
-  grid-template-columns: 1.5fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 .info-row:nth-child(3) {
-  grid-template-columns: 0.5fr 0.5fr 0.5fr;
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .info-item label {
@@ -665,6 +666,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   line-height: 1.2;
+  min-height: 16px;
 }
 
 .info-item p {
@@ -673,6 +675,9 @@
   color: #111827;
   line-height: 1.5;
   font-weight: 500;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
 }
 
 /* Address styling */
