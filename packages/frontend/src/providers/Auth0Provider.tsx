@@ -6,20 +6,24 @@ interface Auth0ProviderWithNavigateProps {
   children: React.ReactNode;
 }
 
-export const Auth0ProviderWithNavigate: React.FC<Auth0ProviderWithNavigateProps> = ({ children }) => {
+export const Auth0ProviderWithNavigate = ({ children }: Auth0ProviderWithNavigateProps) => {
   const navigate = useNavigate();
-
-  const domain = process.env.REACT_APP_AUTH0_DOMAIN;
-  const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
-  const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
-  const redirectUri = window.location.origin; // This will use http://localhost:3001
+  
+  const domain = process.env.REACT_APP_AUTH0_DOMAIN!;
+  const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID!;
+  const audience = process.env.REACT_APP_AUTH0_AUDIENCE!;
+  
+  // Use the correct redirect URI based on environment
+  const redirectUri = process.env.NODE_ENV === 'production' 
+    ? 'https://intuitive-learning-production.up.railway.app/dashboard'
+    : 'http://localhost:3000/dashboard';
 
   if (!domain || !clientId || !audience) {
     throw new Error('Auth0 configuration is missing. Please check your environment variables.');
   }
 
   const onRedirectCallback = (appState?: any) => {
-    navigate(appState?.returnTo || window.location.pathname);
+    navigate(appState?.returnTo || '/dashboard');
   };
 
   return (

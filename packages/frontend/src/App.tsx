@@ -12,6 +12,14 @@ if (process.env.NODE_ENV === 'development') {
     if (args[0]?.includes?.('aria-hidden') && args[0]?.includes?.('InputElement')) {
       return;
     }
+    // Filter out form field warnings from Stripe Elements
+    if (args[0]?.includes?.('form field element') && args[0]?.includes?.('should have an id or name')) {
+      return;
+    }
+    // Filter out label association warnings that are likely from Stripe
+    if (args[0]?.includes?.('No label associated') && args[0]?.includes?.('form field')) {
+      return;
+    }
     originalWarn.apply(console, args);
   };
 }
