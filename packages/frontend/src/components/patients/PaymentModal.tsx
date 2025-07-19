@@ -153,7 +153,19 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         <div className="payment-section">
           <h4>Payment Method</h4>
           
-          {error && <div className="error-message">{error}</div>}
+          {error && (
+            <div className="error-message">
+              {error.includes('pm_card_visa') || error.includes('testmode') ? (
+                <>
+                  <strong>Test Mode Active</strong>
+                  <p>This is a test environment. No real payments will be processed.</p>
+                  <p>If you need to process real payments, please configure Stripe API keys.</p>
+                </>
+              ) : (
+                error
+              )}
+            </div>
+          )}
           
           {loadingCards ? (
             <div className="loading-cards">Loading payment methods...</div>

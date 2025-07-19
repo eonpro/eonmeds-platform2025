@@ -49,6 +49,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
     uninvoiced: 0,
     totalPaid: 0
   });
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch invoices
   useEffect(() => {
@@ -57,17 +58,16 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
 
   const fetchInvoices = async () => {
     try {
-      setLoading(true);
       const response = await apiClient.get(`/api/v1/payments/invoices/patient/${patientId}`);
-      const invoiceData = response.data.invoices || [];
-      setInvoices(invoiceData);
+      setInvoices(response.data.invoices || []);
+      setError(null);
       
       // Calculate summary data
-      const outstanding = invoiceData
+      const outstanding = response.data.invoices
         .filter((inv: Invoice) => inv.status === 'open')
         .reduce((sum: number, inv: Invoice) => sum + inv.amount_due, 0);
       
-      const totalPaid = invoiceData
+      const totalPaid = response.data.invoices
         .filter((inv: Invoice) => inv.status === 'paid')
         .reduce((sum: number, inv: Invoice) => sum + inv.amount_paid, 0);
       
@@ -76,8 +76,15 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
         uninvoiced: 0, // This would come from a separate API call for unbilled services
         totalPaid
       });
-    } catch (error) {
-      console.error('Error fetching invoices:', error);
+    } catch (err: any) {
+      console.error('Error fetching invoices:', err);
+      
+      // If it's an auth error, suggest re-login
+      if (err.response?.status === 401) {
+        setError('Your session has expired. Please log out and log back in.');
+      } else {
+        setError('Failed to load invoices');
+      }
     } finally {
       setLoading(false);
     }
@@ -139,6 +146,18 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
       {/* Invoices List */}
       {loading ? (
         <div className="loading-state">Loading invoices...</div>
+      ) : error ? (
+        <div className="error-message" style={{ color: 'red', padding: '20px', textAlign: 'center' }}>
+          <p>{error}</p>
+          {error.includes('session has expired') && (
+            <button 
+              onClick={() => window.location.href = '/'}
+              style={{ marginTop: '10px', padding: '10px 20px', cursor: 'pointer' }}
+            >
+              Go to Login
+            </button>
+          )}
+        </div>
       ) : invoices.length === 0 ? (
         <div className="no-invoices">
           <p>No Invoices for this client yet</p>
