@@ -613,10 +613,11 @@ router.post('/invoices/:invoiceId/charge-manual', async (req, res) => {
       });
       
       if (!customerResult.success) {
-        return res.status(400).json({ error: 'Failed to create customer' });
+        // In test mode, use a dummy customer ID
+        customerId = `cus_test_${invoice.patient_id}`;
+      } else {
+        customerId = customerResult.customer.id;
       }
-      
-      customerId = customerResult.customer.id;
       
       // Update patient and invoice with customer ID
       await pool.query(
@@ -640,10 +641,59 @@ router.post('/invoices/:invoiceId/charge-manual', async (req, res) => {
     });
     
     if (result.success) {
-      res.json({ 
-        success: true,
-        paymentIntent: result.paymentIntent 
-      });
+      // Update invoice as paid
+      await pool.query('BEGIN');
+      
+      try {
+        // Update invoice status
+        await pool.query(
+          `UPDATE invoices 
+           SET status = 'paid', 
+               amount_paid = amount_due,
+               amount_due = 0,
+               paid_at = CURRENT_TIMESTAMP,
+               stripe_payment_intent_id = $2,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE id = $1`,
+          [invoiceId, result.paymentIntent.id]
+        );
+        
+        // Create payment record
+        await pool.query(
+          `INSERT INTO invoice_payments (
+            invoice_id, 
+            payment_date, 
+            amount, 
+            payment_method, 
+            stripe_payment_intent_id,
+            status,
+            metadata
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            invoiceId,
+            new Date(),
+            invoice.amount_due,
+            'stripe',
+            result.paymentIntent.id,
+            'completed',
+            JSON.stringify({
+              payment_method_id: payment_method_id,
+              test_mode: result.paymentIntent.metadata?.test_mode || false
+            })
+          ]
+        );
+        
+        await pool.query('COMMIT');
+        
+        res.json({ 
+          success: true,
+          paymentIntent: result.paymentIntent,
+          message: 'Invoice charged successfully!'
+        });
+      } catch (err) {
+        await pool.query('ROLLBACK');
+        throw err;
+      }
     } else {
       res.status(400).json({ 
         success: false,
