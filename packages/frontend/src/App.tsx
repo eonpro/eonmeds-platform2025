@@ -2,6 +2,20 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth0ProviderWithNavigate } from './providers/Auth0Provider';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { useState } from 'react';
+
+// Filter out Stripe Elements accessibility warnings in development
+if (process.env.NODE_ENV === 'development') {
+  const originalWarn = console.warn;
+  console.warn = (...args) => {
+    // Filter out aria-hidden warnings from Stripe Elements
+    if (args[0]?.includes?.('aria-hidden') && args[0]?.includes?.('InputElement')) {
+      return;
+    }
+    originalWarn.apply(console, args);
+  };
+}
+
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Home } from './pages/Home';
