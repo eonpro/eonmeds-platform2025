@@ -111,33 +111,34 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
 
   return (
     <div className="patient-invoices">
+      {/* Header Section */}
+      <div className="invoice-header">
+        <h3>Invoices</h3>
+        <button onClick={handleCreateInvoice} className="create-invoice-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Create Invoice
+        </button>
+      </div>
+
       {/* Summary Cards */}
       <div className="invoice-summary-cards">
         <div className="summary-card outstanding">
-          <h4>OUTSTANDING</h4>
+          <h4>Outstanding</h4>
           <p className="amount">{formatCurrency(summaryData.outstanding)}</p>
         </div>
         <div className="summary-card uninvoiced">
-          <h4>UNINVOICED</h4>
+          <h4>Uninvoiced</h4>
           <p className="amount">{formatCurrency(summaryData.uninvoiced)}</p>
         </div>
         <div className="summary-card paid">
-          <h4>TOTAL PAID</h4>
+          <h4>Paid</h4>
           <p className="amount">{formatCurrency(summaryData.totalPaid)}</p>
         </div>
       </div>
 
-      {/* Create Invoice Button */}
-      <div className="invoice-actions">
-        <button 
-          className="create-invoice-btn"
-          onClick={handleCreateInvoice}
-        >
-          CREATE INVOICE
-        </button>
-      </div>
-
-      {/* Invoices List */}
+      {/* Invoice List */}
       {loading ? (
         <div className="loading-state">Loading invoices...</div>
       ) : error ? (
@@ -168,76 +169,78 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
           <p>No Invoices for this client yet</p>
         </div>
       ) : (
-        <div className="invoices-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Invoice #</th>
-                <th>Date</th>
-                <th>Due Date</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((invoice) => (
-                <tr key={invoice.id}>
-                  <td className="invoice-number">{invoice.invoice_number}</td>
-                  <td>{formatDate(invoice.invoice_date)}</td>
-                  <td>{formatDate(invoice.due_date)}</td>
-                  <td className="amount">
-                    {formatCurrency(invoice.total_amount)}
-                    {invoice.amount_paid > 0 && (
-                      <span className="amount-paid">
-                        ({formatCurrency(invoice.amount_paid)} paid)
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <span 
-                      className={`status-badge ${invoice.status.toLowerCase()}`}
-                    >
-                      {invoice.status}
-                    </span>
-                  </td>
-                  <td className="actions">
-                    <button 
-                      className="action-btn view"
-                      onClick={() => setSelectedInvoice(invoice)}
-                      title="View Invoice"
-                    >
-                      👁️
-                    </button>
-                    {invoice.status === 'open' && (
-                      <>
-                        <button 
-                          className="action-btn charge"
-                          onClick={() => {
-                            setSelectedInvoice(invoice);
-                            setShowPaymentModal(true);
-                          }}
-                          title="Charge Invoice"
-                        >
-                          💳
-                        </button>
-                        <button 
-                          className="action-btn mark-paid"
-                          onClick={() => {
-                            setSelectedInvoice(invoice);
-                            setShowMarkPaidModal(true);
-                          }}
-                          title="Mark as Paid (Offline)"
-                        >
-                          ✓
-                        </button>
-                      </>
-                    )}
-                  </td>
+        <div className="invoices-table-container">
+          <div className="invoices-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Date</th>
+                  <th>Due Date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {invoices.map((invoice) => (
+                  <tr key={invoice.id}>
+                    <td>{invoice.invoice_number}</td>
+                    <td>{formatDate(invoice.invoice_date)}</td>
+                    <td>{formatDate(invoice.due_date)}</td>
+                    <td>
+                      {formatCurrency(invoice.total_amount)}
+                      {invoice.amount_paid > 0 && (
+                        <span style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                          ({formatCurrency(invoice.amount_paid)} paid)
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <span className={`status-badge ${invoice.status.toLowerCase()}`}>
+                        {invoice.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button 
+                          onClick={() => setSelectedInvoice(invoice)}
+                          className="action-btn"
+                          title="View Invoice"
+                        >
+                          View
+                        </button>
+                        {invoice.status === 'open' && (
+                          <>
+                            <button 
+                              onClick={() => {
+                                setSelectedInvoice(invoice);
+                                setShowPaymentModal(true);
+                              }}
+                              className="action-btn"
+                              title="Charge Invoice"
+                            >
+                              Charge
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setSelectedInvoice(invoice);
+                                setShowMarkPaidModal(true);
+                              }}
+                              className="action-btn"
+                              title="Mark as Paid"
+                            >
+                              Mark Paid
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
