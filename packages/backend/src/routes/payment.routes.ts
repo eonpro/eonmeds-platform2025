@@ -543,14 +543,15 @@ router.post('/invoices/create', async (req, res) => {
       for (const item of items) {
         await pool.query(
           `INSERT INTO invoice_items (
-            invoice_id, description, quantity, unit_price, service_type
-          ) VALUES ($1, $2, $3, $4, $5)`,
+            invoice_id, description, quantity, unit_price, service_type, metadata
+          ) VALUES ($1, $2, $3, $4, $5, $6)`,
           [
             invoice.id,
             item.description,
             item.quantity,
             item.unit_price,
-            item.service_type
+            item.service_type,
+            JSON.stringify({ service_package_id: item.service_package_id }) // Store package_id in metadata
           ]
         );
       }
