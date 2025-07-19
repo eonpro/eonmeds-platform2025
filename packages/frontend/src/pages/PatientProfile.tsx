@@ -126,11 +126,16 @@ export const PatientProfile: React.FC = () => {
       if (response.data) {
         setIntakeFormData(response.data);
       }
-    } catch (err) {
-      console.error('Error loading intake data:', err);
-      if (err && typeof err === 'object' && 'response' in err) {
-        const error = err as any;
-        console.error('Error details:', error.response?.data || error.message);
+    } catch (err: any) {
+      // 404 is expected when no webhook data exists yet - this is not an error
+      if (err?.response?.status === 404) {
+        console.log('No webhook data found for patient - this is normal for new patients');
+      } else {
+        // Only log actual errors
+        console.error('Error loading intake data:', err);
+        if (err?.response?.data) {
+          console.error('Error details:', err.response.data);
+        }
       }
       // If webhook data fails, we'll just show the simple form
     } finally {
