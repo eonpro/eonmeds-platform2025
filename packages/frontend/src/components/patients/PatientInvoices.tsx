@@ -90,16 +90,6 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid': return '#10b981';
-      case 'open': return '#f59e0b';
-      case 'overdue': return '#ef4444';
-      case 'draft': return '#6b7280';
-      default: return '#6b7280';
-    }
-  };
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -113,6 +103,10 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
       day: 'numeric',
       year: 'numeric'
     });
+  };
+
+  const handleCreateInvoice = () => {
+    setShowCreateModal(true);
   };
 
   return (
@@ -137,7 +131,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
       <div className="invoice-actions">
         <button 
           className="create-invoice-btn"
-          onClick={() => setShowCreateModal(true)}
+          onClick={handleCreateInvoice}
         >
           CREATE INVOICE
         </button>
@@ -191,8 +185,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
                   </td>
                   <td>
                     <span 
-                      className="status-badge"
-                      style={{ backgroundColor: getStatusColor(invoice.status) }}
+                      className={`status-badge ${invoice.status.toLowerCase()}`}
                     >
                       {invoice.status}
                     </span>
