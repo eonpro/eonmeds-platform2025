@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import express from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { checkJwt, handleAuthError } from '../middleware/auth0';
 import { handleStripeWebhook } from '../controllers/stripe-webhook.controller';
 import stripeService from '../services/stripe.service';
 import pool from '../config/database';
@@ -14,8 +14,9 @@ validateStripeConfig();
 // Stripe webhook endpoint (no auth required)
 router.post('/webhook/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
-// All other routes require authentication
-router.use(authenticateToken);
+// All other routes require Auth0 authentication
+router.use(checkJwt);
+router.use(handleAuthError);
 
 // ==================== Customer Management ====================
 
