@@ -134,6 +134,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Ensure patients table has stripe_customer_id column
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(255);
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_invoice_patient ON invoices(patient_id);
 CREATE INDEX IF NOT EXISTS idx_invoice_status ON invoices(status);
