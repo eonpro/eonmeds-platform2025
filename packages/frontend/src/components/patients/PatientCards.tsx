@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { CardIcon, CloseIcon } from '../common/Icons';
 import { LoadingSpinner } from '../common/LoadingSpinner';
+import { StripePaymentForm } from './StripePaymentForm';
 import './PatientCards.css';
 
 interface SavedCard {
@@ -23,13 +24,6 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
   const [cards, setCards] = useState<SavedCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddCard, setShowAddCard] = useState(false);
-  const [formData, setFormData] = useState({
-    card_number: '',
-    exp_month: '',
-    exp_year: '',
-    cvc: '',
-    set_as_default: false
-  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,45 +44,16 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    
-    // Format card number with spaces
-    if (name === 'card_number') {
-      const formatted = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
-      setFormData(prev => ({ ...prev, [name]: formatted }));
-    } else {
-      setFormData(prev => ({ 
-        ...prev, 
-        [name]: type === 'checkbox' ? checked : value 
-      }));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddCard = async (paymentMethodId: string) => {
     setError(null);
     setSaving(true);
 
     try {
-      // Remove spaces from card number before sending
-      const cardData = {
-        ...formData,
-        card_number: formData.card_number.replace(/\s/g, ''),
-        exp_month: parseInt(formData.exp_month),
-        exp_year: parseInt(formData.exp_year)
-      };
-
-      await apiClient.post(`/api/v1/payments/patients/${patientId}/cards`, cardData);
-      
-      // Reset form and reload cards
-      setFormData({
-        card_number: '',
-        exp_month: '',
-        exp_year: '',
-        cvc: '',
-        set_as_default: false
+      await apiClient.post(`/api/v1/payments/patients/${patientId}/cards`, {
+        payment_method_id: paymentMethodId,
+        set_as_default: cards.length === 0 // Set as default if it's the first card
       });
+      
       setShowAddCard(false);
       await loadCards();
     } catch (err: any) {
@@ -141,95 +106,17 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
       {showAddCard && (
         <div className="add-card-form">
           <h4>Add New Card</h4>
-          <form onSubmit={handleSubmit}>
-            {error && <div className="error-message">{error}</div>}
-            
-            <div className="form-group">
-              <label>Card Number</label>
-              <input
-                type="text"
-                name="card_number"
-                value={formData.card_number}
-                onChange={handleInputChange}
-                placeholder="1234 5678 9012 3456"
-                maxLength={19}
-                required
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Expiry Month</label>
-                <input
-                  type="number"
-                  name="exp_month"
-                  value={formData.exp_month}
-                  onChange={handleInputChange}
-                  placeholder="MM"
-                  min="1"
-                  max="12"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Expiry Year</label>
-                <input
-                  type="number"
-                  name="exp_year"
-                  value={formData.exp_year}
-                  onChange={handleInputChange}
-                  placeholder="YYYY"
-                  min={new Date().getFullYear()}
-                  max={new Date().getFullYear() + 20}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>CVC</label>
-                <input
-                  type="text"
-                  name="cvc"
-                  value={formData.cvc}
-                  onChange={handleInputChange}
-                  placeholder="123"
-                  maxLength={4}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-group checkbox-group">
-              <label>
-                <input
-                  type="checkbox"
-                  name="set_as_default"
-                  checked={formData.set_as_default}
-                  onChange={handleInputChange}
-                />
-                Set as default payment method
-              </label>
-            </div>
-
-            <div className="form-actions">
-              <button 
-                type="button" 
-                className="cancel-btn"
-                onClick={() => {
-                  setShowAddCard(false);
-                  setError(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                className="save-btn"
-                disabled={saving}
-              >
-                {saving ? 'Adding...' : 'Add Card'}
-              </button>
-            </div>
-          </form>
+          {error && <div className="error-message">{error}</div>}
+          
+          <StripePaymentForm
+            onPaymentMethodCreated={handleAddCard}
+            onCancel={() => {
+              setShowAddCard(false);
+              setError(null);
+            }}
+            saveCard={true}
+            processing={saving}
+          />
         </div>
       )}
 

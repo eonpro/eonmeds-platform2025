@@ -107,7 +107,7 @@ router.get('/payment-methods/:customerId', async (req, res) => {
 router.post('/patients/:patientId/cards', async (req, res) => {
   try {
     const { patientId } = req.params;
-    const { card_number, exp_month, exp_year, cvc, set_as_default = false } = req.body;
+    const { payment_method_id, set_as_default = false } = req.body;
     
     // Get patient with Stripe customer ID
     const patientResult = await pool.query(
@@ -139,21 +139,9 @@ router.post('/patients/:patientId/cards', async (req, res) => {
       );
     }
     
-    // Create payment method from card
-    const paymentMethodResult = await stripeService.createPaymentMethodFromCard({
-      card_number,
-      exp_month,
-      exp_year,
-      cvc
-    });
-    
-    if (!paymentMethodResult.success) {
-      return res.status(400).json({ error: paymentMethodResult.error });
-    }
-    
     // Attach payment method to customer
     const attachResult = await stripeService.attachPaymentMethod(
-      paymentMethodResult.paymentMethod.id,
+      payment_method_id,
       customerId
     );
     
@@ -163,12 +151,12 @@ router.post('/patients/:patientId/cards', async (req, res) => {
     
     // Set as default if requested
     if (set_as_default) {
-      await stripeService.setDefaultPaymentMethod(customerId, paymentMethodResult.paymentMethod.id);
+      await stripeService.setDefaultPaymentMethod(customerId, payment_method_id);
     }
     
     res.json({
       success: true,
-      paymentMethod: paymentMethodResult.paymentMethod
+      paymentMethod: attachResult.paymentMethod
     });
   } catch (error) {
     console.error('Error adding card:', error);
@@ -593,7 +581,7 @@ router.post('/invoices/:invoiceId/charge', async (req, res) => {
 router.post('/invoices/:invoiceId/charge-manual', async (req, res) => {
   try {
     const { invoiceId } = req.params;
-    const { card_number, exp_month, exp_year, cvc, save_card = false } = req.body;
+    const { payment_method_id } = req.body;
     
     // Get invoice details with patient info
     const invoiceResult = await pool.query(
@@ -641,28 +629,11 @@ router.post('/invoices/:invoiceId/charge-manual', async (req, res) => {
       );
     }
     
-    // Create payment method
-    const paymentMethodResult = await stripeService.createPaymentMethodFromCard({
-      card_number,
-      exp_month,
-      exp_year,
-      cvc
-    });
-    
-    if (!paymentMethodResult.success) {
-      return res.status(400).json({ error: paymentMethodResult.error });
-    }
-    
-    // Attach payment method to customer if saving
-    if (save_card) {
-      await stripeService.attachPaymentMethod(paymentMethodResult.paymentMethod.id, customerId);
-    }
-    
     // Charge the invoice
     const result = await stripeService.chargeInvoice({
       amount: invoice.amount_due,
       customerId: customerId,
-      paymentMethodId: paymentMethodResult.paymentMethod.id,
+      paymentMethodId: payment_method_id,
       invoiceId: invoice.id,
       invoiceNumber: invoice.invoice_number,
       patientId: invoice.patient_id

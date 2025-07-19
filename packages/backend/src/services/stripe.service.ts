@@ -109,34 +109,6 @@ export class StripeService {
     }
   }
 
-  // Create payment method from card details
-  async createPaymentMethodFromCard(cardDetails: {
-    card_number: string;
-    exp_month: number;
-    exp_year: number;
-    cvc: string;
-  }) {
-    if (!this.isConfigured()) {
-      return { success: false, error: 'Stripe is not configured' };
-    }
-    
-    try {
-      const paymentMethod = await this.stripe.paymentMethods.create({
-        type: 'card',
-        card: {
-          number: cardDetails.card_number,
-          exp_month: cardDetails.exp_month,
-          exp_year: cardDetails.exp_year,
-          cvc: cardDetails.cvc
-        }
-      });
-      return { success: true, paymentMethod };
-    } catch (error: any) {
-      console.error('Error creating payment method:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
   // Set default payment method for customer
   async setDefaultPaymentMethod(customerId: string, paymentMethodId: string) {
     try {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { StripePaymentForm } from './StripePaymentForm';
 import './PaymentModal.css';
 
 interface PaymentModalProps {
@@ -21,13 +22,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const [savedCards, setSavedCards] = useState<any[]>([]);
   const [selectedCardId, setSelectedCardId] = useState<string>('');
   const [loadingCards, setLoadingCards] = useState(false);
-  const [cardForm, setCardForm] = useState({
-    card_number: '',
-    exp_month: '',
-    exp_year: '',
-    cvc: '',
-    save_card: false
-  });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,27 +49,37 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    
-    if (name === 'card_number') {
-      const formatted = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
-      setCardForm(prev => ({ ...prev, [name]: formatted }));
-    } else {
-      setCardForm(prev => ({ 
-        ...prev, 
-        [name]: type === 'checkbox' ? checked : value 
-      }));
-    }
-  };
-
-  const handleChargeInvoice = async () => {
+  const handleChargeWithNewCard = async (paymentMethodId: string) => {
     setError(null);
     
     try {
       setProcessing(true);
       
-      if (paymentMethod === 'saved' && selectedCardId) {
+      const response = await apiClient.post(`/api/v1/payments/invoices/${invoice.id}/charge-manual`, {
+        payment_method_id: paymentMethodId
+      });
+
+      if (response.data.success) {
+        alert('Invoice charged successfully!');
+        onSuccess();
+      } else {
+        setError(response.data.error || 'Failed to charge invoice');
+      }
+    } catch (error: any) {
+      console.error('Error charging invoice:', error);
+      setError(error.response?.data?.error || 'Failed to charge invoice. Please try again.');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleChargeInvoice = async () => {
+    if (paymentMethod === 'saved' && selectedCardId) {
+      setError(null);
+      
+      try {
+        setProcessing(true);
+        
         // Charge with saved card
         const response = await apiClient.post(`/api/v1/payments/invoices/${invoice.id}/charge`, {
           payment_method_id: selectedCardId
@@ -87,30 +91,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         } else {
           setError(response.data.error || 'Failed to charge invoice');
         }
-      } else {
-        // Charge with new card
-        const cardData = {
-          card_number: cardForm.card_number.replace(/\s/g, ''),
-          exp_month: parseInt(cardForm.exp_month),
-          exp_year: parseInt(cardForm.exp_year),
-          cvc: cardForm.cvc,
-          save_card: cardForm.save_card
-        };
-
-        const response = await apiClient.post(`/api/v1/payments/invoices/${invoice.id}/charge-manual`, cardData);
-
-        if (response.data.success) {
-          alert('Invoice charged successfully!');
-          onSuccess();
-        } else {
-          setError(response.data.error || 'Failed to charge invoice');
-        }
+      } catch (error: any) {
+        console.error('Error charging invoice:', error);
+        setError(error.response?.data?.error || 'Failed to charge invoice. Please try again.');
+      } finally {
+        setProcessing(false);
       }
-    } catch (error: any) {
-      console.error('Error charging invoice:', error);
-      setError(error.response?.data?.error || 'Failed to charge invoice. Please try again.');
-    } finally {
-      setProcessing(false);
     }
   };
 
@@ -223,96 +209,36 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               )}
               
               {(paymentMethod === 'new' || savedCards.length === 0) && (
-                <div className="new-card-form">
-                  <div className="form-group">
-                    <label>Card Number</label>
-                    <input
-                      type="text"
-                      name="card_number"
-                      value={cardForm.card_number}
-                      onChange={handleInputChange}
-                      placeholder="1234 5678 9012 3456"
-                      maxLength={19}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Exp Month</label>
-                      <input
-                        type="number"
-                        name="exp_month"
-                        value={cardForm.exp_month}
-                        onChange={handleInputChange}
-                        placeholder="MM"
-                        min="1"
-                        max="12"
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Exp Year</label>
-                      <input
-                        type="number"
-                        name="exp_year"
-                        value={cardForm.exp_year}
-                        onChange={handleInputChange}
-                        placeholder="YYYY"
-                        min={new Date().getFullYear()}
-                        max={new Date().getFullYear() + 20}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>CVC</label>
-                      <input
-                        type="text"
-                        name="cvc"
-                        value={cardForm.cvc}
-                        onChange={handleInputChange}
-                        placeholder="123"
-                        maxLength={4}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="form-group checkbox-group">
-                    <label>
-                      <input
-                        type="checkbox"
-                        name="save_card"
-                        checked={cardForm.save_card}
-                        onChange={handleInputChange}
-                      />
-                      Save card for future payments
-                    </label>
-                  </div>
-                </div>
+                <StripePaymentForm
+                  onPaymentMethodCreated={handleChargeWithNewCard}
+                  onCancel={() => setPaymentMethod('saved')}
+                  processing={processing}
+                />
               )}
             </>
           )}
         </div>
 
-        <div className="modal-actions">
-          <button 
-            type="button" 
-            className="cancel-btn" 
-            onClick={onClose}
-            disabled={processing}
-          >
-            Cancel
-          </button>
-          <button 
-            type="button" 
-            className="charge-btn" 
-            onClick={handleChargeInvoice}
-            disabled={processing || (paymentMethod === 'new' && (!cardForm.card_number || !cardForm.exp_month || !cardForm.exp_year || !cardForm.cvc))}
-          >
-            {processing ? 'Processing...' : `Charge ${formatCurrency(invoice.amount_due)}`}
-          </button>
-        </div>
+        {paymentMethod === 'saved' && (
+          <div className="modal-actions">
+            <button 
+              type="button" 
+              className="cancel-btn" 
+              onClick={onClose}
+              disabled={processing}
+            >
+              Cancel
+            </button>
+            <button 
+              type="button" 
+              className="charge-btn" 
+              onClick={handleChargeInvoice}
+              disabled={processing || !selectedCardId}
+            >
+              {processing ? 'Processing...' : `Charge ${formatCurrency(invoice.amount_due)}`}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
