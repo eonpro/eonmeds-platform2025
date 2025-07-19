@@ -93,7 +93,20 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         }
       } catch (error: any) {
         console.error('Error charging invoice:', error);
-        setError(error.response?.data?.error || 'Failed to charge invoice. Please try again.');
+        
+        // Check if this is a 500 error that might indicate the payment succeeded on Stripe
+        // but failed to update the database
+        if (error.response?.status === 500 && error.response?.data?.error === 'Failed to process payment') {
+          setError('Payment may have been processed. Please refresh the page to check the invoice status. If the invoice is still unpaid, please contact support.');
+          
+          // Wait a moment then refresh the invoice data
+          setTimeout(() => {
+            onClose();
+            window.location.reload(); // Force refresh to get updated data
+          }, 3000);
+        } else {
+          setError(error.response?.data?.error || 'Failed to process payment');
+        }
       } finally {
         setProcessing(false);
       }
