@@ -280,4 +280,46 @@
   border-radius: 6px;
   margin-bottom: 16px;
   font-size: 13px;
+}
+
+.payment-modal-content.success-state {
+  max-width: 400px;
+  text-align: center;
+  padding: 3rem;
+}
+
+.success-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.success-icon {
+  width: 60px;
+  height: 60px;
+  background-color: #10b981;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.success-message h3 {
+  color: #10b981;
+  margin: 0;
+}
+
+.success-message p {
+  color: #6b7280;
+  margin: 0;
+}
+
+.error-message.success {
+  background-color: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
 } 
