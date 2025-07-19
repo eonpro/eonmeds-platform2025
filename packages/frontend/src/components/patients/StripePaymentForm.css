@@ -2,176 +2,56 @@
   padding: 20px;
 }
 
-.test-mode-banner {
-  background-color: #fef3c7;
-  border: 1px solid #f59e0b;
-  border-radius: 8px;
+.form-group {
   margin-bottom: 20px;
-  padding: 12px;
-}
-
-.banner-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: relative;
-}
-
-.test-badge {
-  background-color: #f59e0b;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.banner-content p {
-  margin: 0;
-  font-size: 14px;
-  color: #92400e;
-  flex: 1;
-}
-
-.dismiss-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
-  color: #92400e;
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.test-cards-section {
-  margin-bottom: 24px;
 }
 
 .form-label {
   display: block;
-  margin-bottom: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151;
-}
-
-.test-cards-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.test-card-option {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  background-color: white;
-}
-
-.test-card-option:hover {
-  border-color: #d1d5db;
-}
-
-.test-card-option.selected {
-  border-color: #14a97b;
-  background-color: #f0fdf7;
-}
-
-.test-card-option input[type="radio"] {
-  margin-right: 12px;
-}
-
-.card-details {
-  flex: 1;
-}
-
-.card-brand {
-  font-weight: 600;
-  font-size: 14px;
-  color: #1f2937;
-  margin-bottom: 4px;
-}
-
-.card-number {
-  font-family: monospace;
-  font-size: 14px;
-  color: #374151;
-  margin-bottom: 2px;
-}
-
-.card-cvc {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.expiry-section {
-  margin-bottom: 24px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  font-size: 14px;
+  margin-bottom: 8px;
   font-weight: 500;
-  color: #374151;
-  margin-bottom: 6px;
-}
-
-.expiry-select {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  color: #32325d;
   font-size: 14px;
-  background-color: white;
-  cursor: pointer;
 }
 
-.expiry-select:focus {
-  outline: none;
-  border-color: #14a97b;
+.card-element-container {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fff;
+  transition: border-color 0.3s;
 }
 
-.stripe-branding {
-  margin: 24px 0;
-  padding: 20px 0;
-  border-top: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
+.card-element-container:hover {
+  border-color: #c0c0c0;
 }
 
-.powered-by {
+.card-element-container:focus-within {
+  border-color: #6772e5;
+  box-shadow: 0 0 0 1px #6772e5;
+}
+
+.error-message {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 14px;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  font-size: 13px;
-  color: #6b7280;
 }
 
-.stripe-logo {
-  height: 20px;
+.error-icon {
+  font-size: 16px;
 }
 
 .form-actions {
   display: flex;
   gap: 12px;
+  margin-top: 24px;
   justify-content: flex-end;
 }
 
@@ -196,16 +76,39 @@
 }
 
 .submit-btn {
-  background-color: #14a97b;
+  background-color: #6772e5;
   color: white;
 }
 
 .submit-btn:hover:not(:disabled) {
-  background-color: #119c6e;
+  background-color: #5469d4;
+  transform: translateY(-1px);
+  box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
 }
 
 .cancel-btn:disabled,
 .submit-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Stripe branding */
+.powered-by {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  color: #8898aa;
+  font-size: 13px;
+}
+
+.stripe-logo {
+  height: 20px;
+}
+
+/* Loading state */
+.stripe-payment-form.loading {
+  pointer-events: none;
+  opacity: 0.6;
 } 
