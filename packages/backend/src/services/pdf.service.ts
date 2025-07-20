@@ -59,6 +59,15 @@ export class PDFService {
           }
         });
 
+        // Register Poppins font if available, otherwise use Helvetica
+        try {
+          // In production, you would add Poppins font files to your project
+          // doc.registerFont('Poppins', 'path/to/Poppins-Regular.ttf');
+          // doc.registerFont('Poppins-Bold', 'path/to/Poppins-Bold.ttf');
+        } catch (e) {
+          // Fallback to Helvetica if Poppins not available
+        }
+
         const stream = new PassThrough();
         const chunks: Buffer[] = [];
 
@@ -230,6 +239,66 @@ export class PDFService {
           ]
         ]);
 
+        // Weight Loss Treatment Info - right after Treatment Readiness
+        if (webhookData.allFields) {
+          const feet = webhookData.allFields?.['FEET'] || webhookData.allFields?.['feet'] || '';
+          const inches = webhookData.allFields?.['INCHES'] || webhookData.allFields?.['inches'] || '';
+          const heightDisplay = feet && inches ? `${feet}' ${inches}"` : 'Not provided';
+          
+          // Try to find starting weight with various field names
+          const startingWeight = webhookData.allFields?.['STARTING WEIGHT'] || 
+                               webhookData.allFields?.['starting weight'] || 
+                               webhookData.allFields?.['STARTINGWEIGHT'] ||
+                               webhookData.allFields?.['Starting Weight'] ||
+                               webhookData.allFields?.['starting_weight'] ||
+                               webhookData.allFields?.['startingweight'] ||
+                               webhookData.allFields?.['StartingWeight'] ||
+                               webhookData.allFields?.['STARTING_WEIGHT'] || 
+                               'Not provided';
+          
+          // Try to find ideal weight with various field names
+          const idealWeight = webhookData.allFields?.['IDEALWEIGHT'] || 
+                            webhookData.allFields?.['ideal weight'] || 
+                            webhookData.allFields?.['IDEAL WEIGHT'] ||
+                            webhookData.allFields?.['Ideal Weight'] ||
+                            webhookData.allFields?.['idealweight'] ||
+                            webhookData.allFields?.['ideal_weight'] ||
+                            webhookData.allFields?.['IdealWeight'] ||
+                            webhookData.allFields?.['IDEAL_WEIGHT'] || 
+                            'Not provided';
+          
+          currentY = drawRoundedSection(doc, currentY + 20, 'Weight Loss Treatment Info', [
+            [
+              { 
+                label: 'HEIGHT', 
+                value: heightDisplay,
+                fullWidth: true
+              }
+            ],
+            [
+              { 
+                label: 'STARTING WEIGHT', 
+                value: startingWeight,
+                fullWidth: true
+              }
+            ],
+            [
+              { 
+                label: 'IDEAL WEIGHT', 
+                value: idealWeight,
+                fullWidth: true
+              }
+            ],
+            [
+              { 
+                label: 'BMI', 
+                value: webhookData.allFields?.['BMI'] || webhookData.allFields?.['bmi'] || 'Not provided',
+                fullWidth: true
+              }
+            ]
+          ]);
+        }
+
         // Add Medical History on new page
         doc.addPage();
 
@@ -357,74 +426,6 @@ export class PDFService {
           ]
         ]);
 
-        // Add Weight Loss Treatment Info section instead of Additional Information
-        if (webhookData.allFields) {
-          const feet = webhookData.allFields?.['FEET'] || webhookData.allFields?.['feet'] || '';
-          const inches = webhookData.allFields?.['INCHES'] || webhookData.allFields?.['inches'] || '';
-          const heightDisplay = feet && inches ? `${feet}' ${inches}"` : 'Not provided';
-          
-          // Try to find starting weight with various field names
-          const startingWeight = webhookData.allFields?.['STARTING WEIGHT'] || 
-                               webhookData.allFields?.['starting weight'] || 
-                               webhookData.allFields?.['STARTINGWEIGHT'] ||
-                               webhookData.allFields?.['Starting Weight'] ||
-                               webhookData.allFields?.['starting_weight'] ||
-                               webhookData.allFields?.['startingweight'] ||
-                               webhookData.allFields?.['StartingWeight'] ||
-                               webhookData.allFields?.['STARTING_WEIGHT'] || 
-                               'Not provided';
-          
-          // Try to find ideal weight with various field names
-          const idealWeight = webhookData.allFields?.['IDEALWEIGHT'] || 
-                            webhookData.allFields?.['ideal weight'] || 
-                            webhookData.allFields?.['IDEAL WEIGHT'] ||
-                            webhookData.allFields?.['Ideal Weight'] ||
-                            webhookData.allFields?.['idealweight'] ||
-                            webhookData.allFields?.['ideal_weight'] ||
-                            webhookData.allFields?.['IdealWeight'] ||
-                            webhookData.allFields?.['IDEAL_WEIGHT'] || 
-                            'Not provided';
-          
-          // Ensure Medical History has enough space to complete
-          if (currentY > 550) {  // Lowered from 600 to give more room
-            doc.addPage();
-            currentY = 50;
-          } else {
-            currentY = currentY + 20;
-          }
-          
-          currentY = drawRoundedSection(doc, currentY, 'Weight Loss Treatment Info', [
-            [
-              { 
-                label: 'HEIGHT', 
-                value: heightDisplay,
-                fullWidth: true
-              }
-            ],
-            [
-              { 
-                label: 'STARTING WEIGHT', 
-                value: startingWeight,
-                fullWidth: true
-              }
-            ],
-            [
-              { 
-                label: 'IDEAL WEIGHT', 
-                value: idealWeight,
-                fullWidth: true
-              }
-            ],
-            [
-              { 
-                label: 'BMI', 
-                value: webhookData.allFields?.['BMI'] || webhookData.allFields?.['bmi'] || 'Not provided',
-                fullWidth: true
-              }
-            ]
-          ]);
-        }
-
         // Finalize the PDF
         doc.end();
       } catch (error) {
@@ -447,6 +448,17 @@ function drawRoundedSection(doc: PDFKit.PDFDocument, yPosition: number, title: s
 
   // Add a small bottom padding
   sectionHeight += 10; // Small padding at bottom
+
+  // Check if section will fit on current page
+  const pageHeight = 792; // Letter size height
+  const bottomMargin = 40;
+  const availableSpace = pageHeight - bottomMargin - yPosition;
+  
+  // If section won't fit, start new page
+  if (sectionHeight > availableSpace && yPosition > 100) {
+    doc.addPage();
+    yPosition = 50;
+  }
 
   // Draw rounded rectangle background
   doc.roundedRect(40, yPosition, 532, sectionHeight, 5)
