@@ -180,19 +180,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               </div>
             </div>
 
-            <div className="form-section">
-              <h3>Description (Optional)</h3>
-              <div className="form-group">
-                <textarea
-                  className="form-control"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Invoice description"
-                  rows={3}
-                />
-              </div>
-            </div>
-
             <div className="line-items-section">
               <div className="line-items-header">
                 <h4>Line Items</h4>
@@ -270,7 +257,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                   </div>
                   
                   <div className="details-row">
-                    <div className="description-col">
+                    <div className="description-col-extended">
                       <label className="field-label">DESCRIPTION</label>
                       <input
                         type="text"
@@ -282,18 +269,11 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                         required
                       />
                     </div>
-                    <div className="price-col">
+                    <div className="price-display-col">
                       <label className="field-label">UNIT PRICE</label>
-                      <input
-                        type="number"
-                        className="line-item-input price-input"
-                        value={item.unit_price}
-                        onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                        min="0"
-                        step="0.01"
-                        disabled={item.service_id !== 'custom' && item.service_id !== ''}
-                        required
-                      />
+                      <div className="price-display">
+                        ${item.unit_price.toFixed(2)}
+                      </div>
                     </div>
                     <div className="total-col">
                       <label className="field-label">TOTAL</label>
@@ -311,6 +291,22 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                       </div>
                     )}
                   </div>
+                  
+                  {item.service_id === 'custom' && (
+                    <div className="custom-price-row">
+                      <label className="field-label">CUSTOM PRICE</label>
+                      <input
+                        type="number"
+                        className="line-item-input price-input-custom"
+                        value={item.unit_price}
+                        onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                        min="0"
+                        step="0.01"
+                        placeholder="Enter price"
+                        required
+                      />
+                    </div>
+                  )}
                   
                   {item.billing_type === 'recurring' && (
                     <div className="recurring-notice">
@@ -332,6 +328,19 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
               >
                 + Add Line Item
               </button>
+            </div>
+
+            <div className="form-section">
+              <h3>Description (Optional)</h3>
+              <div className="form-group">
+                <textarea
+                  className="form-control"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Invoice description"
+                  rows={3}
+                />
+              </div>
             </div>
 
             <div className="total-section">

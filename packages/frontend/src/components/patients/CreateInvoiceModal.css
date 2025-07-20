@@ -215,11 +215,11 @@ textarea.form-control {
   margin-bottom: 8px;
 }
 
-.description-col {
+.description-col-extended {
   flex: 1;
 }
 
-.price-col {
+.price-display-col {
   width: 120px;
 }
 
@@ -246,6 +246,45 @@ textarea.form-control {
 }
 
 .description-input:focus {
+  outline: none;
+  border-color: #14a97b;
+  box-shadow: 0 0 0 2px rgba(20, 169, 123, 0.1);
+}
+
+.price-display {
+  font-weight: 600;
+  color: #111827;
+  font-size: 14px;
+  text-align: right;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Custom Price Row */
+.custom-price-row {
+  margin-top: 12px;
+}
+
+.price-input-custom {
+  width: 200px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: white;
+  text-align: right;
+  transition: all 0.2s;
+  height: 36px;
+}
+
+.price-input-custom:focus {
   outline: none;
   border-color: #14a97b;
   box-shadow: 0 0 0 2px rgba(20, 169, 123, 0.1);
