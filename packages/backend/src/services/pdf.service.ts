@@ -82,11 +82,11 @@ export class PDFService {
           const logoPath = path.join(__dirname, '../assets/eonmeds-logo.png');
           doc.image(logoPath, 40, 40, { width: 120 });
         } catch (error) {
-          // Fallback to text logo if image fails
-          doc.fontSize(36)
+          // Fallback to text logo if image fails with Poppins-like styling
+          doc.fontSize(32)
              .fillColor('#20c997')
              .font('Helvetica-Bold')
-             .text('eonmeds', 40, 40, { align: 'left' })
+             .text('eonmeds', 40, 45, { align: 'left' })
              .fillColor('#000000');
         }
 
@@ -426,9 +426,28 @@ export class PDFService {
           ]
         ]);
 
-        // Add form details footer at the bottom of the last page
+        // Check if there's enough space for footer (80 points needed)
+        const footerHeight = 80;
         const pageHeight = 792; // Letter size height
-        const footerY = pageHeight - 60; // 60 points from bottom
+        const currentPageSpace = pageHeight - currentY - 40; // 40 for bottom margin
+        
+        // If not enough space, add new page
+        if (currentPageSpace < footerHeight) {
+          doc.addPage();
+          currentY = 50;
+        } else {
+          currentY = currentY + 20;
+        }
+        
+        // Calculate footer position - always at bottom of current page
+        const footerY = pageHeight - 60;
+        
+        // Draw transparent container for footer
+        doc.rect(40, footerY - 15, 532, 65)
+           .fillColor('#f9f9f9')
+           .fillOpacity(0.5)
+           .fill()
+           .fillOpacity(1); // Reset opacity
         
         // Draw a line above the footer
         doc.moveTo(40, footerY - 10)
@@ -440,22 +459,40 @@ export class PDFService {
         doc.fillColor('#666666')
            .fontSize(8)
            .font('Helvetica')
-           .text('Form Details', 40, footerY, { align: 'left' });
+           .text('Form Details', 50, footerY, { align: 'left' });
         
-        // Flow ID and Submission ID
-        const flowId = webhookData.flow_id || 'Not available';
-        const submissionId = webhookData.submission_id || 'Not available';
+        // Try to get flow ID and submission ID from various possible locations
+        const flowId = webhookData.allFields?.['flowID'] || 
+                      webhookData.allFields?.['flow_id'] || 
+                      webhookData.allFields?.['Flow ID'] ||
+                      webhookData.flowID ||
+                      webhookData.flow_id ||
+                      patientData.flow_id ||
+                      'Not available';
+                      
+        const submissionId = webhookData.allFields?.['submissionID'] || 
+                           webhookData.allFields?.['submission_id'] || 
+                           webhookData.allFields?.['Submission ID'] ||
+                           webhookData.submissionID ||
+                           webhookData.submission_id ||
+                           patientData.heyflow_submission_id ||
+                           'Not available';
         
         doc.fillColor('#666666')
            .fontSize(8)
-           .text(`Flow ID: ${flowId} | Submission ID: ${submissionId}`, 40, footerY + 12);
+           .text(`Flow ID: ${flowId} | Submission ID: ${submissionId}`, 50, footerY + 12);
         
         // Form submission info
-        doc.text('This form was submitted electronically via HeyFlow', 40, footerY + 24);
+        doc.text('This form was submitted electronically via HeyFlow', 50, footerY + 24);
         
-        // Date
-        const submissionDate = webhookData.created_at || new Date().toISOString();
-        doc.text(`Date: ${submissionDate}`, 40, footerY + 36);
+        // Date - try multiple sources
+        const submissionDate = webhookData.allFields?.['created_at'] || 
+                             webhookData.allFields?.['createdAt'] ||
+                             webhookData.created_at || 
+                             webhookData.createdAt ||
+                             patientData.created_at ||
+                             new Date().toISOString();
+        doc.text(`Date: ${submissionDate}`, 50, footerY + 36);
 
         // Finalize the PDF
         doc.end();
