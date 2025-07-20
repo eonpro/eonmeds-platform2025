@@ -918,4 +918,69 @@ router.post('/invoices/:invoiceId/pay', async (req, res) => {
   }
 });
 
+// Delete invoice
+router.delete('/invoices/:invoiceId', async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+    
+    // Start transaction
+    await pool.query('BEGIN');
+    
+    try {
+      // Check if invoice exists and is not paid
+      const invoiceResult = await pool.query(
+        'SELECT id, status, invoice_number FROM invoices WHERE id = $1',
+        [invoiceId]
+      );
+      
+      if (invoiceResult.rows.length === 0) {
+        await pool.query('ROLLBACK');
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Invoice not found' 
+        });
+      }
+      
+      const invoice = invoiceResult.rows[0];
+      
+      // Only allow deletion of unpaid invoices
+      if (invoice.status === 'paid') {
+        await pool.query('ROLLBACK');
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Cannot delete paid invoices' 
+        });
+      }
+      
+      // Delete invoice items first (foreign key constraint)
+      await pool.query('DELETE FROM invoice_items WHERE invoice_id = $1', [invoiceId]);
+      
+      // Delete any payments associated with this invoice (if any partial payments)
+      await pool.query('DELETE FROM invoice_payments WHERE invoice_id = $1', [invoiceId]);
+      
+      // Delete the invoice
+      await pool.query('DELETE FROM invoices WHERE id = $1', [invoiceId]);
+      
+      // Commit transaction
+      await pool.query('COMMIT');
+      
+      res.json({
+        success: true,
+        message: `Invoice ${invoice.invoice_number} deleted successfully`
+      });
+      
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      throw error;
+    }
+    
+  } catch (error) {
+    console.error('Error deleting invoice:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to delete invoice' 
+    });
+  }
+});
+
 export default router; 

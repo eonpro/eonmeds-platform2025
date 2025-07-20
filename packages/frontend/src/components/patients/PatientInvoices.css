@@ -230,10 +230,22 @@
   color: #111827;
   border-color: #d1d5db;
   background: #f9fafb;
+  transform: translateY(-1px);
 }
 
 .action-btn:active {
   background: #f3f4f6;
+}
+
+.action-btn.delete-btn {
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+.action-btn.delete-btn:hover {
+  background-color: #dc2626;
+  color: white;
+  border-color: #dc2626;
 }
 
 /* No Invoices State */

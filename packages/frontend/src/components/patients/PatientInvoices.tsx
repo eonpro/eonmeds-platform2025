@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { CreateInvoiceModal } from './CreateInvoiceModal';
 import { InvoiceDetailsModal } from './InvoiceDetailsModal';
@@ -51,43 +51,60 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
   });
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch invoices
-  useEffect(() => {
-    fetchInvoices();
-  }, [patientId]);
-
-  const fetchInvoices = async () => {
+  const loadInvoices = useCallback(async () => {
     try {
+      setLoading(true);
       const response = await apiClient.get(`/api/v1/payments/invoices/patient/${patientId}`);
       setInvoices(response.data.invoices || []);
-      setError(null);
-      
-      // Calculate summary data
-      const outstanding = response.data.invoices
-        .filter((inv: Invoice) => inv.status === 'open')
-        .reduce((sum: number, inv: Invoice) => sum + inv.amount_due, 0);
-      
-      const totalPaid = response.data.invoices
-        .filter((inv: Invoice) => inv.status === 'paid')
-        .reduce((sum: number, inv: Invoice) => sum + inv.amount_paid, 0);
-      
-      setSummaryData({
-        outstanding,
-        uninvoiced: 0, // This would come from a separate API call for unbilled services
-        totalPaid
-      });
-    } catch (err: any) {
-      console.error('Error fetching invoices:', err);
-      
-      // If it's an auth error, suggest re-login
-      if (err.response?.status === 401) {
-        setError('Your session has expired. Please log out and log back in.');
-      } else {
-        setError('Failed to load invoices');
-      }
+      calculateSummary(response.data.invoices || []);
+    } catch (error) {
+      console.error('Error loading invoices:', error);
+      setInvoices([]);
     } finally {
       setLoading(false);
     }
+  }, [patientId, apiClient]);
+
+  const handleDeleteInvoice = async (invoice: Invoice) => {
+    if (invoice.status === 'paid') {
+      alert('Cannot delete paid invoices');
+      return;
+    }
+    
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete invoice ${invoice.invoice_number}?\n\nThis action cannot be undone.`
+    );
+    
+    if (!confirmDelete) return;
+    
+    try {
+      await apiClient.delete(`/api/v1/payments/invoices/${invoice.id}`);
+      alert('Invoice deleted successfully');
+      loadInvoices(); // Reload the list
+    } catch (error: any) {
+      console.error('Error deleting invoice:', error);
+      alert(error.response?.data?.error || 'Failed to delete invoice');
+    }
+  };
+
+  useEffect(() => {
+    loadInvoices();
+  }, [loadInvoices]);
+
+  const calculateSummary = (invoices: Invoice[]) => {
+    const outstanding = invoices
+      .filter((inv: Invoice) => inv.status === 'open')
+      .reduce((sum: number, inv: Invoice) => sum + inv.amount_due, 0);
+    
+    const totalPaid = invoices
+      .filter((inv: Invoice) => inv.status === 'paid')
+      .reduce((sum: number, inv: Invoice) => sum + inv.amount_paid, 0);
+    
+    setSummaryData({
+      outstanding,
+      uninvoiced: 0, // This would come from a separate API call for unbilled services
+      totalPaid
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -232,6 +249,13 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
                             >
                               Mark Paid
                             </button>
+                            <button 
+                              onClick={() => handleDeleteInvoice(invoice)}
+                              className="action-btn delete-btn"
+                              title="Delete Invoice"
+                            >
+                              Delete
+                            </button>
                           </>
                         )}
                       </div>
@@ -252,7 +276,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
           onClose={() => setShowCreateModal(false)}
           onSuccess={() => {
             setShowCreateModal(false);
-            fetchInvoices();
+            loadInvoices();
           }}
         />
       )}
@@ -278,7 +302,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
           onSuccess={() => {
             setShowPaymentModal(false);
             setSelectedInvoice(null);
-            fetchInvoices();
+            loadInvoices();
           }}
         />
       )}
@@ -294,7 +318,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
           onSuccess={() => {
             setShowMarkPaidModal(false);
             setSelectedInvoice(null);
-            fetchInvoices();
+            loadInvoices();
           }}
         />
       )}
