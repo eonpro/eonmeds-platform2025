@@ -272,12 +272,14 @@ export class PDFService {
 
         // Add Additional Information section to show all other fields
         if (webhookData.allFields && Object.keys(webhookData.allFields).length > 0) {
-          const additionalFieldRows: any[] = [];
+          const additionalFields: any[] = [];
           
-          // Filter out fields we've already shown
+          // Filter out fields we've already shown AND location data
           const shownFields = [
             'street', 'address', 'apartment#', 'apt', 'city', 'state', 'zip', 'country',
             'address [city]', 'address [state]', 'address [zip]', 'address [country]',
+            'address [longitude]', 'address [latitude]', 'longitude', 'latitude',
+            'ADDRESS [LONGITUDE]', 'ADDRESS [LATITUDE]', 'LONGITUDE', 'LATITUDE',
             'Are you currently taking, or have you ever taken, a GLP-1 medication?',
             'Do you have a personal history of type 2 diabetes?',
             'Do you have a personal history of medullary thyroid cancer?',
@@ -296,37 +298,29 @@ export class PDFService {
             'UTM Source', 'UTM Medium', 'UTM Campaign', 'UTM Content', 'UTM Term', 'UTM ID'
           ];
           
+          // Collect all additional fields
           Object.entries(webhookData.allFields).forEach(([key, value]) => {
             if (!shownFields.includes(key) && value && value !== '') {
-              // Each field gets its own row with full width, just like Medical History
-              additionalFieldRows.push([
-                {
-                  label: key.toUpperCase().replace(/_/g, ' '),
-                  value: formatAnswer(String(value)),
-                  fullWidth: true
-                }
-              ]);
+              additionalFields.push({
+                label: key.toUpperCase().replace(/_/g, ' '),
+                value: formatAnswer(String(value)),
+                fullWidth: true
+              });
             }
           });
           
-          if (additionalFieldRows.length > 0) {
-            // Split fields into chunks that fit on a page
-            const fieldsPerPage = 15; // Approximately how many fields fit on one page
-            
-            for (let i = 0; i < additionalFieldRows.length; i += fieldsPerPage) {
-              const chunk = additionalFieldRows.slice(i, i + fieldsPerPage);
-              
-              // Check if we need a new page
-              if (currentY > 650 || i > 0) {
-                doc.addPage();
-                currentY = 50;
-              } else {
-                currentY = currentY + 20;
-              }
-              
-              const sectionTitle = i === 0 ? 'Additional Information' : 'Additional Information (continued)';
-              currentY = drawCompactSection(doc, currentY, sectionTitle, chunk);
+          if (additionalFields.length > 0) {
+            // Check if we need a new page
+            if (currentY > 650) {
+              doc.addPage();
+              currentY = 50;
+            } else {
+              currentY = currentY + 20;
             }
+            
+            // Group all fields into a single compact section
+            const fieldsAsRows = additionalFields.map(field => [field]);
+            currentY = drawCompactSection(doc, currentY, 'Additional Information', fieldsAsRows);
           }
         }
 
@@ -420,16 +414,26 @@ function drawRoundedSection(doc: PDFKit.PDFDocument, yPosition: number, title: s
 
 // Compact version for Additional Information fields
 function drawCompactSection(doc: PDFKit.PDFDocument, yPosition: number, title: string, fieldRows: any[]): number {
-  let sectionHeight = 35; // Base height for title
+  // For very large sections, we need to handle page breaks
+  const pageHeight = 700; // Usable height on a page
+  const titleHeight = 35;
+  const fieldHeight = 20; // Reduced from 25 for more compact display
+  const bottomPadding = 10;
   
-  // Calculate section height with very tight spacing
-  fieldRows.forEach(row => {
-    sectionHeight += 25; // Much smaller spacing for compact fields
-  });
-
-  // Add a small bottom padding
-  sectionHeight += 10;
-
+  // Calculate how many fields fit on current page
+  const remainingSpace = pageHeight - yPosition;
+  const fieldsOnFirstPage = Math.floor((remainingSpace - titleHeight - bottomPadding) / fieldHeight);
+  
+  if (fieldsOnFirstPage < 3 && fieldRows.length > 3) {
+    // Not enough room, start on new page
+    doc.addPage();
+    yPosition = 50;
+  }
+  
+  // Draw first section
+  const firstBatch = fieldRows.slice(0, Math.min(fieldsOnFirstPage, fieldRows.length));
+  let sectionHeight = titleHeight + (firstBatch.length * fieldHeight) + bottomPadding;
+  
   // Draw rounded rectangle background
   doc.roundedRect(40, yPosition, 532, sectionHeight, 5)
      .fillColor('#f5f5f5')
@@ -445,25 +449,67 @@ function drawCompactSection(doc: PDFKit.PDFDocument, yPosition: number, title: s
   doc.font('Helvetica')
      .fontSize(10);
 
-  let currentY = yPosition + 40;
+  let currentY = yPosition + 35;
 
-  // Draw fields with tighter spacing
-  fieldRows.forEach(row => {
+  // Draw first batch of fields
+  firstBatch.forEach(row => {
     row.forEach((field: any) => {
       // Label and value on same line for very compact display
       doc.fillColor('#666666')
          .fontSize(8)
          .text(field.label + ':', 60, currentY, { continued: true })
          .fillColor('#000000')
-         .fontSize(10)
+         .fontSize(9)
          .text(' ' + (field.value || 'Not provided'), { align: 'left' });
     });
-
-    // Move to next row with minimal spacing
-    currentY += 25;
+    currentY += fieldHeight;
   });
+  
+  let finalY = yPosition + sectionHeight;
+  
+  // Handle remaining fields if any
+  if (fieldRows.length > fieldsOnFirstPage) {
+    const remainingFields = fieldRows.slice(fieldsOnFirstPage);
+    const fieldsPerPage = Math.floor((pageHeight - 70) / fieldHeight); // 70 for margins
+    
+    for (let i = 0; i < remainingFields.length; i += fieldsPerPage) {
+      doc.addPage();
+      const batch = remainingFields.slice(i, i + fieldsPerPage);
+      const batchHeight = titleHeight + (batch.length * fieldHeight) + bottomPadding;
+      
+      // Draw section
+      doc.roundedRect(40, 50, 532, batchHeight, 5)
+         .fillColor('#f5f5f5')
+         .fill();
+      
+      // Section title
+      doc.fillColor('#000000')
+         .fontSize(14)
+         .font('Helvetica-Bold')
+         .text(title + ' (continued)', 60, 65);
+      
+      // Fields
+      doc.font('Helvetica')
+         .fontSize(10);
+      
+      currentY = 85;
+      batch.forEach(row => {
+        row.forEach((field: any) => {
+          doc.fillColor('#666666')
+             .fontSize(8)
+             .text(field.label + ':', 60, currentY, { continued: true })
+             .fillColor('#000000')
+             .fontSize(9)
+             .text(' ' + (field.value || 'Not provided'), { align: 'left' });
+        });
+        currentY += fieldHeight;
+      });
+      
+      finalY = 50 + batchHeight;
+    }
+  }
 
-  return yPosition + sectionHeight;
+  return finalY;
 }
 
 // Updated date formatter to match mockup
