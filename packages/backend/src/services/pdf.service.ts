@@ -426,41 +426,40 @@ export class PDFService {
           ]
         ]);
 
-        // Add footer on the current page - ensure it stays together
-        const footerHeight = 70; // Height needed for footer
+        // Ensure footer stays together on one page
         const pageHeight = 792; // Letter size height
-        const bottomMargin = 40;
-        const maxContentY = pageHeight - bottomMargin - footerHeight;
+        const footerStartY = pageHeight - 80; // Where footer starts
+        const footerHeight = 60; // Total height of footer content
         
-        // If we're too close to bottom, start a new page for the footer
-        if (currentY > maxContentY) {
+        // Check if current position would interfere with footer
+        if (currentY > footerStartY - 20) {
+          // Add new page for footer
           doc.addPage();
         }
         
-        // Always place footer at bottom of page
-        const footerY = pageHeight - 70;
+        // Position footer at bottom of current page
+        const footerY = pageHeight - 75;
         
-        // Draw transparent container for footer
-        doc.rect(40, footerY - 10, 532, 65)
+        // Draw footer background as one block
+        doc.rect(40, footerY - 5, 532, footerHeight)
            .fillColor('#f5f5f5')
            .fillOpacity(0.3)
            .fill()
-           .fillOpacity(1); // Reset opacity
+           .fillOpacity(1);
         
-        // Draw a line above the footer
-        doc.moveTo(40, footerY - 15)
-           .lineTo(572, footerY - 15)
+        // Draw separator line
+        doc.moveTo(40, footerY - 8)
+           .lineTo(572, footerY - 8)
            .strokeColor('#cccccc')
            .lineWidth(0.5)
            .stroke();
         
-        // Add form details
+        // Add all footer text in one continuous block
         doc.fillColor('#666666')
            .fontSize(8)
-           .font('Helvetica')
-           .text('Form Details', 50, footerY);
+           .font('Helvetica');
         
-        // Get flow ID and submission ID from the webhook data
+        // Get all footer data
         const flowId = webhookData.flowID || 
                       webhookData.flow_id ||
                       patientData.form_type ||
@@ -471,17 +470,14 @@ export class PDFService {
                            patientData.heyflow_submission_id ||
                            'Not available';
         
-        // Format the details on one line
-        doc.fontSize(8)
-           .text(`Flow ID: ${flowId} | Submission ID: ${submissionId}`, 50, footerY + 12);
-        
-        // Form submission info
-        doc.text('This form was submitted electronically via HeyFlow', 50, footerY + 26);
-        
-        // Date
         const submissionDate = webhookData.created_at || 
                              patientData.created_at ||
                              new Date().toISOString();
+        
+        // Write all footer text without page breaks
+        doc.text('Form Details', 50, footerY);
+        doc.text(`Flow ID: ${flowId} | Submission ID: ${submissionId}`, 50, footerY + 12);
+        doc.text('This form was submitted electronically via HeyFlow', 50, footerY + 26);
         doc.text(`Date: ${submissionDate}`, 50, footerY + 40);
 
         // Finalize the PDF
