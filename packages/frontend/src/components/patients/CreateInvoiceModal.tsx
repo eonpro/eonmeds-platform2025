@@ -119,7 +119,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         is_recurring: item.billing_type === 'recurring'
       }));
 
-      await apiClient.post('/api/v1/invoices', {
+      await apiClient.post('/api/v1/payments/invoices/create', {
         patient_id: patientId,
         due_date: dueDate,
         description,
