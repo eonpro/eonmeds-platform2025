@@ -273,7 +273,6 @@ export class PDFService {
         // Add Additional Information section to show all other fields
         if (webhookData.allFields && Object.keys(webhookData.allFields).length > 0) {
           const additionalFieldRows: any[] = [];
-          const tempRow: any[] = [];
           
           // Filter out fields we've already shown
           const shownFields = [
@@ -297,30 +296,18 @@ export class PDFService {
             'UTM Source', 'UTM Medium', 'UTM Campaign', 'UTM Content', 'UTM Term', 'UTM ID'
           ];
           
-          let fieldCount = 0;
           Object.entries(webhookData.allFields).forEach(([key, value]) => {
             if (!shownFields.includes(key) && value && value !== '') {
-              tempRow.push({
-                label: key.toUpperCase().replace(/_/g, ' '),
-                value: formatAnswer(String(value)),
-                fullWidth: false
-              });
-              
-              fieldCount++;
-              
-              // Group fields in pairs
-              if (tempRow.length === 2) {
-                additionalFieldRows.push([...tempRow]);
-                tempRow.length = 0;
-              }
+              // Each field gets its own row with full width, just like Medical History
+              additionalFieldRows.push([
+                {
+                  label: key.toUpperCase().replace(/_/g, ' '),
+                  value: formatAnswer(String(value)),
+                  fullWidth: true
+                }
+              ]);
             }
           });
-          
-          // Add any remaining field
-          if (tempRow.length > 0) {
-            tempRow[0].fullWidth = true; // Make single field full width
-            additionalFieldRows.push([...tempRow]);
-          }
           
           if (additionalFieldRows.length > 0) {
             // Only add new page if we're really near the bottom
