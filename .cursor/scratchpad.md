@@ -1,5 +1,152 @@
 # EONMeds Platform - Project Scratchpad
 
+## HeyFlow Webhook Reusability Analysis (January 2025)
+
+### Background and Motivation
+The user wants to know if we can use the same webhook URL (`https://eonmeds-platform2025-production.up.railway.app/api/v1/webhooks/heyflow`) for another HeyFlow form, or if we need to create a different webhook URL.
+
+### Current Webhook Implementation Analysis
+
+#### What the Current Webhook Does:
+1. **Accepts all HeyFlow submissions** at `/api/v1/webhooks/heyflow`
+2. **Stores raw webhook data** in `webhook_events` table for compliance
+3. **Extracts patient data** from various possible payload formats
+4. **Creates patient records** based on form data
+5. **Handles multiple form types** through the `form_type` field
+
+#### Key Design Features:
+- **Form Type Detection**: Uses `form_type` field to identify which form was submitted
+- **Flexible Field Mapping**: Handles multiple field name variations (e.g., firstname, first_name, firstName)
+- **Multiple Payload Formats**: Supports 5 different payload structures
+- **Extensible Processing**: Can route to different handlers based on form type
+
+### Can We Reuse the Same Webhook URL?
+
+**YES, you can and should reuse the same webhook URL!** Here's why:
+
+#### Advantages of Using Same URL:
+1. **Already Built for Multiple Forms**: The webhook controller detects `form_type` field
+2. **Centralized Processing**: All form submissions go through same security/validation
+3. **Unified Logging**: All webhooks stored in same `webhook_events` table
+4. **Easier Management**: One endpoint to monitor and maintain
+5. **Better Analytics**: Can track all form submissions in one place
+
+#### How It Works:
+```typescript
+// The webhook already extracts form_type:
+const formType = extractedData.form_type || extractedData.formType || 'unknown';
+
+// And stores it with the patient:
+INSERT INTO patients (..., form_type) VALUES (..., $formType)
+```
+
+### Implementation Strategy for Multiple Forms
+
+#### Option 1: Use Form Type Field (RECOMMENDED)
+1. **Configure HeyFlow**: Add a hidden field `form_type` to each form
+   - Weight Loss Form: `form_type = "weight_loss"`
+   - Testosterone Form: `form_type = "testosterone"`
+   - Mental Health Form: `form_type = "mental_health"`
+
+2. **Process Based on Type**:
+```typescript
+switch (formType) {
+  case 'weight_loss':
+    await processWeightLossIntake(patientData);
+    break;
+  case 'testosterone':
+    await processTestosteroneIntake(patientData);
+    break;
+  case 'mental_health':
+    await processMentalHealthIntake(patientData);
+    break;
+}
+```
+
+#### Option 2: Use Webhook Metadata
+HeyFlow might send form identification in webhook metadata:
+- Check `payload.formId` or `payload.formName`
+- Use this to determine which form was submitted
+
+#### Option 3: Create Separate Endpoints (NOT RECOMMENDED)
+While possible, this creates unnecessary complexity:
+- `/api/v1/webhooks/heyflow/weight-loss`
+- `/api/v1/webhooks/heyflow/testosterone`
+- `/api/v1/webhooks/heyflow/mental-health`
+
+### Recommended Implementation Plan
+
+1. **Use Same Webhook URL** for all HeyFlow forms
+2. **Add Hidden Field** in HeyFlow:
+   - Field Name: `form_type`
+   - Field Type: Hidden
+   - Default Value: Set per form (e.g., "testosterone")
+
+3. **Update Webhook Controller** (if needed):
+   - Add form-specific validation
+   - Create specialized processing functions
+   - Store form-specific data in appropriate tables
+
+4. **Database Considerations**:
+   - `patients` table already has `form_type` column
+   - Can create form-specific tables (e.g., `testosterone_intake`)
+   - Link to patient record via `patient_id`
+
+### Example: Adding Testosterone Form
+
+1. **In HeyFlow**:
+   - Create new form
+   - Add hidden field: `form_type = "testosterone"`
+   - Set webhook URL: `https://eonmeds-platform2025-production.up.railway.app/api/v1/webhooks/heyflow`
+
+2. **In Webhook Controller**:
+```typescript
+// Already extracts form_type
+const formType = extractedData.form_type || 'unknown';
+
+// Add specific processing
+if (formType === 'testosterone') {
+  // Extract testosterone-specific fields
+  const testosteroneData = {
+    patient_id: patient.id,
+    current_therapy: extractedData.current_testosterone_therapy,
+    symptoms: extractedData.symptoms,
+    // ... other fields
+  };
+  
+  // Store in testosterone_intake table
+  await storeTestosteroneIntake(testosteroneData);
+}
+```
+
+### Benefits of This Approach
+1. **Single Point of Entry**: One webhook URL to configure in HeyFlow
+2. **Consistent Security**: All forms go through same validation
+3. **Unified Monitoring**: Track all submissions in one place
+4. **Easier Debugging**: One endpoint to test and debug
+5. **Scalable**: Easy to add new forms without new endpoints
+
+### Potential Concerns & Solutions
+
+**Concern**: Different forms need different processing
+**Solution**: Use form_type to route to appropriate handler
+
+**Concern**: Different forms have different fields
+**Solution**: Flexible field extraction already handles this
+
+**Concern**: Need different validation per form
+**Solution**: Add validation switch based on form_type
+
+**Concern**: Want separate analytics per form
+**Solution**: Filter by form_type in queries/reports
+
+### Conclusion
+✅ **USE THE SAME WEBHOOK URL** - The current implementation is designed for this!
+- Add `form_type` hidden field to each HeyFlow form
+- The webhook will automatically handle different forms
+- No need to create separate endpoints
+- This is the most maintainable and scalable approach
+
 ## Stripe Integration Comprehensive Audit Plan (January 2025)
 
 ### Background and Motivation

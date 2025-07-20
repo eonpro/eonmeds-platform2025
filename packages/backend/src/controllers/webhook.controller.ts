@@ -285,9 +285,10 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         consent_treatment,
         consent_telehealth,
         consent_date,
-        status
+        status,
+        membership_hashtags
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
       )
       ON CONFLICT (email) DO UPDATE SET
         updated_at = NOW(),
@@ -303,7 +304,13 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         apartment_number = EXCLUDED.apartment_number,
         city = EXCLUDED.city,
         state = EXCLUDED.state,
-        zip = EXCLUDED.zip
+        zip = EXCLUDED.zip,
+        membership_hashtags = 
+          CASE 
+            WHEN '#webdirect' = ANY(COALESCE(patients.membership_hashtags, '{}')) 
+            THEN patients.membership_hashtags
+            ELSE array_append(COALESCE(patients.membership_hashtags, '{}'), '#webdirect')
+          END
       RETURNING id, patient_id, email, first_name, last_name`,
       [
         patientId,
@@ -329,7 +336,8 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         patientData.consent_treatment,
         patientData.consent_telehealth,
         new Date(), // consent_date
-        'pending' // status
+        'pending', // status
+        ['#webdirect'] // membership_hashtags - automatically add #webdirect to all HeyFlow submissions
       ]
     );
     

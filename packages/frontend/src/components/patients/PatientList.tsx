@@ -426,17 +426,35 @@ export const PatientList: React.FC = () => {
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.qualified;
 
     return (
-      <span style={{
-        padding: '4px 12px',
-        borderRadius: '4px',
-        fontSize: '12px',
-        fontWeight: '500',
-        color: config.color,
-        backgroundColor: config.bg,
-        display: 'inline-block'
-      }}>
-        {config.label}
-      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <span style={{
+          padding: '4px 12px',
+          borderRadius: '4px',
+          fontSize: '12px',
+          fontWeight: '500',
+          color: config.color,
+          backgroundColor: config.bg,
+          display: 'inline-block'
+        }}>
+          {config.label}
+        </span>
+        {patient.membership_hashtags && patient.membership_hashtags.map((hashtag, index) => (
+          <span 
+            key={index}
+            style={{
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '11px',
+              fontWeight: '500',
+              color: '#6B7280',
+              backgroundColor: '#F3F4F6',
+              display: 'inline-block'
+            }}
+          >
+            {hashtag}
+          </span>
+        ))}
+      </div>
     );
   }
 }; 
