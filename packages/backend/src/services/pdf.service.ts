@@ -156,6 +156,23 @@ export class PDFService {
               value: capitalizeFirst(webhookData.referral_source) || 'Not specified',
               fullWidth: true
             }
+          ],
+          [
+            { 
+              label: 'HOW WOULD YOUR LIFE CHANGE BY LOSING WEIGHT?', 
+              value: webhookData.allFields?.['How would your life change by losing weight?'] || 
+                     webhookData.allFields?.['HOW WOULD YOUR LIFE CHANGE BY LOSING WEIGHT?'] || 
+                     'Not specified',
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'WOULD YOU BE INTERESTED IN YOUR PROVIDER CONSIDERING A PERSONALIZED TREATMENT PLAN TO HELP YOU MANAGE THESE SIDE EFFECTS?', 
+              value: formatAnswer(webhookData.allFields?.['Would you be interested in your provider considering a personalized treatment plan to help you manage these side effects?'] || 
+                                 webhookData.allFields?.['WOULD YOU BE INTERESTED IN YOUR PROVIDER CONSIDERING A PERSONALIZED TREATMENT PLAN TO HELP YOU MANAGE THESE SIDE EFFECTS?'] || ''),
+              fullWidth: true
+            }
           ]
         ]);
 
@@ -267,6 +284,70 @@ export class PDFService {
               value: webhookData.blood_pressure || 'Not provided',
               fullWidth: true
             }
+          ],
+          [
+            { 
+              label: 'HAVE YOU BEEN DIAGNOSED WITH ANY MENTAL HEALTH CONDITION?', 
+              value: formatAnswer(webhookData.allFields?.['Have you been diagnosed with any mental health condition?'] || 
+                                 webhookData.allFields?.['HAVE YOU BEEN DIAGNOSED WITH ANY MENTAL HEALTH CONDITION?'] || ''),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'DO YOU HAVE A PERSONAL HISTORY OF MEDULLARY THYROID CANCER?', 
+              value: formatAnswer(webhookData.allFields?.['Do you have a personal history of medullary thyroid cancer?1'] || 
+                                 webhookData.allFields?.['DO YOU HAVE A PERSONAL HISTORY OF MEDULLARY THYROID CANCER?1'] || ''),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'HAVE YOU EVER UNDERGONE ANY SURGERIES OR MEDICAL PROCEDURES?', 
+              value: formatAnswer(webhookData.allFields?.['Have you ever undergone any surgeries or medical procedures?'] || 
+                                 webhookData.allFields?.['HAVE YOU EVER UNDERGONE ANY SURGERIES OR MEDICAL PROCEDURES?'] || ''),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'HAVE YOU BEEN DIAGNOSED WITH ANY OF THE FOLLOWING CONDITIONS?', 
+              value: formatAnswer(webhookData.allFields?.['Have you been diagnosed with any of the following conditions?'] || 
+                                 webhookData.allFields?.['HAVE YOU BEEN DIAGNOSED WITH ANY OF THE FOLLOWING CONDITIONS?'] || ''),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'CHRONIC DISEASES: DO YOU HAVE A HISTORY OF ANY OF THE FOLLOWING?', 
+              value: formatAnswer(webhookData.allFields?.['Chronic Diseases: Do you have a history of any of the following?'] || 
+                                 webhookData.allFields?.['CHRONIC DISEASES: DO YOU HAVE A HISTORY OF ANY OF THE FOLLOWING?'] || ''),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'DO YOU USUALLY PRESENT SIDE EFFECTS WHEN STARTING A NEW MEDICATION?', 
+              value: formatAnswer(webhookData.allFields?.['Do you usually present side effects when starting a new medication?'] || 
+                                 webhookData.allFields?.['DO YOU USUALLY PRESENT SIDE EFFECTS WHEN STARTING A NEW MEDICATION?'] || ''),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'HAVE YOU EVER UNDERGONE ANY OF THE FOLLOWING WEIGHT LOSS SURGERIES OR PROCEDURES?', 
+              value: formatAnswer(webhookData.allFields?.['Have you ever undergone any of the following weight loss surgeries or procedures?'] || 
+                                 webhookData.allFields?.['HAVE YOU EVER UNDERGONE ANY OF THE FOLLOWING WEIGHT LOSS SURGERIES OR PROCEDURES?'] || ''),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'HAVE YOU OR ANY OF YOUR FAMILY MEMBERS EVER BEEN DIAGNOSED WITH ANY OF THE FOLLOWING CONDITIONS?', 
+              value: formatAnswer(webhookData.allFields?.['Have you or any of your family members ever been diagnosed with any of the following conditions?'] || 
+                                 webhookData.allFields?.['HAVE YOU OR ANY OF YOUR FAMILY MEMBERS EVER BEEN DIAGNOSED WITH ANY OF THE FOLLOWING CONDITIONS?'] || ''),
+              fullWidth: true
+            }
           ]
         ]);
 
@@ -283,6 +364,8 @@ export class PDFService {
             'Are you currently taking, or have you ever taken, a GLP-1 medication?',
             'Do you have a personal history of type 2 diabetes?',
             'Do you have a personal history of medullary thyroid cancer?',
+            'Do you have a personal history of medullary thyroid cancer?1',
+            'DO YOU HAVE A PERSONAL HISTORY OF MEDULLARY THYROID CANCER?1',
             'Do you have a personal history of multiple endocrine neoplasia type-2?',
             'Do you have a personal history of gastroparesis (delayed stomach emptying)?',
             'Are you pregnant or breast feeding?',
@@ -295,7 +378,27 @@ export class PDFService {
             'Terms Agreement',
             'Marketing Consent',
             'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id',
-            'UTM Source', 'UTM Medium', 'UTM Campaign', 'UTM Content', 'UTM Term', 'UTM ID'
+            'UTM Source', 'UTM Medium', 'UTM Campaign', 'UTM Content', 'UTM Term', 'UTM ID',
+            // Medical questions now in Medical History
+            'Have you been diagnosed with any mental health condition?',
+            'HAVE YOU BEEN DIAGNOSED WITH ANY MENTAL HEALTH CONDITION?',
+            'Have you ever undergone any surgeries or medical procedures?',
+            'HAVE YOU EVER UNDERGONE ANY SURGERIES OR MEDICAL PROCEDURES?',
+            'Have you been diagnosed with any of the following conditions?',
+            'HAVE YOU BEEN DIAGNOSED WITH ANY OF THE FOLLOWING CONDITIONS?',
+            'Chronic Diseases: Do you have a history of any of the following?',
+            'CHRONIC DISEASES: DO YOU HAVE A HISTORY OF ANY OF THE FOLLOWING?',
+            'Do you usually present side effects when starting a new medication?',
+            'DO YOU USUALLY PRESENT SIDE EFFECTS WHEN STARTING A NEW MEDICATION?',
+            'Have you ever undergone any of the following weight loss surgeries or procedures?',
+            'HAVE YOU EVER UNDERGONE ANY OF THE FOLLOWING WEIGHT LOSS SURGERIES OR PROCEDURES?',
+            'Have you or any of your family members ever been diagnosed with any of the following conditions?',
+            'HAVE YOU OR ANY OF YOUR FAMILY MEMBERS EVER BEEN DIAGNOSED WITH ANY OF THE FOLLOWING CONDITIONS?',
+            // Treatment readiness questions
+            'How would your life change by losing weight?',
+            'HOW WOULD YOUR LIFE CHANGE BY LOSING WEIGHT?',
+            'Would you be interested in your provider considering a personalized treatment plan to help you manage these side effects?',
+            'WOULD YOU BE INTERESTED IN YOUR PROVIDER CONSIDERING A PERSONALIZED TREATMENT PLAN TO HELP YOU MANAGE THESE SIDE EFFECTS?'
           ];
           
           // Collect all additional fields
