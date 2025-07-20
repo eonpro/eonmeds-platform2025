@@ -24,6 +24,25 @@ The user wants to know if we can use the same webhook URL (`https://eonmeds-plat
 
 **YES, you can and should reuse the same webhook URL!** Here's why:
 
+#### How Form Type Detection Works:
+```typescript
+// Line 252 in webhook.controller.ts
+const formType = payload.flowID || payload.formType || payload.form_type || payload.type || 'unknown';
+```
+
+The webhook automatically detects the form type from these fields:
+1. `flowID` - HeyFlow's form identifier
+2. `formType` - Alternative form type field
+3. `form_type` - Another variation
+4. `type` - Generic type field
+5. Falls back to 'unknown' if none found
+
+#### Current Form Types in Database:
+Looking at the database, we can see these form types:
+- `weight_loss` - Weight loss intake forms
+- `Vho2vAPoENipbDaRusGU` - HeyFlow form ID (newer forms)
+- `unknown` - Forms without type identification
+
 #### Advantages of Using Same URL:
 1. **Already Built for Multiple Forms**: The webhook controller detects `form_type` field
 2. **Centralized Processing**: All form submissions go through same security/validation
@@ -31,121 +50,344 @@ The user wants to know if we can use the same webhook URL (`https://eonmeds-plat
 4. **Easier Management**: One endpoint to monitor and maintain
 5. **Better Analytics**: Can track all form submissions in one place
 
-#### How It Works:
-```typescript
-// The webhook already extracts form_type:
-const formType = extractedData.form_type || extractedData.formType || 'unknown';
-
-// And stores it with the patient:
-INSERT INTO patients (..., form_type) VALUES (..., $formType)
-```
-
 ### Implementation Strategy for Multiple Forms
 
-#### Option 1: Use Form Type Field (RECOMMENDED)
-1. **Configure HeyFlow**: Add a hidden field `form_type` to each form
-   - Weight Loss Form: `form_type = "weight_loss"`
-   - Testosterone Form: `form_type = "testosterone"`
-   - Mental Health Form: `form_type = "mental_health"`
+#### Option 1: Use HeyFlow's flowID (RECOMMENDED)
+HeyFlow automatically sends a `flowID` with each submission. This uniquely identifies each form:
+- Current Weight Loss Form: `Vho2vAPoENipbDaRusGU` 
+- New Testosterone Form: Will have its own unique flowID
+- New Mental Health Form: Will have its own unique flowID
 
-2. **Process Based on Type**:
-```typescript
-switch (formType) {
-  case 'weight_loss':
-    await processWeightLossIntake(patientData);
-    break;
-  case 'testosterone':
-    await processTestosteroneIntake(patientData);
-    break;
-  case 'mental_health':
-    await processMentalHealthIntake(patientData);
-    break;
-}
-```
+**No configuration needed** - the webhook already captures this!
 
-#### Option 2: Use Webhook Metadata
-HeyFlow might send form identification in webhook metadata:
-- Check `payload.formId` or `payload.formName`
-- Use this to determine which form was submitted
+#### Option 2: Add Custom Hidden Field
+If you need more control, add a hidden field in HeyFlow:
+- Field Name: `form_type`
+- Field Type: Hidden
+- Default Value: Set per form (e.g., "testosterone", "mental_health")
 
-#### Option 3: Create Separate Endpoints (NOT RECOMMENDED)
-While possible, this creates unnecessary complexity:
-- `/api/v1/webhooks/heyflow/weight-loss`
-- `/api/v1/webhooks/heyflow/testosterone`
-- `/api/v1/webhooks/heyflow/mental-health`
+#### Current Implementation:
+The webhook already:
+1. Stores the form type in the `patients` table
+2. Adds hashtags based on form type (currently "webdirect" and "weightloss")
+3. Can easily be extended to add different hashtags per form type
 
-### Recommended Implementation Plan
-
-1. **Use Same Webhook URL** for all HeyFlow forms
-2. **Add Hidden Field** in HeyFlow:
-   - Field Name: `form_type`
-   - Field Type: Hidden
-   - Default Value: Set per form (e.g., "testosterone")
-
-3. **Update Webhook Controller** (if needed):
-   - Add form-specific validation
-   - Create specialized processing functions
-   - Store form-specific data in appropriate tables
-
-4. **Database Considerations**:
-   - `patients` table already has `form_type` column
-   - Can create form-specific tables (e.g., `testosterone_intake`)
-   - Link to patient record via `patient_id`
-
-### Example: Adding Testosterone Form
+### How to Add a New HeyFlow Form
 
 1. **In HeyFlow**:
-   - Create new form
-   - Add hidden field: `form_type = "testosterone"`
+   - Create your new form
    - Set webhook URL: `https://eonmeds-platform2025-production.up.railway.app/api/v1/webhooks/heyflow`
+   - Note the flowID that HeyFlow assigns
 
-2. **In Webhook Controller**:
-```typescript
-// Already extracts form_type
-const formType = extractedData.form_type || 'unknown';
+2. **Update Webhook Controller** (optional):
+   ```typescript
+   // Add form-specific hashtags based on flowID
+   let hashtags = ['webdirect']; // Default
+   
+   switch (formType) {
+     case 'Vho2vAPoENipbDaRusGU': // Weight loss form
+       hashtags = ['webdirect', 'weightloss'];
+       break;
+     case 'YOUR_NEW_FORM_ID': // Testosterone form
+       hashtags = ['webdirect', 'testosterone'];
+       break;
+     case 'ANOTHER_FORM_ID': // Mental health form
+       hashtags = ['webdirect', 'mentalhealth'];
+       break;
+   }
+   ```
 
-// Add specific processing
-if (formType === 'testosterone') {
-  // Extract testosterone-specific fields
-  const testosteroneData = {
-    patient_id: patient.id,
-    current_therapy: extractedData.current_testosterone_therapy,
-    symptoms: extractedData.symptoms,
-    // ... other fields
-  };
-  
-  // Store in testosterone_intake table
-  await storeTestosteroneIntake(testosteroneData);
-}
-```
+3. **No Database Changes Needed**:
+   - `form_type` column already exists
+   - `membership_hashtags` already supports arrays
+   - All infrastructure is in place
 
 ### Benefits of This Approach
 1. **Single Point of Entry**: One webhook URL to configure in HeyFlow
-2. **Consistent Security**: All forms go through same validation
-3. **Unified Monitoring**: Track all submissions in one place
-4. **Easier Debugging**: One endpoint to test and debug
-5. **Scalable**: Easy to add new forms without new endpoints
+2. **Automatic Form Detection**: HeyFlow's flowID identifies each form
+3. **Consistent Security**: All forms go through same validation
+4. **Unified Monitoring**: Track all submissions in one place
+5. **Easy Hashtag Management**: Different tags per form type
+6. **Scalable**: Easy to add new forms without new endpoints
 
-### Potential Concerns & Solutions
+### Example: Adding Testosterone Form
 
-**Concern**: Different forms need different processing
-**Solution**: Use form_type to route to appropriate handler
-
-**Concern**: Different forms have different fields
-**Solution**: Flexible field extraction already handles this
-
-**Concern**: Need different validation per form
-**Solution**: Add validation switch based on form_type
-
-**Concern**: Want separate analytics per form
-**Solution**: Filter by form_type in queries/reports
+1. **Create Form in HeyFlow**
+2. **Set Webhook**: `https://eonmeds-platform2025-production.up.railway.app/api/v1/webhooks/heyflow`
+3. **Submit Test**: Note the flowID in the webhook payload
+4. **Update Controller** (if custom hashtags needed):
+   ```typescript
+   case 'NEW_TESTOSTERONE_FORM_ID':
+     hashtags = ['webdirect', 'testosterone', 'hormonetreatment'];
+     break;
+   ```
 
 ### Conclusion
 ✅ **USE THE SAME WEBHOOK URL** - The current implementation is designed for this!
-- Add `form_type` hidden field to each HeyFlow form
-- The webhook will automatically handle different forms
+- HeyFlow sends a unique `flowID` with each submission
+- The webhook automatically captures and stores this
+- You can differentiate forms by their flowID
+- Add form-specific processing/hashtags as needed
 - No need to create separate endpoints
 - This is the most maintainable and scalable approach
+
+## Sales Representative Tracking Plan (January 2025)
+
+### Background and Motivation
+The user has two distinct HeyFlow forms:
+1. **Direct Client Form**: Clients complete the form themselves on the website (current form)
+2. **Rep-Assisted Form**: Sales representatives help patients complete the form (new form)
+
+This distinction is **critical for commission tracking** and requires proper attribution of which sales rep assisted with each patient signup.
+
+### Business Requirements
+
+#### Commission Tracking Needs
+- **Accurate Attribution**: Must know exactly which rep helped each patient
+- **Commission Calculation**: Rep-assisted signups likely have different commission structure
+- **Performance Metrics**: Track conversion rates and performance by rep
+- **Audit Trail**: Clear record of who helped whom for dispute resolution
+
+#### Sales Representatives to Track
+The system must recognize these specific reps:
+1. Laura Zevallos
+2. Ana Saavedra (note: "Saavedra" not "Saavera")
+3. Yasmin Saavedra
+4. Rebecca Raines
+5. Maurizio Llanos (note: "Llanos" not "LLanos")
+6. Max Putrello
+7. Melissa Manley
+8. Chris Lenaham
+
+#### Required Hashtags for Rep-Assisted Forms
+Every rep-assisted patient must have these three hashtags:
+1. `#[repname]` - The actual representative's name (e.g., #LauraZevallos)
+2. `#weightloss` - Treatment type (already implemented)
+3. `#internalrep` - Indicates this was rep-assisted (not direct)
+
+### Technical Implementation Strategy
+
+#### 1. Database Schema Updates
+```sql
+-- Add rep tracking columns to patients table
+ALTER TABLE patients 
+ADD COLUMN IF NOT EXISTS assigned_rep VARCHAR(100),
+ADD COLUMN IF NOT EXISTS rep_form_submission BOOLEAN DEFAULT FALSE;
+
+-- Create index for rep performance queries
+CREATE INDEX IF NOT EXISTS idx_patients_assigned_rep ON patients(assigned_rep);
+```
+
+#### 2. HeyFlow Form Configuration
+For the new rep-assisted form:
+1. **Add Required Fields**:
+   - Field Name: `repname`
+   - Field Type: Dropdown/Select
+   - Options: The 8 rep names listed above
+   - Required: Yes
+   - Validation: Must match exact spelling
+
+2. **Add Hidden Field**:
+   - Field Name: `submission_type`
+   - Value: `rep_assisted`
+   - This differentiates from direct submissions
+
+#### 3. Webhook Controller Updates
+```typescript
+// Extract rep information
+const repName = extractedData.repname || extractedData.rep_name || null;
+const submissionType = extractedData.submission_type || 'direct';
+
+// Validate rep name against allowed list
+const allowedReps = [
+  'Laura Zevallos',
+  'Ana Saavedra',
+  'Yasmin Saavedra',
+  'Rebecca Raines',
+  'Maurizio Llanos',
+  'Max Putrello',
+  'Melissa Manley',
+  'Chris Lenaham'
+];
+
+// Build hashtags based on submission type
+let hashtags = ['webdirect', 'weightloss']; // Base tags
+
+if (submissionType === 'rep_assisted' && repName) {
+  // Validate rep name
+  if (!allowedReps.includes(repName)) {
+    console.error(`Invalid rep name: ${repName}`);
+    // Log error but continue processing
+  }
+  
+  // Format rep name for hashtag (remove spaces)
+  const repHashtag = repName.replace(/\s+/g, '');
+  
+  // Add rep-specific hashtags
+  hashtags.push(repHashtag, 'internalrep');
+}
+
+// Store in database with rep information
+INSERT INTO patients (
+  ...,
+  assigned_rep,
+  rep_form_submission,
+  membership_hashtags
+) VALUES (
+  ...,
+  $repName,
+  $isRepAssisted,
+  $hashtags
+)
+```
+
+#### 4. Differentiation Strategy
+To properly differentiate between forms:
+
+**Option 1: Use Different flowIDs (RECOMMENDED)**
+- Direct form keeps current flowID: `Vho2vAPoENipbDaRusGU`
+- Rep form gets new flowID: `NEW_REP_FORM_ID`
+- Update webhook controller:
+```typescript
+switch (formType) {
+  case 'Vho2vAPoENipbDaRusGU': // Direct form
+    hashtags = ['webdirect', 'weightloss'];
+    break;
+  case 'NEW_REP_FORM_ID': // Rep-assisted form
+    // Add rep hashtags as shown above
+    break;
+}
+```
+
+**Option 2: Use submission_type field**
+- Both forms use same flowID
+- Differentiate using `submission_type` field
+- Less clean but works if flowID must be same
+
+### Commission Tracking Features
+
+#### 1. Rep Performance Dashboard
+```sql
+-- Query for rep performance metrics
+SELECT 
+  assigned_rep,
+  COUNT(*) as total_patients,
+  COUNT(*) FILTER (WHERE status = 'active') as active_patients,
+  COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as last_30_days
+FROM patients
+WHERE rep_form_submission = true
+GROUP BY assigned_rep;
+```
+
+#### 2. Commission Calculation
+```typescript
+// Calculate commissions based on rep assignments
+interface CommissionRule {
+  repName: string;
+  baseRate: number;
+  bonusThreshold: number;
+  bonusRate: number;
+}
+
+// Track rep-specific metrics
+const calculateRepCommission = (repName: string, period: Date) => {
+  // Get all patients for this rep in period
+  // Apply commission rules
+  // Generate commission report
+};
+```
+
+#### 3. Audit Trail
+```sql
+-- Create audit table for commission tracking
+CREATE TABLE rep_commissions (
+  id SERIAL PRIMARY KEY,
+  rep_name VARCHAR(100),
+  patient_id VARCHAR(20),
+  commission_amount DECIMAL(10,2),
+  commission_date DATE,
+  calculation_details JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### Frontend Display Updates
+
+#### 1. Patient List View
+- Show rep name badge for rep-assisted patients
+- Different icon/color for rep vs direct submissions
+- Filter by rep name capability
+
+#### 2. Patient Profile
+- Display "Assisted by: [Rep Name]" prominently
+- Show all three hashtags: #repname #weightloss #internalrep
+- Commission tracking section (admin only)
+
+#### 3. Rep Dashboard (Future)
+- Individual rep performance metrics
+- Commission calculations
+- Patient list per rep
+- Conversion funnel analytics
+
+### Testing Plan
+
+1. **Create Test Scenarios**:
+   - Direct submission (no rep)
+   - Rep submission with valid rep name
+   - Rep submission with invalid rep name
+   - Missing rep name handling
+
+2. **Verify Hashtags**:
+   - Direct: #webdirect #weightloss
+   - Rep: #LauraZevallos #weightloss #internalrep
+
+3. **Commission Calculations**:
+   - Test each rep's commission rules
+   - Verify audit trail creation
+   - Test reporting accuracy
+
+### Implementation Priority
+
+1. **Phase 1 (Immediate)**:
+   - Update webhook controller to extract rep name
+   - Add hashtag logic for rep forms
+   - Differentiate between form types
+
+2. **Phase 2 (Next Sprint)**:
+   - Add database columns for rep tracking
+   - Create commission calculation logic
+   - Build rep performance queries
+
+3. **Phase 3 (Future)**:
+   - Rep dashboard UI
+   - Commission reporting UI
+   - Advanced analytics
+
+### Critical Success Factors
+
+1. **Accurate Rep Attribution**: Never miss or misattribute a rep
+2. **Clear Differentiation**: Always know if direct or rep-assisted
+3. **Proper Hashtag Format**: Consistent naming without spaces
+4. **Commission Accuracy**: Reliable calculation for payroll
+5. **Audit Compliance**: Full trail for commission disputes
+
+### Potential Issues and Mitigations
+
+#### Issue: Rep Name Variations
+**Problem**: "Ana Saavera" vs "Ana Saavedra" 
+**Solution**: Implement fuzzy matching or dropdown validation
+
+#### Issue: Missing Rep Name
+**Problem**: Form submitted without rep selection
+**Solution**: Make field required, add validation, default handling
+
+#### Issue: New Rep Onboarding
+**Problem**: Adding new reps requires code changes
+**Solution**: Create admin interface for rep management
+
+#### Issue: Historical Data
+**Problem**: Existing patients don't have rep attribution
+**Solution**: Keep legacy data as-is, only track going forward
 
 ## Stripe Integration Comprehensive Audit Plan (January 2025)
 

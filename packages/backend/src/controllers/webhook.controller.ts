@@ -250,6 +250,35 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     // Get form type from various possible locations
     const formType = payload.flowID || payload.formType || payload.form_type || payload.type || 'unknown';
     
+    // Extract rep information for Internal Espanol forms
+    const repName = extractedData.repname || extractedData.rep_name || extractedData.representative || null;
+    
+    // Determine hashtags based on form type and rep
+    let hashtags = ['weightloss']; // Base tag for all weight loss forms
+    let isRepForm = false;
+    
+    // Check if this is the Internal Espanol form
+    if (formType === 'Gb2YDWzoMnCcOAH17EYF') {
+      // This is the Internal Espanol 2025 form
+      isRepForm = true;
+      
+      if (repName) {
+        // Format rep name for hashtag (remove spaces)
+        const repHashtag = repName.replace(/\s+/g, '');
+        hashtags.push(repHashtag, 'internalrep');
+        
+        // Log rep assignment
+        console.log(`📋 Rep-assisted form: ${repName}`);
+      } else {
+        // Internal form but no rep specified - shouldn't happen
+        console.warn('⚠️  Internal Espanol form submitted without rep name');
+        hashtags.push('internalrep'); // Still mark as internal
+      }
+    } else {
+      // Regular direct form
+      hashtags.push('webdirect');
+    }
+    
     // Convert state to abbreviation if needed
     const stateAbbreviation = getStateAbbreviation(patientData.state);
     
@@ -286,9 +315,11 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         consent_telehealth,
         consent_date,
         status,
-        membership_hashtags
+        membership_hashtags,
+        assigned_rep,
+        rep_form_submission
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27
       )
       ON CONFLICT (email) DO UPDATE SET
         updated_at = NOW(),
@@ -305,15 +336,17 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         city = EXCLUDED.city,
         state = EXCLUDED.state,
         zip = EXCLUDED.zip,
+        assigned_rep = COALESCE(EXCLUDED.assigned_rep, patients.assigned_rep),
+        rep_form_submission = EXCLUDED.rep_form_submission OR patients.rep_form_submission,
         membership_hashtags = 
           CASE 
-            WHEN patients.membership_hashtags IS NULL THEN ARRAY['webdirect', 'weightloss']
+            WHEN patients.membership_hashtags IS NULL THEN EXCLUDED.membership_hashtags
             ELSE (
               SELECT array_agg(DISTINCT tag)
               FROM (
                 SELECT unnest(patients.membership_hashtags) AS tag
                 UNION
-                SELECT unnest(ARRAY['webdirect', 'weightloss']) AS tag
+                SELECT unnest(EXCLUDED.membership_hashtags) AS tag
               ) AS all_tags
             )
           END
@@ -343,7 +376,9 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         patientData.consent_telehealth,
         new Date(), // consent_date
         'pending', // status
-        ['webdirect', 'weightloss'] // membership_hashtags - automatically add both tags to all HeyFlow submissions
+        hashtags, // membership_hashtags - dynamically set based on form type
+        repName, // assigned_rep
+        isRepForm // rep_form_submission
       ]
     );
     
