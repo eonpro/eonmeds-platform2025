@@ -56,7 +56,7 @@ export const MEDICAL_SERVICES: ServiceOption[] = [
     name: 'Semaglutide 2.5mg/mL - 3 month special (10-15mg/Month)',
     category: 'Weight Loss',
     billingType: 'one-time',
-    prices: { oneTime: 1300 }
+    prices: { oneTime: 549 }
   },
 
   // Weight Loss Category - Tirzepatide
@@ -153,27 +153,36 @@ export const MEDICAL_SERVICES: ServiceOption[] = [
     prices: { recurring: 199, oneTime: 249 }
   },
 
-  // Consultation Services
+  // Blood Work Category
   {
-    id: 'consultation',
-    name: 'Consultation',
-    category: 'General Services',
+    id: 'blood-work-full',
+    name: 'Blood Work - Full Panel',
+    category: 'Blood Work',
+    billingType: 'one-time',
+    prices: { oneTime: 199 }
+  },
+  {
+    id: 'blood-work-3markers',
+    name: 'Blood Work - 3 Markers',
+    category: 'Blood Work',
+    billingType: 'one-time',
+    prices: { oneTime: 99 }
+  },
+
+  // Telehealth Category
+  {
+    id: 'telehealth-weight-loss',
+    name: 'Telehealth - Weight Loss',
+    category: 'Telehealth',
     billingType: 'one-time',
     prices: { oneTime: 99 }
   },
   {
-    id: 'lab-work',
-    name: 'Lab Work',
-    category: 'General Services',
+    id: 'telehealth-hormone',
+    name: 'Telehealth - Hormone Replacement',
+    category: 'Telehealth',
     billingType: 'one-time',
-    prices: { oneTime: 149 }
-  },
-  {
-    id: 'follow-up',
-    name: 'Follow-up Visit',
-    category: 'General Services',
-    billingType: 'one-time',
-    prices: { oneTime: 49 }
+    prices: { oneTime: 99 }
   }
 ];
 

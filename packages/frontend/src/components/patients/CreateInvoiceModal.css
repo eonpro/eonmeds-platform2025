@@ -13,13 +13,13 @@
 }
 
 .modal-content {
-  background: #faf7f2;
+  background: white;
   border-radius: 12px;
   width: 90%;
   max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   position: relative;
 }
 
@@ -28,24 +28,25 @@
   justify-content: space-between;
   align-items: center;
   padding: 24px 32px;
-  background: transparent;
+  background: white;
   border-bottom: 1px solid #e5e7eb;
   border-radius: 12px 12px 0 0;
 }
 
 .modal-header h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: #111827;
-  font-family: 'Poppins', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .close-btn {
   background: none;
   border: none;
-  font-size: 28px;
-  color: #6b7280;
+  font-size: 24px;
+  color: #9ca3af;
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -54,11 +55,12 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  border-radius: 6px;
 }
 
 .close-btn:hover {
+  background-color: #f3f4f6;
   color: #374151;
-  transform: rotate(90deg);
 }
 
 .modal-body {
@@ -67,40 +69,40 @@
 
 /* Form Sections */
 .form-section {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .form-section h3 {
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 600;
-  color: #374151;
-  margin-bottom: 16px;
+  color: #6b7280;
+  margin-bottom: 8px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.1em;
 }
 
 /* Form Groups */
 .form-group {
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 
 .form-group label {
   display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #4a5568;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
   margin-bottom: 8px;
-  font-family: 'Poppins', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .form-control {
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 15px;
-  font-family: 'Poppins', sans-serif;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: white;
   transition: all 0.2s;
 }
@@ -112,19 +114,20 @@
 }
 
 .form-control:disabled {
-  background-color: #f3f4f6;
+  background-color: #f9fafb;
   cursor: not-allowed;
+  color: #111827;
 }
 
 /* Date Input */
 input[type="date"] {
-  padding: 12px 16px;
+  padding: 10px 14px;
   cursor: pointer;
 }
 
 /* Textarea */
 textarea.form-control {
-  min-height: 100px;
+  min-height: 80px;
   resize: vertical;
   line-height: 1.5;
 }
@@ -132,56 +135,54 @@ textarea.form-control {
 /* Line Items Section */
 .line-items-section {
   background: white;
-  border-radius: 8px;
-  padding: 20px;
   margin-bottom: 24px;
-  border: 1px solid #e5e7eb;
 }
 
 .line-items-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 16px;
 }
 
 .line-items-header h4 {
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 600;
-  color: #374151;
+  color: #6b7280;
   margin: 0;
-  font-family: 'Poppins', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 /* Line Items Table */
 .line-items-table {
   width: 100%;
   margin-bottom: 16px;
+  border-collapse: collapse;
 }
 
 .line-items-table th {
   text-align: left;
-  padding: 12px 8px;
-  font-size: 13px;
+  padding: 10px 12px;
+  font-size: 11px;
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid #e5e7eb;
+  letter-spacing: 0.1em;
+  border-bottom: 2px solid #e5e7eb;
+  background-color: #f9fafb;
 }
 
 .line-items-table td {
-  padding: 12px 8px;
-  vertical-align: top;
+  padding: 12px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .line-item-input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 14px;
-  font-family: 'Poppins', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: white;
   transition: all 0.2s;
 }
@@ -194,14 +195,20 @@ textarea.form-control {
 
 .line-item-select {
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 14px;
-  font-family: 'Poppins', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: white;
   cursor: pointer;
   transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 32px;
 }
 
 .line-item-select:focus {
@@ -211,47 +218,47 @@ textarea.form-control {
 }
 
 .quantity-input {
-  width: 80px;
+  width: 70px;
   text-align: center;
 }
 
 .price-input {
-  width: 120px;
+  width: 100px;
   text-align: right;
 }
 
 .total-cell {
   font-weight: 600;
   color: #111827;
-  font-size: 15px;
+  font-size: 14px;
   text-align: right;
-  padding: 12px 8px;
+  padding: 12px;
 }
 
 /* Remove Button */
 .remove-btn {
-  background: #fee2e2;
-  color: #dc2626;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 13px;
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #fee2e2;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .remove-btn:hover {
-  background: #fecaca;
+  background: #fee2e2;
+  border-color: #fecaca;
 }
 
 /* Add Line Item Button */
 .add-line-item-btn {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px dashed #d1d5db;
+  background: transparent;
+  color: #6b7280;
+  border: none;
   padding: 10px 16px;
-  border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -264,30 +271,32 @@ textarea.form-control {
 }
 
 .add-line-item-btn:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
+  color: #374151;
 }
 
 /* Total Section */
 .total-section {
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 24px;
+  background: white;
+  padding: 20px 0;
+  margin-bottom: 0;
   text-align: right;
+  border-top: 2px solid #e5e7eb;
 }
 
 .total-amount {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #111827;
   margin: 0;
 }
 
 .total-label {
-  font-size: 14px;
+  font-size: 12px;
   color: #6b7280;
   margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
 }
 
 /* Action Buttons */
@@ -295,20 +304,18 @@ textarea.form-control {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding: 24px 32px;
-  background: #f9fafb;
-  border-top: 1px solid #e5e7eb;
-  border-radius: 0 0 12px 12px;
+  padding: 0;
+  margin-top: 32px;
 }
 
 .btn {
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 15px;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Poppins', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   border: none;
 }
 
@@ -331,12 +338,14 @@ textarea.form-control {
 }
 
 .btn-secondary {
-  background-color: #e5e7eb;
-  color: #374151;
+  background-color: transparent;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
 }
 
 .btn-secondary:hover {
-  background-color: #d1d5db;
+  background-color: #f9fafb;
+  border-color: #d1d5db;
 }
 
 /* Error Message */
@@ -364,4 +373,35 @@ textarea.form-control {
   align-items: center;
   justify-content: center;
   border-radius: 12px;
+}
+
+/* Table column widths */
+.line-items-table th:nth-child(1),
+.line-items-table td:nth-child(1) {
+  width: 35%;
+}
+
+.line-items-table th:nth-child(2),
+.line-items-table td:nth-child(2) {
+  width: 10%;
+}
+
+.line-items-table th:nth-child(3),
+.line-items-table td:nth-child(3) {
+  width: 25%;
+}
+
+.line-items-table th:nth-child(4),
+.line-items-table td:nth-child(4) {
+  width: 15%;
+}
+
+.line-items-table th:nth-child(5),
+.line-items-table td:nth-child(5) {
+  width: 10%;
+}
+
+.line-items-table th:nth-child(6),
+.line-items-table td:nth-child(6) {
+  width: 5%;
 } 

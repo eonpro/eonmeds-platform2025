@@ -239,10 +239,18 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                                 </option>
                               ))}
                           </optgroup>
-                          <optgroup label="General Services">
+                          <optgroup label="Blood Work">
                             {serviceOptions
-                              .filter(s => s.label.includes('Consultation') || s.label.includes('Lab Work') || 
-                                         s.label.includes('Follow-up'))
+                              .filter(s => s.label.includes('Blood Work'))
+                              .map(option => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                          </optgroup>
+                          <optgroup label="Telehealth">
+                            {serviceOptions
+                              .filter(s => s.label.includes('Telehealth'))
                               .map(option => (
                                 <option key={option.value} value={option.value}>
                                   {option.label}
