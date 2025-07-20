@@ -199,42 +199,48 @@ export class PDFService {
           currentY = 50;
         }
 
-        // Treatment Readiness Section with visual elements
-        if (currentY > 650) {
-          doc.addPage();
-          currentY = 50;
-        }
+        // Add Treatment Readiness
         currentY = drawRoundedSection(doc, currentY + 20, 'Treatment Readiness', [
           [
             { 
               label: 'HOW COMMITTED ARE YOU TO STARTING TREATMENT? (SCALE 1-5)', 
-              value: formatCommitmentWithVisual(doc, webhookData.commitment_level),
-              isSpecial: true,
+              value: webhookData.allFields?.['HOW COMMITTED ARE YOU TO STARTING TREATMENT? (SCALE 1-5)'] || 
+                     webhookData.allFields?.['HOW COMMITTED ARE YOU TO STARTING TREATMENT?'] ||
+                     webhookData.allFields?.['Commitment Level'] || 
+                     'Not provided',
               fullWidth: true
             }
           ],
           [
             { 
               label: 'HOW DID YOU HEAR ABOUT US?', 
-              value: capitalizeFirst(webhookData.referral_source) || 'Not specified',
+              value: webhookData.allFields?.['HOW DID YOU HEAR ABOUT US?'] || 
+                     webhookData.allFields?.['How did you hear about us?'] ||
+                     webhookData.allFields?.['Referral Source'] || 
+                     'Not provided',
               fullWidth: true
             }
           ],
           [
             { 
               label: 'HOW WOULD YOUR LIFE CHANGE BY LOSING WEIGHT?', 
-              value: webhookData.allFields?.['How would your life change by losing weight?'] || 
-                     webhookData.allFields?.['HOW WOULD YOUR LIFE CHANGE BY LOSING WEIGHT?'] || 
-                     'Not specified',
-              fullWidth: true
+              value: webhookData.allFields?.['HOW WOULD YOUR LIFE CHANGE BY LOSING WEIGHT?'] || 
+                     webhookData.allFields?.['Life Change'] ||
+                     webhookData.allFields?.['Weight Loss Goals'] || 
+                     'Not provided',
+              fullWidth: true,
+              description: true  // This adds extra height for long text
             }
           ],
           [
             { 
               label: 'WOULD YOU BE INTERESTED IN YOUR PROVIDER CONSIDERING A PERSONALIZED TREATMENT PLAN TO HELP YOU MANAGE THESE SIDE EFFECTS?', 
-              value: formatAnswer(webhookData.allFields?.['Would you be interested in your provider considering a personalized treatment plan to help you manage these side effects?'] || 
-                                 webhookData.allFields?.['WOULD YOU BE INTERESTED IN YOUR PROVIDER CONSIDERING A PERSONALIZED TREATMENT PLAN TO HELP YOU MANAGE THESE SIDE EFFECTS?'] || ''),
-              fullWidth: true
+              value: webhookData.allFields?.['WOULD YOU BE INTERESTED IN YOUR PROVIDER CONSIDERING A PERSONALIZED TREATMENT PLAN TO HELP YOU MANAGE THESE SIDE EFFECTS?'] || 
+                     webhookData.allFields?.['Personalized Treatment Interest'] ||
+                     webhookData.allFields?.['Treatment Plan Interest'] || 
+                     'Not provided',
+              fullWidth: true,
+              description: true  // This adds extra height for the long label
             }
           ]
         ]);
@@ -445,9 +451,6 @@ function drawRoundedSection(doc: PDFKit.PDFDocument, yPosition: number, title: s
       sectionHeight += field.description ? 60 : 35; // Reduced from 70 and 45
     });
   });
-
-  // Add a small bottom padding
-  sectionHeight += 10; // Small padding at bottom
 
   // Check if section will fit on current page
   const pageHeight = 792; // Letter size height
