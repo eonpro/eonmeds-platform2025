@@ -16,6 +16,7 @@ interface InvoiceItem {
   unit_price: number;
   service_type: string;
   service_id?: string;
+  billing_type?: string;
 }
 
 export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
@@ -31,7 +32,8 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
     quantity: 1,
     unit_price: 0,
     service_type: '',
-    service_id: ''
+    service_id: '',
+    billing_type: ''
   }]);
   const [dueDate, setDueDate] = useState(
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
@@ -49,16 +51,20 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         ...newItems[index],
         service_id: 'custom',
         service_type: 'custom',
+        billing_type: 'one-time',
         description: '',
-        unit_price: 0
+        unit_price: 0,
+        quantity: 1
       };
     } else if (selectedService) {
       newItems[index] = {
         ...newItems[index],
         service_id: serviceId,
         service_type: selectedService.billingType,
+        billing_type: selectedService.billingType,
         description: selectedService.label,
-        unit_price: selectedService.price
+        unit_price: selectedService.price,
+        quantity: 1
       };
     }
     
@@ -77,7 +83,8 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       quantity: 1,
       unit_price: 0,
       service_type: '',
-      service_id: ''
+      service_id: '',
+      billing_type: ''
     }]);
   };
 
@@ -86,7 +93,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   };
 
   const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+    return items.reduce((sum, item) => sum + item.unit_price, 0);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,12 +109,24 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
 
     setCreating(true);
     try {
+      // Prepare items with billing information for recurring services
+      const invoiceItems = validItems.map(item => ({
+        description: item.description,
+        quantity: 1, // Always 1 since we removed quantity field
+        unit_price: item.unit_price,
+        service_type: item.service_type,
+        billing_type: item.billing_type,
+        is_recurring: item.billing_type === 'recurring'
+      }));
+
       await apiClient.post('/api/v1/invoices', {
         patient_id: patientId,
         due_date: dueDate,
         description,
-        items: validItems,
-        total_amount: calculateTotal()
+        items: invoiceItems,
+        total_amount: calculateTotal(),
+        // Mark invoice as recurring if it contains any recurring items
+        is_recurring: invoiceItems.some(item => item.is_recurring)
       });
       onSuccess();
       onClose();
@@ -250,68 +269,57 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                     </select>
                   </div>
                   
-                  <table className="line-items-table">
-                    <thead>
-                      <tr>
-                        <th>QUANTITY</th>
-                        <th>DESCRIPTION</th>
-                        <th>UNIT PRICE</th>
-                        <th>TOTAL</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <input
-                            type="number"
-                            className="line-item-input quantity-input"
-                            value={item.quantity}
-                            onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
-                            min="1"
-                            required
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="text"
-                            className="line-item-input"
-                            value={item.description}
-                            onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                            placeholder={item.service_id === 'custom' ? 'Service description' : ''}
-                            disabled={item.service_id !== 'custom' && item.service_id !== ''}
-                            required
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            className="line-item-input price-input"
-                            value={item.unit_price}
-                            onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                            min="0"
-                            step="0.01"
-                            disabled={item.service_id !== 'custom' && item.service_id !== ''}
-                            required
-                          />
-                        </td>
-                        <td className="total-cell">
-                          ${(item.quantity * item.unit_price).toFixed(2)}
-                        </td>
-                        <td>
-                          {items.length > 1 && (
-                            <button
-                              type="button"
-                              className="remove-btn"
-                              onClick={() => removeItem(index)}
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <div className="details-row">
+                    <div className="description-col">
+                      <label className="field-label">DESCRIPTION</label>
+                      <input
+                        type="text"
+                        className="line-item-input description-input"
+                        value={item.description}
+                        onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                        placeholder={item.service_id === 'custom' ? 'Service description' : ''}
+                        disabled={item.service_id !== 'custom' && item.service_id !== ''}
+                        required
+                      />
+                    </div>
+                    <div className="price-col">
+                      <label className="field-label">UNIT PRICE</label>
+                      <input
+                        type="number"
+                        className="line-item-input price-input"
+                        value={item.unit_price}
+                        onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                        min="0"
+                        step="0.01"
+                        disabled={item.service_id !== 'custom' && item.service_id !== ''}
+                        required
+                      />
+                    </div>
+                    <div className="total-col">
+                      <label className="field-label">TOTAL</label>
+                      <div className="total-cell">${item.unit_price.toFixed(2)}</div>
+                    </div>
+                    {items.length > 1 && (
+                      <div className="remove-col">
+                        <button
+                          type="button"
+                          className="remove-btn"
+                          onClick={() => removeItem(index)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {item.billing_type === 'recurring' && (
+                    <div className="recurring-notice">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="info-icon">
+                        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                      </svg>
+                      This is a recurring monthly charge. The patient will be automatically charged ${item.unit_price} on the same day each month.
+                    </div>
+                  )}
                   
                   {index < items.length - 1 && <div className="line-item-divider" />}
                 </div>
