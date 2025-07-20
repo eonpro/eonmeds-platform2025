@@ -299,7 +299,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               {(paymentMethod === 'new' || savedCards.length === 0) && (
                 <StripePaymentForm
                   onPaymentMethodCreated={handleChargeWithNewCard}
-                  onCancel={savedCards.length > 0 ? () => setPaymentMethod('saved') : undefined}
+                  onCancel={onClose}
                   processing={processing}
                 />
               )}
