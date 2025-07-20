@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { getServiceOptions, getServicePrice } from '../../config/services';
 import './CreateInvoiceModal.css';
 
 interface CreateInvoiceModalProps {
@@ -14,16 +15,7 @@ interface InvoiceItem {
   quantity: number;
   unit_price: number;
   service_type: string;
-  service_package_id?: string;
-}
-
-interface ServicePackage {
-  id: string;
-  name: string;
-  category: string;
-  billing_period: string;
-  price: number;
-  description?: string;
+  service_id?: string;
 }
 
 export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
@@ -33,61 +25,41 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   onSuccess
 }) => {
   const apiClient = useApi();
-  const [packages, setPackages] = useState<ServicePackage[]>([]);
-  const [loadingPackages, setLoadingPackages] = useState(true);
+  const serviceOptions = getServiceOptions();
   const [items, setItems] = useState<InvoiceItem[]>([{
     description: '',
     quantity: 1,
     unit_price: 0,
     service_type: '',
-    service_package_id: undefined
+    service_id: ''
   }]);
   const [dueDate, setDueDate] = useState(
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
   const [description, setDescription] = useState('');
   const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchPackages();
-  }, []);
-
-  const fetchPackages = async () => {
-    try {
-      setLoadingPackages(true);
-      const response = await apiClient.get('/api/v1/packages/active');
-      setPackages(response.data.packages || []);
-    } catch (error) {
-      console.error('Error fetching packages:', error);
-    } finally {
-      setLoadingPackages(false);
-    }
-  };
-
-  const handleServiceTypeChange = (index: number, value: string) => {
+  const handleServiceChange = (index: number, serviceId: string) => {
     const newItems = [...items];
+    const selectedService = serviceOptions.find(s => s.value === serviceId);
     
-    if (value === 'custom' || value === '') {
-      // Allow custom entry
+    if (serviceId === 'custom') {
       newItems[index] = {
         ...newItems[index],
-        service_package_id: undefined,
+        service_id: 'custom',
         service_type: 'custom',
-        description: newItems[index].description || '',
-        unit_price: newItems[index].unit_price || 0
+        description: '',
+        unit_price: 0
       };
-    } else {
-      // Find selected package
-      const selectedPackage = packages.find(p => p.id.toString() === value);
-      if (selectedPackage) {
-        newItems[index] = {
-          ...newItems[index],
-          service_package_id: value,
-          service_type: selectedPackage.category,
-          description: selectedPackage.name,
-          unit_price: selectedPackage.price
-        };
-      }
+    } else if (selectedService) {
+      newItems[index] = {
+        ...newItems[index],
+        service_id: serviceId,
+        service_type: selectedService.billingType,
+        description: selectedService.label,
+        unit_price: selectedService.price
+      };
     }
     
     setItems(newItems);
@@ -105,7 +77,7 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       quantity: 1,
       unit_price: 0,
       service_type: '',
-      service_package_id: undefined
+      service_id: ''
     }]);
   };
 
@@ -119,167 +91,248 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
-    try {
-      setCreating(true);
-      
-      const response = await apiClient.post('/api/v1/payments/invoices/create', {
-        patient_id: patientId,
-        items: items.filter(item => item.description && item.unit_price > 0),
-        due_date: dueDate,
-        description: description || `Medical services for ${patientName}`
-      });
+    // Validate items
+    const validItems = items.filter(item => item.description && item.unit_price > 0);
+    if (validItems.length === 0) {
+      setError('Please add at least one item with a description and price');
+      return;
+    }
 
-      if (response.data.invoice) {
-        onSuccess();
-      }
-    } catch (error) {
-      console.error('Error creating invoice:', error);
-      alert('Failed to create invoice. Please try again.');
+    setCreating(true);
+    try {
+      await apiClient.post('/api/v1/invoices', {
+        patient_id: patientId,
+        due_date: dueDate,
+        description,
+        items: validItems,
+        total_amount: calculateTotal()
+      });
+      onSuccess();
+      onClose();
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Failed to create invoice');
     } finally {
       setCreating(false);
     }
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <h2>Create Invoice</h2>
-        <button className="close-btn" onClick={onClose}>×</button>
-
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-content">
+        <div className="modal-header">
+          <h2>Create Invoice</h2>
+          <button className="close-btn" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </div>
+        
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Patient</label>
-            <input type="text" value={patientName} disabled />
-          </div>
+          <div className="modal-body">
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
 
-          <div className="form-group">
-            <label>Due Date</label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Description (Optional)</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Invoice description"
-              rows={2}
-            />
-          </div>
-
-          <div className="line-items-section">
-            <div className="line-items-header">
-              <h3>Line Items</h3>
+            <div className="form-section">
+              <h3>Patient</h3>
+              <div className="form-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  value={patientName}
+                  disabled
+                />
+              </div>
             </div>
-            <div className="line-items">
-              {items.map((item, index) => (
-                <div key={index} className="line-item">
-                  <div className="line-item-row">
-                    <div className="line-item-field">
-                      <label>Service</label>
-                      <select
-                        value={item.service_package_id || ''}
-                        onChange={(e) => handleServiceTypeChange(index, e.target.value)}
-                      >
-                        <option value="">Select service or enter custom</option>
-                        {packages.map(pkg => (
-                          <option key={pkg.id} value={pkg.id}>
-                            {pkg.name}
-                          </option>
-                        ))}
-                        <option value="custom">Custom Service</option>
-                      </select>
-                    </div>
-                    <div className="line-item-field">
-                      <label>Quantity</label>
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
-                        min="1"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  {(item.service_type === 'custom' || !item.service_package_id) && (
-                    <div className="line-item-row full-width">
-                      <div className="line-item-field">
-                        <label>Description</label>
+
+            <div className="form-section">
+              <h3>Due Date</h3>
+              <div className="form-group">
+                <input
+                  type="date"
+                  className="form-control"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-section">
+              <h3>Description (Optional)</h3>
+              <div className="form-group">
+                <textarea
+                  className="form-control"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Invoice description"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div className="line-items-section">
+              <div className="line-items-header">
+                <h4>Line Items</h4>
+              </div>
+              
+              <table className="line-items-table">
+                <thead>
+                  <tr>
+                    <th>Service</th>
+                    <th>Quantity</th>
+                    <th>Description</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item, index) => (
+                    <tr key={index}>
+                      <td>
+                        <select
+                          className="line-item-select"
+                          value={item.service_id}
+                          onChange={(e) => handleServiceChange(index, e.target.value)}
+                          required
+                        >
+                          <option value="">Select service or enter custom</option>
+                          <optgroup label="Weight Loss">
+                            {serviceOptions
+                              .filter(s => s.label.includes('Semaglutide') || s.label.includes('Tirzepatide') || 
+                                         s.label.includes('Metformin') || s.label.includes('Phentermine'))
+                              .map(option => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                          </optgroup>
+                          <optgroup label="Hormone Replacement">
+                            {serviceOptions
+                              .filter(s => s.label.includes('Testosterone'))
+                              .map(option => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                          </optgroup>
+                          <optgroup label="Mental Health">
+                            {serviceOptions
+                              .filter(s => s.label.includes('Modafinil'))
+                              .map(option => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                          </optgroup>
+                          <optgroup label="Peptides">
+                            {serviceOptions
+                              .filter(s => s.label.includes('CJC') || s.label.includes('Tesamorelin') || 
+                                         s.label.includes('BPC'))
+                              .map(option => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                          </optgroup>
+                          <optgroup label="General Services">
+                            {serviceOptions
+                              .filter(s => s.label.includes('Consultation') || s.label.includes('Lab Work') || 
+                                         s.label.includes('Follow-up'))
+                              .map(option => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                          </optgroup>
+                          <option value="custom">Custom Service</option>
+                        </select>
+                      </td>
+                      <td>
                         <input
-                          type="text"
-                          value={item.description}
-                          onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                          placeholder="Service description"
+                          type="number"
+                          className="line-item-input quantity-input"
+                          value={item.quantity}
+                          onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                          min="1"
                           required
                         />
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="line-item-row">
-                    <div className="line-item-field">
-                      <label>Unit Price</label>
-                      <input
-                        type="number"
-                        value={item.unit_price}
-                        onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                        min="0"
-                        step="0.01"
-                        required
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div className="line-item-field">
-                      <label>Total</label>
-                      <input
-                        type="text"
-                        value={`$${(item.quantity * item.unit_price).toFixed(2)}`}
-                        disabled
-                      />
-                    </div>
-                  </div>
-                  
-                  {items.length > 1 && (
-                    <div className="line-item-footer">
-                      <span className="item-total">Item Total: ${(item.quantity * item.unit_price).toFixed(2)}</span>
-                      <button
-                        type="button"
-                        className="remove-item-btn"
-                        onClick={() => removeItem(index)}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          className="line-item-input"
+                          value={item.description}
+                          onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                          placeholder={item.service_id === 'custom' ? 'Service description' : ''}
+                          disabled={item.service_id !== 'custom' && item.service_id !== ''}
+                          required
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          className="line-item-input price-input"
+                          value={item.unit_price}
+                          onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                          min="0"
+                          step="0.01"
+                          disabled={item.service_id !== 'custom' && item.service_id !== ''}
+                          required
+                        />
+                      </td>
+                      <td className="total-cell">
+                        ${(item.quantity * item.unit_price).toFixed(2)}
+                      </td>
+                      <td>
+                        {items.length > 1 && (
+                          <button
+                            type="button"
+                            className="remove-btn"
+                            onClick={() => removeItem(index)}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              
+              <button
+                type="button"
+                className="add-line-item-btn"
+                onClick={addItem}
+              >
+                + Add Line Item
+              </button>
             </div>
-            
-            <button type="button" className="add-item-btn" onClick={addItem}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 4a.5.5 0 01.5.5v3h3a.5.5 0 010 1h-3v3a.5.5 0 01-1 0v-3h-3a.5.5 0 010-1h3v-3A.5.5 0 018 4z"/>
-              </svg>
-              Add Line Item
-            </button>
-          </div>
 
-          <div className="invoice-total">
-            <span>Total:</span>
-            <span className="total-amount">${calculateTotal().toFixed(2)}</span>
+            <div className="total-section">
+              <div className="total-label">Total Amount</div>
+              <div className="total-amount">${calculateTotal().toFixed(2)}</div>
+            </div>
           </div>
 
           <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={onClose}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+              disabled={creating}
+            >
               Cancel
             </button>
-            <button type="submit" className="create-btn" disabled={creating}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={creating || calculateTotal() === 0}
+            >
               {creating ? 'Creating...' : 'Create Invoice'}
             </button>
           </div>
