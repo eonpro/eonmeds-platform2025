@@ -1041,23 +1041,49 @@
 }
 
 .intake-form-note .view-form-btn {
-  padding: 10px 30px;
   background-color: #000000;
   color: white;
   border: none;
-  border-radius: 25px; /* Rounded button */
-  font-size: 14px;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: none;
+  transition: all 0.2s;
   font-family: 'Poppins', sans-serif;
-  width: auto;
-  display: inline-block;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .intake-form-note .view-form-btn:hover {
   background-color: #000000;
-  transform: none;
+}
+
+/* New styles for form action buttons */
+.form-action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.download-form-btn {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #e5e7eb;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.download-form-btn:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
 }
 
 /* General note styles for other notes */
@@ -1441,3 +1467,50 @@
 } 
 
 /* Hashtags Section */ 
+
+.view-pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #14a97b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  margin-top: 20px;
+}
+
+.view-pdf-btn:hover {
+  background-color: #0f8a62;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(20, 169, 123, 0.3);
+}
+
+/* Update form actions container */
+.form-actions-container {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.download-pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #ffffff;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.download-pdf-btn:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+} 

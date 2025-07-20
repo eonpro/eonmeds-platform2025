@@ -50,7 +50,7 @@ export class PDFService {
       try {
         const doc = new PDFDocument({
           size: 'LETTER',
-          margin: 50,
+          margin: 40,
           info: {
             Title: 'Patient Intake Form',
             Author: 'EONMeds',
@@ -70,123 +70,186 @@ export class PDFService {
         // Add EONMeds logo/header
         doc.fontSize(24)
            .fillColor('#20c997')
-           .text('eonmeds', 50, 50, { align: 'left' })
+           .text('eonmeds', 40, 40, { align: 'left' })
            .fillColor('#000000');
 
         // Title
-        doc.fontSize(20)
-           .text('Patient Intake Form', 50, 100, { align: 'left' });
+        doc.fontSize(24)
+           .font('Helvetica-Bold')
+           .text('Patient Intake Form', 40, 80);
 
         // Submission info
         doc.fontSize(10)
+           .font('Helvetica')
            .fillColor('#666666')
-           .text(`Submitted via HeyFlow on ${formatDate(patientData.created_at || new Date())}`, 50, 130);
+           .text(`Submitted via HeyFlow on ${formatDateFull(patientData.created_at || new Date())}`, 40, 110);
 
         // Reset color
         doc.fillColor('#000000');
 
-        // Patient Information Section
-        drawSection(doc, 180, 'Patient Information', [
-          { label: 'FIRST NAME', value: patientData.first_name || '' },
-          { label: 'LAST NAME', value: patientData.last_name || '' },
-          { label: 'DATE OF BIRTH', value: formatDate(patientData.date_of_birth) || '' },
-          { label: 'SEX', value: capitalizeFirst(patientData.gender) || '' },
-          { label: 'EMAIL ADDRESS', value: patientData.email || '' },
-          { label: 'PHONE NUMBER', value: formatPhone(patientData.phone) || '' }
+        // Patient Information Section with new design
+        let currentY = 150;
+        currentY = drawRoundedSection(doc, currentY, 'Patient Information', [
+          [
+            { label: 'FIRST NAME', value: patientData.first_name || '' },
+            { label: 'LAST NAME', value: patientData.last_name || '' }
+          ],
+          [
+            { label: 'DATE OF BIRTH', value: formatDateLong(patientData.date_of_birth) || '' },
+            { label: 'SEX', value: capitalizeFirst(patientData.gender) || '' }
+          ],
+          [
+            { label: 'EMAIL ADDRESS', value: patientData.email || '' },
+            { label: 'PHONE NUMBER', value: formatPhone(patientData.phone) || '' }
+          ]
+        ]);
+
+        // Shipping Information Section
+        currentY = drawRoundedSection(doc, currentY + 20, 'Shipping Information', [
+          [
+            { label: 'STREET ADDRESS', value: webhookData.street || 'Not provided', fullWidth: true }
+          ],
+          [
+            { label: 'APARTMENT/SUITE NUMBER', value: webhookData.apt || 'Not provided', fullWidth: true }
+          ],
+          [
+            { label: 'CITY', value: webhookData.city || 'Not provided' },
+            { label: 'STATE', value: webhookData.state || 'Not provided' }
+          ],
+          [
+            { label: 'POSTAL CODE', value: webhookData.zip || 'Not provided' },
+            { label: 'COUNTRY', value: webhookData.country || 'Estados Unidos' }
+          ]
         ]);
 
         // Check if we need a new page
-        if (doc.y > 500) {
+        if (currentY > 500) {
           doc.addPage();
+          currentY = 50;
         }
 
-        // Shipping Information Section (from webhook data)
-        const shippingY = doc.y + 30;
-        drawSection(doc, shippingY, 'Shipping Information', [
-          { label: 'STREET ADDRESS', value: webhookData.street || 'Not provided' },
-          { label: 'APARTMENT/SUITE NUMBER', value: webhookData.apt || 'Not provided' },
-          { label: 'CITY', value: webhookData.city || 'Not provided' },
-          { label: 'STATE', value: webhookData.state || 'Not provided' },
-          { label: 'POSTAL CODE', value: webhookData.zip || 'Not provided' },
-          { label: 'COUNTRY', value: webhookData.country || 'Estados Unidos' }
+        // Treatment Readiness Section with visual elements
+        currentY = drawRoundedSection(doc, currentY + 20, 'Treatment Readiness', [
+          [
+            { 
+              label: 'HOW COMMITTED ARE YOU TO STARTING TREATMENT? (SCALE 1-5)', 
+              value: formatCommitmentWithVisual(doc, webhookData.commitment_level),
+              isSpecial: true,
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'ARE YOU OVER THE AGE OF 18?', 
+              value: webhookData.over_18 === 'yes' ? '✓' : 'No',
+              isCheckmark: webhookData.over_18 === 'yes',
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'HOW DID YOU HEAR ABOUT US?', 
+              value: capitalizeFirst(webhookData.referral_source) || 'Not specified',
+              fullWidth: true
+            }
+          ]
         ]);
 
-        // Add new page for medical history
+        // Consent Agreements Section with green checkmarks
+        currentY = drawRoundedSection(doc, currentY + 20, 'Consent Agreements', [
+          [
+            {
+              label: 'Telehealth Consent',
+              value: webhookData.consent_telehealth === 'yes' ? '✓ Accepted ✓' : 'Not accepted',
+              description: 'By checking this box, I confirm that I understand and agree to receive medical care and treatment through telehealth services. I acknowledge that I have read and agree to the terms outlined in the Telehealth Consent Policy.',
+              isConsent: true,
+              isAccepted: webhookData.consent_telehealth === 'yes',
+              fullWidth: true
+            }
+          ],
+          [
+            {
+              label: 'Terms & Conditions Agreement',
+              value: webhookData.consent_treatment === 'yes' ? '✓ Accepted' : 'Not accepted',
+              description: 'By checking the box below, you confirm that you have read and agree to our Terms & Conditions and Privacy Policy.',
+              isConsent: true,
+              isAccepted: webhookData.consent_treatment === 'yes',
+              fullWidth: true
+            }
+          ],
+          [
+            {
+              label: 'Cancellation & Subscription Policy',
+              value: webhookData.consent_cancellation === 'yes' ? '✓ Accepted' : 'Not accepted',
+              description: 'By checking this box, I acknowledge that I have read and agree to the Cancellation Policy. I understand that all sales are final, and charges may recur monthly unless canceled according to the terms provided.',
+              isConsent: true,
+              isAccepted: webhookData.consent_cancellation === 'yes',
+              fullWidth: true
+            }
+          ]
+        ]);
+
+        // Add Medical History on new page
         doc.addPage();
 
-        // Medical History Section
-        drawSection(doc, 50, 'Medical History', [
-          { 
-            label: 'HAVE YOU EVER TAKEN A GLP-1 MEDICATION BEFORE?', 
-            value: formatAnswer(webhookData.glp1_medication) 
-          },
-          { 
-            label: 'HAVE YOU EVER BEEN DIAGNOSED WITH TYPE 1 DIABETES?', 
-            value: formatAnswer(webhookData.diabetes_type1) 
-          },
-          { 
-            label: 'HAVE YOU EVER BEEN DIAGNOSED WITH ANY TYPE OF THYROID CANCER?', 
-            value: formatAnswer(webhookData.thyroid_cancer) 
-          },
-          { 
-            label: 'HAVE YOU EVER BEEN DIAGNOSED WITH MULTIPLE ENDOCRINE NEOPLASIA (MEN)?', 
-            value: formatAnswer(webhookData.endocrine_neoplasia) 
-          },
-          { 
-            label: 'HAVE YOU EVER BEEN DIAGNOSED WITH CHRONIC PANCREATITIS?', 
-            value: formatAnswer(webhookData.pancreatitis) 
-          },
-          { 
-            label: 'ARE YOU CURRENTLY PREGNANT OR BREASTFEEDING?', 
-            value: formatAnswer(webhookData.pregnant_breastfeeding) 
-          },
-          { 
-            label: 'DO YOU HAVE ANY KNOWN ALLERGIES TO MEDICATIONS?', 
-            value: formatAnswer(webhookData.medication_allergies) 
-          },
-          { 
-            label: 'WHAT IS YOUR MOST RECENT BLOOD PRESSURE READING?', 
-            value: webhookData.blood_pressure || 'Not provided' 
-          }
-        ]);
-
-        // Add new page for treatment readiness
-        doc.addPage();
-
-        // Treatment Readiness Section
-        drawSection(doc, 50, 'Treatment Readiness', [
-          { 
-            label: 'HOW COMMITTED ARE YOU TO STARTING TREATMENT? (SCALE 1-5)', 
-            value: formatCommitmentLevel(webhookData.commitment_level) 
-          },
-          { 
-            label: 'ARE YOU OVER THE AGE OF 18?', 
-            value: webhookData.over_18 === 'yes' ? '✓' : 'No' 
-          },
-          { 
-            label: 'HOW DID YOU HEAR ABOUT US?', 
-            value: capitalizeFirst(webhookData.referral_source) || 'Not specified' 
-          }
-        ]);
-
-        // Consent Agreements Section
-        const consentY = doc.y + 30;
-        drawSection(doc, consentY, 'Consent Agreements', [
-          {
-            label: 'Telehealth Consent',
-            value: webhookData.consent_telehealth === 'yes' ? '✓ Accepted ✓' : 'Not accepted',
-            description: 'By checking this box, I confirm that I understand and agree to receive medical care and treatment through telehealth services.'
-          },
-          {
-            label: 'Terms & Conditions Agreement',
-            value: webhookData.consent_treatment === 'yes' ? '✓ Accepted' : 'Not accepted',
-            description: 'By checking the box below, you confirm that you have read and agree to our Terms & Conditions and Privacy Policy.'
-          },
-          {
-            label: 'Cancellation & Subscription Policy',
-            value: webhookData.consent_cancellation === 'yes' ? '✓ Accepted' : 'Not accepted',
-            description: 'By checking this box, I acknowledge that I have read and agree to the Cancellation Policy.'
-          }
+        // Medical History Section (keeping same data, just updating visual style)
+        drawRoundedSection(doc, 50, 'Medical History', [
+          [
+            { 
+              label: 'HAVE YOU EVER TAKEN A GLP-1 MEDICATION BEFORE?', 
+              value: formatAnswer(webhookData.glp1_medication),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'HAVE YOU EVER BEEN DIAGNOSED WITH TYPE 1 DIABETES?', 
+              value: formatAnswer(webhookData.diabetes_type1),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'HAVE YOU EVER BEEN DIAGNOSED WITH ANY TYPE OF THYROID CANCER?', 
+              value: formatAnswer(webhookData.thyroid_cancer),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'HAVE YOU EVER BEEN DIAGNOSED WITH MULTIPLE ENDOCRINE NEOPLASIA (MEN)?', 
+              value: formatAnswer(webhookData.endocrine_neoplasia),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'HAVE YOU EVER BEEN DIAGNOSED WITH CHRONIC PANCREATITIS?', 
+              value: formatAnswer(webhookData.pancreatitis),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'ARE YOU CURRENTLY PREGNANT OR BREASTFEEDING?', 
+              value: formatAnswer(webhookData.pregnant_breastfeeding),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'DO YOU HAVE ANY KNOWN ALLERGIES TO MEDICATIONS?', 
+              value: formatAnswer(webhookData.medication_allergies),
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'WHAT IS YOUR MOST RECENT BLOOD PRESSURE READING?', 
+              value: webhookData.blood_pressure || 'Not provided',
+              fullWidth: true
+            }
+          ]
         ]);
 
         // Finalize the PDF
@@ -198,69 +261,101 @@ export class PDFService {
   }
 }
 
-// Helper functions
-function drawSection(doc: PDFKit.PDFDocument, yPosition: number, title: string, fields: any[]) {
-  // Section background
-  doc.rect(50, yPosition, 515, 30)
+// New helper function for rounded sections
+function drawRoundedSection(doc: PDFKit.PDFDocument, yPosition: number, title: string, fieldRows: any[]): number {
+  let sectionHeight = 50; // Base height for title
+  
+  // Calculate section height based on content
+  fieldRows.forEach(row => {
+    row.forEach((field: any) => {
+      sectionHeight += field.description ? 70 : 45;
+    });
+  });
+
+  // Draw rounded rectangle background
+  doc.roundedRect(40, yPosition, 532, sectionHeight, 5)
      .fillColor('#f5f5f5')
-     .fill()
-     .fillColor('#000000');
+     .fill();
 
   // Section title
-  doc.fontSize(14)
+  doc.fillColor('#000000')
+     .fontSize(14)
      .font('Helvetica-Bold')
-     .text(title, 60, yPosition + 8);
+     .text(title, 60, yPosition + 15);
 
-  // Reset font
+  // Reset font for fields
   doc.font('Helvetica')
      .fontSize(10);
 
-  let currentY = yPosition + 45;
-  let columnX = 60;
-  let columnWidth = 235;
-  let itemsInColumn = 0;
+  let currentY = yPosition + 40;
 
-  fields.forEach((field, index) => {
-    // Check if we need to move to the right column
-    if (itemsInColumn === 3 && index < fields.length) {
-      columnX = 300;
-      currentY = yPosition + 45;
-      itemsInColumn = 0;
-    }
+  // Draw fields with new layout
+  fieldRows.forEach(row => {
+    const rowWidth = 532 - 40; // Section width minus padding
+    const fieldCount = row.filter((f: any) => !f.fullWidth).length;
+    const fieldWidth = fieldCount > 0 ? (rowWidth - 20) / fieldCount : rowWidth - 20;
+    let currentX = 60;
 
-    // Check if we need a new page
-    if (currentY > 700) {
-      doc.addPage();
-      currentY = 50;
-      columnX = 60;
-      itemsInColumn = 0;
-    }
-
-    // Draw field
-    doc.fillColor('#666666')
-       .fontSize(8)
-       .text(field.label, columnX, currentY);
-
-    doc.fillColor('#000000')
-       .fontSize(11)
-       .text(field.value || 'Not provided', columnX, currentY + 12);
-
-    if (field.description) {
+    row.forEach((field: any, index: number) => {
+      // Label
       doc.fillColor('#666666')
          .fontSize(8)
-         .text(field.description, columnX, currentY + 26, { width: columnWidth });
-      currentY += 60;
-    } else {
-      currentY += 40;
-    }
+         .text(field.label.toUpperCase(), currentX, currentY);
 
-    itemsInColumn++;
+      // Value
+      if (field.isCheckmark && field.value === '✓') {
+        doc.fillColor('#20c997');
+      } else if (field.isConsent && field.isAccepted) {
+        doc.fillColor('#20c997');
+      } else {
+        doc.fillColor('#000000');
+      }
+      
+      doc.fontSize(11)
+         .text(field.value || 'Not provided', currentX, currentY + 12);
+
+      // Description for consent items
+      if (field.description) {
+        doc.fillColor('#666666')
+           .fontSize(8)
+           .text(field.description, currentX, currentY + 26, { 
+             width: field.fullWidth ? rowWidth - 20 : fieldWidth - 10,
+             align: 'left'
+           });
+      }
+
+      // Move to next field position
+      if (!field.fullWidth && index < row.length - 1) {
+        currentX += fieldWidth + 10;
+      }
+    });
+
+    // Move to next row
+    currentY += row.some((f: any) => f.description) ? 70 : 45;
   });
 
-  // Update doc.y position
-  doc.y = Math.max(currentY, doc.y);
+  return yPosition + sectionHeight;
 }
 
+// Updated date formatter to match mockup
+function formatDateFull(date: string | Date): string {
+  if (!date) return '';
+  const d = new Date(date);
+  return d.toISOString();
+}
+
+// New date formatter for long format
+function formatDateLong(date: string | Date): string {
+  if (!date) return '';
+  const d = new Date(date);
+  return d.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}
+
+// Keep existing helper functions unchanged
 function formatDate(date: string | Date): string {
   if (!date) return '';
   const d = new Date(date);
@@ -294,6 +389,16 @@ function formatAnswer(answer: string): string {
   if (answer.toLowerCase() === 'no') return 'No';
   if (answer.toLowerCase() === 'never') return 'Never';
   return capitalizeFirst(answer);
+}
+
+// Updated commitment formatter with visual indicator
+function formatCommitmentWithVisual(doc: any, level: string): string {
+  if (!level) return 'Not specified';
+  const num = parseInt(level);
+  if (!isNaN(num)) {
+    return `${num}/5`;
+  }
+  return level;
 }
 
 function formatCommitmentLevel(level: string): string {

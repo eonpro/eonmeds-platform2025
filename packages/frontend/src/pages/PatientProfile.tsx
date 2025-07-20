@@ -234,6 +234,38 @@ export const PatientProfile: React.FC = () => {
     }
   };
 
+  // Add download PDF function
+  const downloadPDF = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
+        { 
+          method: 'GET',
+          headers: { 
+            'Accept': 'application/pdf'
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to download PDF');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `intake-form-${patient?.patient_id || 'patient'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download PDF. Please try again.');
+    }
+  };
+
   const calculateAge = (dob: string) => {
     const birthDate = new Date(dob);
     const today = new Date();
@@ -561,12 +593,20 @@ export const PatientProfile: React.FC = () => {
                   <div className="intake-form-info">
                     <p className="note-title">{patient.patient_id} - Intake Form</p>
                     <p className="note-subtitle">Weight Loss Program</p>
-                    <button 
-                      className="view-form-btn"
-                      onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
-                    >
-                      View Form
-                    </button>
+                    <div className="form-action-buttons">
+                      <button 
+                        className="view-form-btn"
+                        onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                      >
+                        View Form
+                      </button>
+                      <button 
+                        className="download-form-btn"
+                        onClick={downloadPDF}
+                      >
+                        Download
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1271,6 +1311,15 @@ export const PatientProfile: React.FC = () => {
                             onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
                           >
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
+                              <path d="M2 2a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V2zm2 0v12h8V2H4zm2 3h4v2H6V5zm0 3h4v2H6V8z"/>
+                            </svg>
+                            View Intake Form PDF
+                          </button>
+                          <button 
+                            className="download-pdf-btn"
+                            onClick={downloadPDF}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
                               <path d="M8.5 1v7.5H15m-6.5 0L15 2M1 9v5a1 1 0 001 1h12a1 1 0 001-1V9M8 11.5v3m0 0l-2.5-2.5M8 14.5l2.5-2.5"/>
                             </svg>
                             Download Intake Form PDF
@@ -1292,9 +1341,18 @@ export const PatientProfile: React.FC = () => {
                           onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
                         >
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
-                            <path d="M8.5 1v7.5H15m-6.5 0L15 2M1 9v5a1 1 0 001 1h12a1 1 0 001-1V9M8 11.5v3m0 0l-2.5-2.5M8 14.5l2.5-2.5"/>
+                            <path d="M2 2a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V2zm2 0v12h8V2H4zm2 3h4v2H6V5zm0 3h4v2H6V8z"/>
                           </svg>
                           View Intake Form PDF
+                        </button>
+                        <button 
+                          className="download-pdf-btn"
+                          onClick={downloadPDF}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
+                            <path d="M8.5 1v7.5H15m-6.5 0L15 2M1 9v5a1 1 0 001 1h12a1 1 0 001-1V9M8 11.5v3m0 0l-2.5-2.5M8 14.5l2.5-2.5"/>
+                          </svg>
+                          Download Intake Form PDF
                         </button>
                       </div>
                     </div>
