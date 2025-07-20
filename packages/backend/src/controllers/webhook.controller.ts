@@ -307,9 +307,15 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         zip = EXCLUDED.zip,
         membership_hashtags = 
           CASE 
-            WHEN 'webdirect' = ANY(COALESCE(patients.membership_hashtags, '{}')) 
-            THEN patients.membership_hashtags
-            ELSE array_append(COALESCE(patients.membership_hashtags, '{}'), 'webdirect')
+            WHEN patients.membership_hashtags IS NULL THEN ARRAY['webdirect', 'weightloss']
+            ELSE (
+              SELECT array_agg(DISTINCT tag)
+              FROM (
+                SELECT unnest(patients.membership_hashtags) AS tag
+                UNION
+                SELECT unnest(ARRAY['webdirect', 'weightloss']) AS tag
+              ) AS all_tags
+            )
           END
       RETURNING id, patient_id, email, first_name, last_name`,
       [
@@ -337,7 +343,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         patientData.consent_telehealth,
         new Date(), // consent_date
         'pending', // status
-        ['webdirect'] // membership_hashtags - automatically add webdirect to all HeyFlow submissions
+        ['webdirect', 'weightloss'] // membership_hashtags - automatically add both tags to all HeyFlow submissions
       ]
     );
     
