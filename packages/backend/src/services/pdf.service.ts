@@ -426,30 +426,30 @@ export class PDFService {
           ]
         ]);
 
-        // Ensure footer stays together on one page
-        const pageHeight = 792; // Letter size height
-        const footerStartY = pageHeight - 80; // Where footer starts
-        const footerHeight = 60; // Total height of footer content
+        // Add footer immediately after the last section
+        currentY = currentY + 20; // Add some space after last section
         
-        // Check if current position would interfere with footer
-        if (currentY > footerStartY - 20) {
-          // Add new page for footer
+        // Check if footer will fit on current page (need 60 points)
+        const pageHeight = 792;
+        const bottomMargin = 40;
+        const footerHeight = 60;
+        
+        if (currentY + footerHeight > pageHeight - bottomMargin) {
+          // Not enough space, start new page
           doc.addPage();
+          currentY = 50;
         }
         
-        // Position footer at bottom of current page
-        const footerY = pageHeight - 75;
-        
-        // Draw footer background as one block
-        doc.rect(40, footerY - 5, 532, footerHeight)
+        // Draw footer background
+        doc.rect(40, currentY - 5, 532, footerHeight)
            .fillColor('#f5f5f5')
            .fillOpacity(0.3)
            .fill()
            .fillOpacity(1);
         
         // Draw separator line
-        doc.moveTo(40, footerY - 8)
-           .lineTo(572, footerY - 8)
+        doc.moveTo(40, currentY - 8)
+           .lineTo(572, currentY - 8)
            .strokeColor('#cccccc')
            .lineWidth(0.5)
            .stroke();
@@ -469,7 +469,7 @@ export class PDFService {
                              patientData.created_at ||
                              new Date().toISOString();
         
-        // Create footer text as single block to prevent separation
+        // Create footer text as single block
         const footerText = `Form Details
 Flow ID: ${flowId} | Submission ID: ${submissionId}
 This form was submitted electronically via HeyFlow
@@ -479,7 +479,7 @@ Date: ${submissionDate}`;
         doc.fillColor('#666666')
            .fontSize(8)
            .font('Helvetica')
-           .text(footerText, 50, footerY, {
+           .text(footerText, 50, currentY, {
              width: 500,
              lineGap: 4
            });
