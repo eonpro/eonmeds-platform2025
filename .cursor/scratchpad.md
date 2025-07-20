@@ -10516,3 +10516,7 @@ export const handleStripeWebhook = async (req, res) => {
 - Stripe webhook signatures require raw body, not parsed JSON
 - Keep Stripe service methods simple with consistent error handling
 - Test webhooks locally using Stripe CLI before production
+
+---
+
+# BECCA AI Assistant - Project Plan
