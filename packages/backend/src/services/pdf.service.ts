@@ -137,6 +137,10 @@ export class PDFService {
         }
 
         // Treatment Readiness Section with visual elements
+        if (currentY > 650) {
+          doc.addPage();
+          currentY = 50;
+        }
         currentY = drawRoundedSection(doc, currentY + 20, 'Treatment Readiness', [
           [
             { 
@@ -156,6 +160,10 @@ export class PDFService {
         ]);
 
         // Consent Agreements Section with green checkmarks
+        if (currentY > 650) {
+          doc.addPage();
+          currentY = 50;
+        }
         currentY = drawRoundedSection(doc, currentY + 20, 'Consent Agreements', [
           [
             {
@@ -315,15 +323,15 @@ export class PDFService {
           }
           
           if (additionalFieldRows.length > 0) {
-            // Check if we need a new page
-            if (doc.y > 600) {
+            // Only add new page if we're really near the bottom
+            if (currentY > 700) {  // Changed from doc.y > 600
               doc.addPage();
               currentY = 50;
             } else {
-              currentY = doc.y + 20;
+              currentY = currentY + 20;  // Use currentY instead of doc.y
             }
             
-            drawRoundedSection(doc, currentY, 'Additional Information', additionalFieldRows);
+            currentY = drawRoundedSection(doc, currentY, 'Additional Information', additionalFieldRows);
           }
         }
 
