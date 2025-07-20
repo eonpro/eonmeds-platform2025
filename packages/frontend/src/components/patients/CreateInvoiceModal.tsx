@@ -179,138 +179,143 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                 <h4>Line Items</h4>
               </div>
               
-              <table className="line-items-table">
-                <thead>
-                  <tr>
-                    <th>Service</th>
-                    <th>Quantity</th>
-                    <th>Description</th>
-                    <th>Unit Price</th>
-                    <th>Total</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item, index) => (
-                    <tr key={index}>
-                      <td>
-                        <select
-                          className="line-item-select"
-                          value={item.service_id}
-                          onChange={(e) => handleServiceChange(index, e.target.value)}
-                          required
-                        >
-                          <option value="">Select service or enter custom</option>
-                          <optgroup label="Weight Loss">
-                            {serviceOptions
-                              .filter(s => s.label.includes('Semaglutide') || s.label.includes('Tirzepatide') || 
-                                         s.label.includes('Metformin') || s.label.includes('Phentermine'))
-                              .map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                          </optgroup>
-                          <optgroup label="Hormone Replacement">
-                            {serviceOptions
-                              .filter(s => s.label.includes('Testosterone'))
-                              .map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                          </optgroup>
-                          <optgroup label="Mental Health">
-                            {serviceOptions
-                              .filter(s => s.label.includes('Modafinil'))
-                              .map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                          </optgroup>
-                          <optgroup label="Peptides">
-                            {serviceOptions
-                              .filter(s => s.label.includes('CJC') || s.label.includes('Tesamorelin') || 
-                                         s.label.includes('BPC'))
-                              .map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                          </optgroup>
-                          <optgroup label="Blood Work">
-                            {serviceOptions
-                              .filter(s => s.label.includes('Blood Work'))
-                              .map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                          </optgroup>
-                          <optgroup label="Telehealth">
-                            {serviceOptions
-                              .filter(s => s.label.includes('Telehealth'))
-                              .map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                          </optgroup>
-                          <option value="custom">Custom Service</option>
-                        </select>
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          className="line-item-input quantity-input"
-                          value={item.quantity}
-                          onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
-                          min="1"
-                          required
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          className="line-item-input"
-                          value={item.description}
-                          onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                          placeholder={item.service_id === 'custom' ? 'Service description' : ''}
-                          disabled={item.service_id !== 'custom' && item.service_id !== ''}
-                          required
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          className="line-item-input price-input"
-                          value={item.unit_price}
-                          onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                          min="0"
-                          step="0.01"
-                          disabled={item.service_id !== 'custom' && item.service_id !== ''}
-                          required
-                        />
-                      </td>
-                      <td className="total-cell">
-                        ${(item.quantity * item.unit_price).toFixed(2)}
-                      </td>
-                      <td>
-                        {items.length > 1 && (
-                          <button
-                            type="button"
-                            className="remove-btn"
-                            onClick={() => removeItem(index)}
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {items.map((item, index) => (
+                <div key={index} className="line-item-container">
+                  <div className="service-row">
+                    <label className="service-label">SERVICE</label>
+                    <select
+                      className="line-item-select full-width"
+                      value={item.service_id}
+                      onChange={(e) => handleServiceChange(index, e.target.value)}
+                      required
+                    >
+                      <option value="">Select service or enter custom</option>
+                      <optgroup label="Weight Loss">
+                        {serviceOptions
+                          .filter(s => s.label.includes('Semaglutide') || s.label.includes('Tirzepatide') || 
+                                     s.label.includes('Metformin') || s.label.includes('Phentermine'))
+                          .map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                      </optgroup>
+                      <optgroup label="Hormone Replacement">
+                        {serviceOptions
+                          .filter(s => s.label.includes('Testosterone'))
+                          .map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                      </optgroup>
+                      <optgroup label="Mental Health">
+                        {serviceOptions
+                          .filter(s => s.label.includes('Modafinil'))
+                          .map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                      </optgroup>
+                      <optgroup label="Peptides">
+                        {serviceOptions
+                          .filter(s => s.label.includes('CJC') || s.label.includes('Tesamorelin') || 
+                                     s.label.includes('BPC'))
+                          .map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                      </optgroup>
+                      <optgroup label="Blood Work">
+                        {serviceOptions
+                          .filter(s => s.label.includes('Blood Work'))
+                          .map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                      </optgroup>
+                      <optgroup label="Telehealth">
+                        {serviceOptions
+                          .filter(s => s.label.includes('Telehealth'))
+                          .map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                      </optgroup>
+                      <option value="custom">Custom Service</option>
+                    </select>
+                  </div>
+                  
+                  <table className="line-items-table">
+                    <thead>
+                      <tr>
+                        <th>QUANTITY</th>
+                        <th>DESCRIPTION</th>
+                        <th>UNIT PRICE</th>
+                        <th>TOTAL</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <input
+                            type="number"
+                            className="line-item-input quantity-input"
+                            value={item.quantity}
+                            onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                            min="1"
+                            required
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className="line-item-input"
+                            value={item.description}
+                            onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                            placeholder={item.service_id === 'custom' ? 'Service description' : ''}
+                            disabled={item.service_id !== 'custom' && item.service_id !== ''}
+                            required
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="line-item-input price-input"
+                            value={item.unit_price}
+                            onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                            min="0"
+                            step="0.01"
+                            disabled={item.service_id !== 'custom' && item.service_id !== ''}
+                            required
+                          />
+                        </td>
+                        <td className="total-cell">
+                          ${(item.quantity * item.unit_price).toFixed(2)}
+                        </td>
+                        <td>
+                          {items.length > 1 && (
+                            <button
+                              type="button"
+                              className="remove-btn"
+                              onClick={() => removeItem(index)}
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  
+                  {index < items.length - 1 && <div className="line-item-divider" />}
+                </div>
+              ))}
               
               <button
                 type="button"
