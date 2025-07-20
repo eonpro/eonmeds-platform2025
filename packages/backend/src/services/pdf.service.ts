@@ -310,15 +310,23 @@ export class PDFService {
           });
           
           if (additionalFieldRows.length > 0) {
-            // Only add new page if we're really near the bottom
-            if (currentY > 700) {  // Changed from doc.y > 600
-              doc.addPage();
-              currentY = 50;
-            } else {
-              currentY = currentY + 20;  // Use currentY instead of doc.y
-            }
+            // Split fields into chunks that fit on a page
+            const fieldsPerPage = 15; // Approximately how many fields fit on one page
             
-            currentY = drawRoundedSection(doc, currentY, 'Additional Information', additionalFieldRows);
+            for (let i = 0; i < additionalFieldRows.length; i += fieldsPerPage) {
+              const chunk = additionalFieldRows.slice(i, i + fieldsPerPage);
+              
+              // Check if we need a new page
+              if (currentY > 650 || i > 0) {
+                doc.addPage();
+                currentY = 50;
+              } else {
+                currentY = currentY + 20;
+              }
+              
+              const sectionTitle = i === 0 ? 'Additional Information' : 'Additional Information (continued)';
+              currentY = drawCompactSection(doc, currentY, sectionTitle, chunk);
+            }
           }
         }
 
@@ -405,6 +413,54 @@ function drawRoundedSection(doc: PDFKit.PDFDocument, yPosition: number, title: s
 
     // Move to next row
     currentY += row.some((f: any) => f.description) ? 60 : 35; // Reduced from 70 and 45
+  });
+
+  return yPosition + sectionHeight;
+}
+
+// Compact version for Additional Information fields
+function drawCompactSection(doc: PDFKit.PDFDocument, yPosition: number, title: string, fieldRows: any[]): number {
+  let sectionHeight = 35; // Base height for title
+  
+  // Calculate section height with very tight spacing
+  fieldRows.forEach(row => {
+    sectionHeight += 25; // Much smaller spacing for compact fields
+  });
+
+  // Add a small bottom padding
+  sectionHeight += 10;
+
+  // Draw rounded rectangle background
+  doc.roundedRect(40, yPosition, 532, sectionHeight, 5)
+     .fillColor('#f5f5f5')
+     .fill();
+
+  // Section title
+  doc.fillColor('#000000')
+     .fontSize(14)
+     .font('Helvetica-Bold')
+     .text(title, 60, yPosition + 15);
+
+  // Reset font for fields
+  doc.font('Helvetica')
+     .fontSize(10);
+
+  let currentY = yPosition + 40;
+
+  // Draw fields with tighter spacing
+  fieldRows.forEach(row => {
+    row.forEach((field: any) => {
+      // Label and value on same line for very compact display
+      doc.fillColor('#666666')
+         .fontSize(8)
+         .text(field.label + ':', 60, currentY, { continued: true })
+         .fillColor('#000000')
+         .fontSize(10)
+         .text(' ' + (field.value || 'Not provided'), { align: 'left' });
+    });
+
+    // Move to next row with minimal spacing
+    currentY += 25;
   });
 
   return yPosition + sectionHeight;
