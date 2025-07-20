@@ -426,6 +426,37 @@ export class PDFService {
           ]
         ]);
 
+        // Add form details footer at the bottom of the last page
+        const pageHeight = 792; // Letter size height
+        const footerY = pageHeight - 60; // 60 points from bottom
+        
+        // Draw a line above the footer
+        doc.moveTo(40, footerY - 10)
+           .lineTo(572, footerY - 10)
+           .strokeColor('#cccccc')
+           .stroke();
+        
+        // Add form details
+        doc.fillColor('#666666')
+           .fontSize(8)
+           .font('Helvetica')
+           .text('Form Details', 40, footerY, { align: 'left' });
+        
+        // Flow ID and Submission ID
+        const flowId = webhookData.flow_id || 'Not available';
+        const submissionId = webhookData.submission_id || 'Not available';
+        
+        doc.fillColor('#666666')
+           .fontSize(8)
+           .text(`Flow ID: ${flowId} | Submission ID: ${submissionId}`, 40, footerY + 12);
+        
+        // Form submission info
+        doc.text('This form was submitted electronically via HeyFlow', 40, footerY + 24);
+        
+        // Date
+        const submissionDate = webhookData.created_at || new Date().toISOString();
+        doc.text(`Date: ${submissionDate}`, 40, footerY + 36);
+
         // Finalize the PDF
         doc.end();
       } catch (error) {
