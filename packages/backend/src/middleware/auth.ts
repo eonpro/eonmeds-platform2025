@@ -175,3 +175,24 @@ export const optionalAuth = async (
 
 // Export alias for backward compatibility
 export const authenticateToken = authenticate; 
+
+// Role-based access control middleware
+export const requireRole = (allowedRoles: string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userRole = req.user.roleCode || req.user.role;
+    
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({ 
+        error: 'Forbidden - Insufficient permissions',
+        required: allowedRoles,
+        current: userRole
+      });
+    }
+
+    next();
+  };
+}; 

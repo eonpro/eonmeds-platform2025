@@ -1,26 +1,28 @@
-# Stripe Environment Variables Setup
+# Stripe Configuration - PRODUCTION
+STRIPE_SECRET_KEY=sk_live_YOUR_LIVE_SECRET_KEY_HERE
+STRIPE_PUBLISHABLE_KEY=pk_live_YOUR_LIVE_PUBLISHABLE_KEY_HERE
+STRIPE_WEBHOOK_SECRET=whsec_YOUR_WEBHOOK_SECRET_HERE
 
-## For Railway (Production):
+# Database Configuration
+DATABASE_URL=your_database_url_here
 
-### Backend Service Variables:
-STRIPE_SECRET_KEY=sk_live_51ABC...xyz
-STRIPE_WEBHOOK_SECRET=whsec_ABC123...
+# Stripe Configuration - TEST (for development)
+# STRIPE_SECRET_KEY=sk_test_YOUR_TEST_SECRET_KEY_HERE
+# STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_TEST_PUBLISHABLE_KEY_HERE
+# STRIPE_WEBHOOK_SECRET=whsec_YOUR_TEST_WEBHOOK_SECRET_HERE
 
-### Frontend Service Variables:
-REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_live_51ABC...xyz
+# Product IDs (from Stripe Dashboard)
+# These should match the product IDs you created in Stripe
+STRIPE_PRODUCT_ID_SEMAGLUTIDE=prod_YOUR_PRODUCT_ID
+STRIPE_PRODUCT_ID_TIRZEPATIDE=prod_YOUR_PRODUCT_ID
 
-## For Local Development:
+# Price IDs (from Stripe Dashboard)
+# Monthly subscription prices
+STRIPE_PRICE_ID_SEMAGLUTIDE_MONTHLY=price_YOUR_PRICE_ID
+STRIPE_PRICE_ID_TIRZEPATIDE_MONTHLY=price_YOUR_PRICE_ID
 
-### Backend (.env file):
-STRIPE_SECRET_KEY=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
-STRIPE_WEBHOOK_SECRET=whsec_3l3mCp3g2kd50an0PpgQJuBqUfNKGGYv
+# One-time setup fee (if applicable)
+STRIPE_PRICE_ID_SETUP_FEE=price_YOUR_PRICE_ID
 
-### Frontend (.env file):
-REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_live_51RPS5NGzKhM7cZeGlOITW4CImzbMEldvaRbrBQV894nLYUjnSM7rNKTpzeYVZJVOhCbNxmOvOjnR7RN60XdAHvJ100Ksh6ziwy
-
-## Important Notes:
-1. NEVER commit .env files to Git
-2. Use test keys for development
-3. Use live keys only in production
-4. Webhook secret is obtained after creating webhook endpoint in Stripe Dashboard
-5. Make sure to restart your services after adding environment variables 
+# OpenAI Configuration (for BECCA AI)
+OPENAI_API_KEY=sk-YOUR_OPENAI_API_KEY_HERE 

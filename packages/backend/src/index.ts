@@ -5,16 +5,17 @@ import dotenv from 'dotenv';
 import { testDatabaseConnection } from './config/database';
 // Remove the audit middleware import for now since it's not used
 
-// Import all routes at the top
-import webhookRoutes from './routes/webhook.routes';
+// Import routes
 import authRoutes from './routes/auth.routes';
 import patientRoutes from './routes/patient.routes';
 import practitionerRoutes from './routes/practitioner.routes';
 import appointmentRoutes from './routes/appointment.routes';
 import documentRoutes from './routes/document.routes';
+import webhookRoutes from './routes/webhook.routes';
 import auditRoutes from './routes/audit.routes';
 import paymentRoutes from './routes/payment.routes';
 import packageRoutes from './routes/package.routes';
+import aiRoutes from './routes/ai.routes';
 
 // Load environment variables
 dotenv.config();
@@ -73,6 +74,7 @@ app.use('/api/v1/documents', documentRoutes);
 app.use('/api/v1/audit', auditRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/packages', packageRoutes);
+app.use('/api/v1/ai', aiRoutes);
 console.log('✅ All routes registered (database check happens per route)');
 
 // Start server
