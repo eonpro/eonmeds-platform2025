@@ -269,12 +269,6 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
                         required
                       />
                     </div>
-                    <div className="price-display-col">
-                      <label className="field-label">UNIT PRICE</label>
-                      <div className="price-display">
-                        ${item.unit_price.toFixed(2)}
-                      </div>
-                    </div>
                     <div className="total-col">
                       <label className="field-label">TOTAL</label>
                       <div className="total-cell">${item.unit_price.toFixed(2)}</div>
