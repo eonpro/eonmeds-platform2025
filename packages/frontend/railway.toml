@@ -14,6 +14,8 @@ DISABLE_ESLINT_PLUGIN = "true"
 CI = "false"
 TSC_COMPILE_ON_ERROR = "true"
 ESLINT_NO_DEV_ERRORS = "true"
+REACT_APP_API_URL = "https://eonmeds-platform2025-production.up.railway.app"
+REACT_APP_STRIPE_PUBLISHABLE_KEY = "pk_live_51RPS5NGzKhM7cZeGlOITW4CImzbMEldvaRbrBQV894nLYUjnSM7rNKTpzeYVZJVOhCbNxmOvOjnR7RN60XdAHvJ100Ksh6ziwy"
 
 [service]
 internalPort = 3000 
