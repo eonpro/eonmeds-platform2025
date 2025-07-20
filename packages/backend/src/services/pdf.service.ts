@@ -363,7 +363,30 @@ export class PDFService {
           const inches = webhookData.allFields?.['INCHES'] || webhookData.allFields?.['inches'] || '';
           const heightDisplay = feet && inches ? `${feet}' ${inches}"` : 'Not provided';
           
-          if (currentY > 650) {
+          // Try to find starting weight with various field names
+          const startingWeight = webhookData.allFields?.['STARTING WEIGHT'] || 
+                               webhookData.allFields?.['starting weight'] || 
+                               webhookData.allFields?.['STARTINGWEIGHT'] ||
+                               webhookData.allFields?.['Starting Weight'] ||
+                               webhookData.allFields?.['starting_weight'] ||
+                               webhookData.allFields?.['startingweight'] ||
+                               webhookData.allFields?.['StartingWeight'] ||
+                               webhookData.allFields?.['STARTING_WEIGHT'] || 
+                               'Not provided';
+          
+          // Try to find ideal weight with various field names
+          const idealWeight = webhookData.allFields?.['IDEALWEIGHT'] || 
+                            webhookData.allFields?.['ideal weight'] || 
+                            webhookData.allFields?.['IDEAL WEIGHT'] ||
+                            webhookData.allFields?.['Ideal Weight'] ||
+                            webhookData.allFields?.['idealweight'] ||
+                            webhookData.allFields?.['ideal_weight'] ||
+                            webhookData.allFields?.['IdealWeight'] ||
+                            webhookData.allFields?.['IDEAL_WEIGHT'] || 
+                            'Not provided';
+          
+          // Ensure Medical History has enough space to complete
+          if (currentY > 550) {  // Lowered from 600 to give more room
             doc.addPage();
             currentY = 50;
           } else {
@@ -381,16 +404,14 @@ export class PDFService {
             [
               { 
                 label: 'STARTING WEIGHT', 
-                value: webhookData.allFields?.['STARTING WEIGHT'] || webhookData.allFields?.['starting weight'] || 
-                       webhookData.allFields?.['STARTINGWEIGHT'] || 'Not provided',
+                value: startingWeight,
                 fullWidth: true
               }
             ],
             [
               { 
                 label: 'IDEAL WEIGHT', 
-                value: webhookData.allFields?.['IDEALWEIGHT'] || webhookData.allFields?.['ideal weight'] || 
-                       webhookData.allFields?.['IDEAL WEIGHT'] || 'Not provided',
+                value: idealWeight,
                 fullWidth: true
               }
             ],
