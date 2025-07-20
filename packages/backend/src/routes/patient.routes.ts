@@ -500,7 +500,12 @@ router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
       utm_id: fields.utm_id || fields['UTM ID'] || '',
       
       // Pass all raw fields for additional info section
-      allFields: fields
+      allFields: fields,
+      
+      // Pass flow ID and submission ID from webhook payload
+      flowID: webhookPayload.flowID || webhookPayload.flow_id || webhookPayload.formId || '',
+      submissionID: webhookPayload.id || webhookPayload.submissionId || webhookPayload.submission_id || patient.heyflow_submission_id || '',
+      created_at: webhookPayload.createdAt || webhookPayload.created_at || patient.created_at || new Date().toISOString()
     };
     
     // Generate PDF using PDFService

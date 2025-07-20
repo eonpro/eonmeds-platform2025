@@ -426,73 +426,63 @@ export class PDFService {
           ]
         ]);
 
-        // Check if there's enough space for footer (80 points needed)
-        const footerHeight = 80;
+        // Add footer on the current page - ensure it stays together
+        const footerHeight = 70; // Height needed for footer
         const pageHeight = 792; // Letter size height
-        const currentPageSpace = pageHeight - currentY - 40; // 40 for bottom margin
+        const bottomMargin = 40;
+        const maxContentY = pageHeight - bottomMargin - footerHeight;
         
-        // If not enough space, add new page
-        if (currentPageSpace < footerHeight) {
+        // If we're too close to bottom, start a new page for the footer
+        if (currentY > maxContentY) {
           doc.addPage();
-          currentY = 50;
-        } else {
-          currentY = currentY + 20;
         }
         
-        // Calculate footer position - always at bottom of current page
-        const footerY = pageHeight - 60;
+        // Always place footer at bottom of page
+        const footerY = pageHeight - 70;
         
         // Draw transparent container for footer
-        doc.rect(40, footerY - 15, 532, 65)
-           .fillColor('#f9f9f9')
-           .fillOpacity(0.5)
+        doc.rect(40, footerY - 10, 532, 65)
+           .fillColor('#f5f5f5')
+           .fillOpacity(0.3)
            .fill()
            .fillOpacity(1); // Reset opacity
         
         // Draw a line above the footer
-        doc.moveTo(40, footerY - 10)
-           .lineTo(572, footerY - 10)
+        doc.moveTo(40, footerY - 15)
+           .lineTo(572, footerY - 15)
            .strokeColor('#cccccc')
+           .lineWidth(0.5)
            .stroke();
         
         // Add form details
         doc.fillColor('#666666')
            .fontSize(8)
            .font('Helvetica')
-           .text('Form Details', 50, footerY, { align: 'left' });
+           .text('Form Details', 50, footerY);
         
-        // Try to get flow ID and submission ID from various possible locations
-        const flowId = webhookData.allFields?.['flowID'] || 
-                      webhookData.allFields?.['flow_id'] || 
-                      webhookData.allFields?.['Flow ID'] ||
-                      webhookData.flowID ||
+        // Get flow ID and submission ID from the webhook data
+        const flowId = webhookData.flowID || 
                       webhookData.flow_id ||
-                      patientData.flow_id ||
+                      patientData.form_type ||
                       'Not available';
                       
-        const submissionId = webhookData.allFields?.['submissionID'] || 
-                           webhookData.allFields?.['submission_id'] || 
-                           webhookData.allFields?.['Submission ID'] ||
-                           webhookData.submissionID ||
+        const submissionId = webhookData.submissionID ||
                            webhookData.submission_id ||
                            patientData.heyflow_submission_id ||
                            'Not available';
         
-        doc.fillColor('#666666')
-           .fontSize(8)
+        // Format the details on one line
+        doc.fontSize(8)
            .text(`Flow ID: ${flowId} | Submission ID: ${submissionId}`, 50, footerY + 12);
         
         // Form submission info
-        doc.text('This form was submitted electronically via HeyFlow', 50, footerY + 24);
+        doc.text('This form was submitted electronically via HeyFlow', 50, footerY + 26);
         
-        // Date - try multiple sources
-        const submissionDate = webhookData.allFields?.['created_at'] || 
-                             webhookData.allFields?.['createdAt'] ||
-                             webhookData.created_at || 
-                             webhookData.createdAt ||
+        // Date
+        const submissionDate = webhookData.created_at || 
                              patientData.created_at ||
                              new Date().toISOString();
-        doc.text(`Date: ${submissionDate}`, 50, footerY + 36);
+        doc.text(`Date: ${submissionDate}`, 50, footerY + 40);
 
         // Finalize the PDF
         doc.end();
