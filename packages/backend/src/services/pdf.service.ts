@@ -454,11 +454,6 @@ export class PDFService {
            .lineWidth(0.5)
            .stroke();
         
-        // Add all footer text in one continuous block
-        doc.fillColor('#666666')
-           .fontSize(8)
-           .font('Helvetica');
-        
         // Get all footer data
         const flowId = webhookData.flowID || 
                       webhookData.flow_id ||
@@ -474,11 +469,20 @@ export class PDFService {
                              patientData.created_at ||
                              new Date().toISOString();
         
-        // Write all footer text without page breaks
-        doc.text('Form Details', 50, footerY);
-        doc.text(`Flow ID: ${flowId} | Submission ID: ${submissionId}`, 50, footerY + 12);
-        doc.text('This form was submitted electronically via HeyFlow', 50, footerY + 26);
-        doc.text(`Date: ${submissionDate}`, 50, footerY + 40);
+        // Create footer text as single block to prevent separation
+        const footerText = `Form Details
+Flow ID: ${flowId} | Submission ID: ${submissionId}
+This form was submitted electronically via HeyFlow
+Date: ${submissionDate}`;
+        
+        // Write footer text as one block
+        doc.fillColor('#666666')
+           .fontSize(8)
+           .font('Helvetica')
+           .text(footerText, 50, footerY, {
+             width: 500,
+             lineGap: 4
+           });
 
         // Finalize the PDF
         doc.end();
