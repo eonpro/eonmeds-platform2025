@@ -20,6 +20,7 @@ import {
 } from '../components/common/Icons';
 import './PatientProfile.css';
 import { PatientInvoices } from '../components/patients/PatientInvoices';
+import { SOAPNotes } from '../components/patients/SOAPNotes';
 import { PatientCards } from '../components/patients/PatientCards';
 
 interface PatientDetails {
@@ -1379,8 +1380,10 @@ export const PatientProfile: React.FC = () => {
 
               {activeTab === 'soap' && (
                 <div className="soap-tab">
-                  <h2>SOAP Notes</h2>
-                  <p className="coming-soon">SOAP notes feature coming soon!</p>
+                  <SOAPNotes 
+                    patientId={patient.patient_id}
+                    patientName={`${patient.first_name} ${patient.last_name}`}
+                  />
                 </div>
               )}
 
