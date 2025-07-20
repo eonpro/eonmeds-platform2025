@@ -97,7 +97,53 @@ export class PDFService {
 
         // Patient Information Section with new design
         let currentY = 180;
-        currentY = drawRoundedSection(doc, currentY, 'Patient Information', [
+        
+        // Consent Agreements Section first (as requested)
+        currentY = drawRoundedSection(doc, currentY, 'Consent Agreements', [
+          [
+            {
+              label: 'Telehealth Consent',
+              value: webhookData.consent_telehealth === 'yes' ? '✓ Accepted ✓' : 'Not accepted',
+              description: 'By checking this box, I confirm that I understand and agree to receive medical care and treatment through telehealth services. I acknowledge that I have read and agree to the terms outlined in the Telehealth Consent Policy.',
+              isConsent: true,
+              isAccepted: webhookData.consent_telehealth === 'yes',
+              fullWidth: true
+            }
+          ],
+          [
+            {
+              label: 'Terms & Conditions Agreement',
+              value: webhookData.consent_telehealth === 'yes' ? '✓ Accepted' : 'Not accepted', // If telehealth is accepted, terms are also accepted
+              description: 'By checking the box below, you confirm that you have read and agree to our Terms & Conditions and Privacy Policy.',
+              isConsent: true,
+              isAccepted: webhookData.consent_telehealth === 'yes', // Linked to telehealth consent
+              fullWidth: true
+            }
+          ],
+          [
+            {
+              label: 'Cancellation & Subscription Policy',
+              value: webhookData.consent_cancellation === 'yes' ? '✓ Accepted' : 'Not accepted',
+              description: 'By checking this box, I acknowledge that I have read and agree to the Cancellation Policy. I understand that all sales are final, and charges may recur monthly unless canceled according to the terms provided.',
+              isConsent: true,
+              isAccepted: webhookData.consent_cancellation === 'yes',
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'ARE YOU OVER THE AGE OF 18?', 
+              value: webhookData.over_18 === 'yes' ? '✓ Accepted ✓' : 'Not accepted',
+              description: '18+ Disclosure: By submitting this form. I certify that I am over 18 years of age and that the date of birth provided in this form is legitimate and it belongs to me.',
+              isConsent: true,
+              isAccepted: webhookData.over_18 === 'yes',
+              fullWidth: true
+            }
+          ]
+        ]);
+        
+        // Now Patient Information
+        currentY = drawRoundedSection(doc, currentY + 20, 'Patient Information', [
           [
             { label: 'FIRST NAME', value: patientData.first_name || '' },
             { label: 'LAST NAME', value: patientData.last_name || '' }
@@ -171,54 +217,6 @@ export class PDFService {
               label: 'WOULD YOU BE INTERESTED IN YOUR PROVIDER CONSIDERING A PERSONALIZED TREATMENT PLAN TO HELP YOU MANAGE THESE SIDE EFFECTS?', 
               value: formatAnswer(webhookData.allFields?.['Would you be interested in your provider considering a personalized treatment plan to help you manage these side effects?'] || 
                                  webhookData.allFields?.['WOULD YOU BE INTERESTED IN YOUR PROVIDER CONSIDERING A PERSONALIZED TREATMENT PLAN TO HELP YOU MANAGE THESE SIDE EFFECTS?'] || ''),
-              fullWidth: true
-            }
-          ]
-        ]);
-
-        // Consent Agreements Section with green checkmarks
-        if (currentY > 650) {
-          doc.addPage();
-          currentY = 50;
-        }
-        currentY = drawRoundedSection(doc, currentY + 20, 'Consent Agreements', [
-          [
-            {
-              label: 'Telehealth Consent',
-              value: webhookData.consent_telehealth === 'yes' ? '✓ Accepted ✓' : 'Not accepted',
-              description: 'By checking this box, I confirm that I understand and agree to receive medical care and treatment through telehealth services. I acknowledge that I have read and agree to the terms outlined in the Telehealth Consent Policy.',
-              isConsent: true,
-              isAccepted: webhookData.consent_telehealth === 'yes',
-              fullWidth: true
-            }
-          ],
-          [
-            {
-              label: 'Terms & Conditions Agreement',
-              value: webhookData.consent_telehealth === 'yes' ? '✓ Accepted' : 'Not accepted', // If telehealth is accepted, terms are also accepted
-              description: 'By checking the box below, you confirm that you have read and agree to our Terms & Conditions and Privacy Policy.',
-              isConsent: true,
-              isAccepted: webhookData.consent_telehealth === 'yes', // Linked to telehealth consent
-              fullWidth: true
-            }
-          ],
-          [
-            {
-              label: 'Cancellation & Subscription Policy',
-              value: webhookData.consent_cancellation === 'yes' ? '✓ Accepted' : 'Not accepted',
-              description: 'By checking this box, I acknowledge that I have read and agree to the Cancellation Policy. I understand that all sales are final, and charges may recur monthly unless canceled according to the terms provided.',
-              isConsent: true,
-              isAccepted: webhookData.consent_cancellation === 'yes',
-              fullWidth: true
-            }
-          ],
-          [
-            { 
-              label: 'ARE YOU OVER THE AGE OF 18?', 
-              value: webhookData.over_18 === 'yes' ? '✓ Accepted ✓' : 'Not accepted',
-              description: '18+ Disclosure: By submitting this form. I certify that I am over 18 years of age and that the date of birth provided in this form is legitimate and it belongs to me.',
-              isConsent: true,
-              isAccepted: webhookData.over_18 === 'yes',
               fullWidth: true
             }
           ]
@@ -351,80 +349,51 @@ export class PDFService {
           ]
         ]);
 
-        // Add Additional Information section to show all other fields
-        if (webhookData.allFields && Object.keys(webhookData.allFields).length > 0) {
-          const additionalFields: any[] = [];
+        // Add Weight Loss Treatment Info section instead of Additional Information
+        if (webhookData.allFields) {
+          const feet = webhookData.allFields?.['FEET'] || webhookData.allFields?.['feet'] || '';
+          const inches = webhookData.allFields?.['INCHES'] || webhookData.allFields?.['inches'] || '';
+          const heightDisplay = feet && inches ? `${feet}' ${inches}"` : 'Not provided';
           
-          // Filter out fields we've already shown AND location data
-          const shownFields = [
-            'street', 'address', 'apartment#', 'apt', 'city', 'state', 'zip', 'country',
-            'address [city]', 'address [state]', 'address [zip]', 'address [country]',
-            'address [longitude]', 'address [latitude]', 'longitude', 'latitude',
-            'ADDRESS [LONGITUDE]', 'ADDRESS [LATITUDE]', 'LONGITUDE', 'LATITUDE',
-            'Are you currently taking, or have you ever taken, a GLP-1 medication?',
-            'Do you have a personal history of type 2 diabetes?',
-            'Do you have a personal history of medullary thyroid cancer?',
-            'Do you have a personal history of medullary thyroid cancer?1',
-            'DO YOU HAVE A PERSONAL HISTORY OF MEDULLARY THYROID CANCER?1',
-            'Do you have a personal history of multiple endocrine neoplasia type-2?',
-            'Do you have a personal history of gastroparesis (delayed stomach emptying)?',
-            'Are you pregnant or breast feeding?',
-            'Do you have any medical conditions or chronic illnesses?',
-            'Blood Pressure',
-            'What is your usual level of daily physical activity?',
-            '18+ Disclosure : By submitting this form. I certify that I am over 18 years of age and that the date of birth provided in this form is legitimate and it belongs to me.',
-            'How did you hear about us?',
-            'By clicking this box, I acknowledge that I have read, understood, and agree to the Terms of Use, and I acknowledge the Privacy Policy, Informed Telemedicine Consent, and the Cancellation Policy. If you live in Florida, you also accept the Florida Weight Loss Consumer Bill of Rights and the Florida Consent.',
-            'Terms Agreement',
-            'Marketing Consent',
-            'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id',
-            'UTM Source', 'UTM Medium', 'UTM Campaign', 'UTM Content', 'UTM Term', 'UTM ID',
-            // Medical questions now in Medical History
-            'Have you been diagnosed with any mental health condition?',
-            'HAVE YOU BEEN DIAGNOSED WITH ANY MENTAL HEALTH CONDITION?',
-            'Have you ever undergone any surgeries or medical procedures?',
-            'HAVE YOU EVER UNDERGONE ANY SURGERIES OR MEDICAL PROCEDURES?',
-            'Have you been diagnosed with any of the following conditions?',
-            'HAVE YOU BEEN DIAGNOSED WITH ANY OF THE FOLLOWING CONDITIONS?',
-            'Chronic Diseases: Do you have a history of any of the following?',
-            'CHRONIC DISEASES: DO YOU HAVE A HISTORY OF ANY OF THE FOLLOWING?',
-            'Do you usually present side effects when starting a new medication?',
-            'DO YOU USUALLY PRESENT SIDE EFFECTS WHEN STARTING A NEW MEDICATION?',
-            'Have you ever undergone any of the following weight loss surgeries or procedures?',
-            'HAVE YOU EVER UNDERGONE ANY OF THE FOLLOWING WEIGHT LOSS SURGERIES OR PROCEDURES?',
-            'Have you or any of your family members ever been diagnosed with any of the following conditions?',
-            'HAVE YOU OR ANY OF YOUR FAMILY MEMBERS EVER BEEN DIAGNOSED WITH ANY OF THE FOLLOWING CONDITIONS?',
-            // Treatment readiness questions
-            'How would your life change by losing weight?',
-            'HOW WOULD YOUR LIFE CHANGE BY LOSING WEIGHT?',
-            'Would you be interested in your provider considering a personalized treatment plan to help you manage these side effects?',
-            'WOULD YOU BE INTERESTED IN YOUR PROVIDER CONSIDERING A PERSONALIZED TREATMENT PLAN TO HELP YOU MANAGE THESE SIDE EFFECTS?'
-          ];
-          
-          // Collect all additional fields
-          Object.entries(webhookData.allFields).forEach(([key, value]) => {
-            if (!shownFields.includes(key) && value && value !== '') {
-              additionalFields.push({
-                label: key.toUpperCase().replace(/_/g, ' '),
-                value: formatAnswer(String(value)),
-                fullWidth: true
-              });
-            }
-          });
-          
-          if (additionalFields.length > 0) {
-            // Check if we need a new page
-            if (currentY > 650) {
-              doc.addPage();
-              currentY = 50;
-            } else {
-              currentY = currentY + 20;
-            }
-            
-            // Group all fields into a single compact section
-            const fieldsAsRows = additionalFields.map(field => [field]);
-            currentY = drawCompactSection(doc, currentY, 'Additional Information', fieldsAsRows);
+          if (currentY > 650) {
+            doc.addPage();
+            currentY = 50;
+          } else {
+            currentY = currentY + 20;
           }
+          
+          currentY = drawRoundedSection(doc, currentY, 'Weight Loss Treatment Info', [
+            [
+              { 
+                label: 'HEIGHT', 
+                value: heightDisplay,
+                fullWidth: true
+              }
+            ],
+            [
+              { 
+                label: 'STARTING WEIGHT', 
+                value: webhookData.allFields?.['STARTING WEIGHT'] || webhookData.allFields?.['starting weight'] || 
+                       webhookData.allFields?.['STARTINGWEIGHT'] || 'Not provided',
+                fullWidth: true
+              }
+            ],
+            [
+              { 
+                label: 'IDEAL WEIGHT', 
+                value: webhookData.allFields?.['IDEALWEIGHT'] || webhookData.allFields?.['ideal weight'] || 
+                       webhookData.allFields?.['IDEAL WEIGHT'] || 'Not provided',
+                fullWidth: true
+              }
+            ],
+            [
+              { 
+                label: 'BMI', 
+                value: webhookData.allFields?.['BMI'] || webhookData.allFields?.['bmi'] || 'Not provided',
+                fullWidth: true
+              }
+            ]
+          ]);
         }
 
         // Finalize the PDF
