@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
 import { PassThrough } from 'stream';
+import * as path from 'path';
 
 interface IntakeFormData {
   // Patient Information
@@ -68,30 +69,34 @@ export class PDFService {
         doc.pipe(stream);
 
         // Add EONMeds logo
-        // For now, we'll create a styled text logo that matches the brand
-        // In production, convert the SVG to PNG and use doc.image()
-        doc.fontSize(36)
-           .fillColor('#20c997')
-           .font('Helvetica-Bold')
-           .text('eonmeds', 40, 40, { align: 'left' })
-           .fillColor('#000000');
+        try {
+          const logoPath = path.join(__dirname, '../assets/eonmeds-logo.png');
+          doc.image(logoPath, 40, 40, { width: 120 });
+        } catch (error) {
+          // Fallback to text logo if image fails
+          doc.fontSize(36)
+             .fillColor('#20c997')
+             .font('Helvetica-Bold')
+             .text('eonmeds', 40, 40, { align: 'left' })
+             .fillColor('#000000');
+        }
 
         // Title
         doc.fontSize(24)
            .font('Helvetica-Bold')
-           .text('Patient Intake Form', 40, 90);
+           .text('Patient Intake Form', 40, 110);
 
         // Submission info
         doc.fontSize(10)
            .font('Helvetica')
            .fillColor('#666666')
-           .text(`Submitted via HeyFlow on ${formatDateFull(patientData.created_at || new Date())}`, 40, 120);
+           .text(`Submitted via HeyFlow on ${formatDateFull(patientData.created_at || new Date())}`, 40, 140);
 
         // Reset color
         doc.fillColor('#000000');
 
         // Patient Information Section with new design
-        let currentY = 160;
+        let currentY = 180;
         currentY = drawRoundedSection(doc, currentY, 'Patient Information', [
           [
             { label: 'FIRST NAME', value: patientData.first_name || '' },
