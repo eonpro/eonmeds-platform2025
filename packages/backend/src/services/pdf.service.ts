@@ -143,6 +143,10 @@ export class PDFService {
         ]);
         
         // Now Patient Information
+        if (currentY > 600) {
+          doc.addPage();
+          currentY = 50;
+        }
         currentY = drawRoundedSection(doc, currentY + 20, 'Patient Information', [
           [
             { label: 'FIRST NAME', value: patientData.first_name || '' },
@@ -158,21 +162,25 @@ export class PDFService {
           ]
         ]);
 
-        // Shipping Information Section
+        // Shipping Information Section - more compact layout
+        if (currentY > 600) {
+          doc.addPage();
+          currentY = 50;
+        }
         currentY = drawRoundedSection(doc, currentY + 20, 'Shipping Information', [
           [
             { label: 'STREET ADDRESS', value: webhookData.street || 'Not provided', fullWidth: true }
           ],
           [
-            { label: 'APARTMENT/SUITE NUMBER', value: webhookData.apt || 'Not provided', fullWidth: true }
+            { label: 'APT/SUITE', value: webhookData.apt || 'Not provided' },
+            { label: 'CITY', value: webhookData.city || 'Not provided' }
           ],
           [
-            { label: 'CITY', value: webhookData.city || 'Not provided' },
-            { label: 'STATE', value: webhookData.state || 'Not provided' }
+            { label: 'STATE', value: webhookData.state || 'Not provided' },
+            { label: 'POSTAL CODE', value: webhookData.zip || 'Not provided' }
           ],
           [
-            { label: 'POSTAL CODE', value: webhookData.zip || 'Not provided' },
-            { label: 'COUNTRY', value: webhookData.country || 'Estados Unidos' }
+            { label: 'COUNTRY', value: webhookData.country || 'Estados Unidos', fullWidth: true }
           ]
         ]);
 
