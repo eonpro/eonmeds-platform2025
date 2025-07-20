@@ -67,28 +67,36 @@ export class PDFService {
 
         doc.pipe(stream);
 
-        // Add EONMeds logo/header
+        // Add EONMeds logo from URL
+        // Note: PDFKit doesn't support direct SVG from URL, so we'll use the text for now
+        // In production, you would download and convert the SVG to PNG
         doc.fontSize(24)
            .fillColor('#20c997')
            .text('eonmeds', 40, 40, { align: 'left' })
+           .fillColor('#000000');
+        
+        // Add a note about the logo
+        doc.fontSize(8)
+           .fillColor('#999999')
+           .text('(Logo: https://static.wixstatic.com/shapes/c49a9b_5fd302ab673e48be9489f00b87d2d8ca.svg)', 40, 65)
            .fillColor('#000000');
 
         // Title
         doc.fontSize(24)
            .font('Helvetica-Bold')
-           .text('Patient Intake Form', 40, 80);
+           .text('Patient Intake Form', 40, 90);
 
         // Submission info
         doc.fontSize(10)
            .font('Helvetica')
            .fillColor('#666666')
-           .text(`Submitted via HeyFlow on ${formatDateFull(patientData.created_at || new Date())}`, 40, 110);
+           .text(`Submitted via HeyFlow on ${formatDateFull(patientData.created_at || new Date())}`, 40, 120);
 
         // Reset color
         doc.fillColor('#000000');
 
         // Patient Information Section with new design
-        let currentY = 150;
+        let currentY = 160;
         currentY = drawRoundedSection(doc, currentY, 'Patient Information', [
           [
             { label: 'FIRST NAME', value: patientData.first_name || '' },
@@ -140,14 +148,6 @@ export class PDFService {
           ],
           [
             { 
-              label: 'ARE YOU OVER THE AGE OF 18?', 
-              value: webhookData.over_18 === 'yes' ? '✓' : 'No',
-              isCheckmark: webhookData.over_18 === 'yes',
-              fullWidth: true
-            }
-          ],
-          [
-            { 
               label: 'HOW DID YOU HEAR ABOUT US?', 
               value: capitalizeFirst(webhookData.referral_source) || 'Not specified',
               fullWidth: true
@@ -170,10 +170,10 @@ export class PDFService {
           [
             {
               label: 'Terms & Conditions Agreement',
-              value: webhookData.consent_treatment === 'yes' ? '✓ Accepted' : 'Not accepted',
+              value: webhookData.consent_telehealth === 'yes' ? '✓ Accepted' : 'Not accepted', // If telehealth is accepted, terms are also accepted
               description: 'By checking the box below, you confirm that you have read and agree to our Terms & Conditions and Privacy Policy.',
               isConsent: true,
-              isAccepted: webhookData.consent_treatment === 'yes',
+              isAccepted: webhookData.consent_telehealth === 'yes', // Linked to telehealth consent
               fullWidth: true
             }
           ],
@@ -184,6 +184,14 @@ export class PDFService {
               description: 'By checking this box, I acknowledge that I have read and agree to the Cancellation Policy. I understand that all sales are final, and charges may recur monthly unless canceled according to the terms provided.',
               isConsent: true,
               isAccepted: webhookData.consent_cancellation === 'yes',
+              fullWidth: true
+            }
+          ],
+          [
+            { 
+              label: 'ARE YOU OVER THE AGE OF 18?', 
+              value: webhookData.over_18 === 'yes' ? '✓' : 'No',
+              isCheckmark: webhookData.over_18 === 'yes',
               fullWidth: true
             }
           ]
@@ -252,6 +260,57 @@ export class PDFService {
           ]
         ]);
 
+        // Add Additional Information section to show all other fields
+        if (webhookData.allFields && Object.keys(webhookData.allFields).length > 0) {
+          const additionalFields: any[] = [];
+          
+          // Filter out fields we've already shown
+          const shownFields = [
+            'street', 'address', 'apartment#', 'apt', 'city', 'state', 'zip', 'country',
+            'address [city]', 'address [state]', 'address [zip]', 'address [country]',
+            'Are you currently taking, or have you ever taken, a GLP-1 medication?',
+            'Do you have a personal history of type 2 diabetes?',
+            'Do you have a personal history of medullary thyroid cancer?',
+            'Do you have a personal history of multiple endocrine neoplasia type-2?',
+            'Do you have a personal history of gastroparesis (delayed stomach emptying)?',
+            'Are you pregnant or breast feeding?',
+            'Do you have any medical conditions or chronic illnesses?',
+            'Blood Pressure',
+            'What is your usual level of daily physical activity?',
+            '18+ Disclosure : By submitting this form. I certify that I am over 18 years of age and that the date of birth provided in this form is legitimate and it belongs to me.',
+            'How did you hear about us?',
+            'By clicking this box, I acknowledge that I have read, understood, and agree to the Terms of Use, and I acknowledge the Privacy Policy, Informed Telemedicine Consent, and the Cancellation Policy. If you live in Florida, you also accept the Florida Weight Loss Consumer Bill of Rights and the Florida Consent.',
+            'Terms Agreement',
+            'Marketing Consent',
+            'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id',
+            'UTM Source', 'UTM Medium', 'UTM Campaign', 'UTM Content', 'UTM Term', 'UTM ID'
+          ];
+          
+          Object.entries(webhookData.allFields).forEach(([key, value]) => {
+            if (!shownFields.includes(key) && value && value !== '') {
+              additionalFields.push([
+                {
+                  label: key.toUpperCase().replace(/_/g, ' '),
+                  value: formatAnswer(String(value)),
+                  fullWidth: true
+                }
+              ]);
+            }
+          });
+          
+          if (additionalFields.length > 0) {
+            // Check if we need a new page
+            if (doc.y > 600) {
+              doc.addPage();
+              currentY = 50;
+            } else {
+              currentY = doc.y + 20;
+            }
+            
+            drawRoundedSection(doc, currentY, 'Additional Information', additionalFields);
+          }
+        }
+
         // Finalize the PDF
         doc.end();
       } catch (error) {
@@ -263,14 +322,17 @@ export class PDFService {
 
 // New helper function for rounded sections
 function drawRoundedSection(doc: PDFKit.PDFDocument, yPosition: number, title: string, fieldRows: any[]): number {
-  let sectionHeight = 50; // Base height for title
+  let sectionHeight = 35; // Reduced base height for title
   
-  // Calculate section height based on content
+  // Calculate section height based on content with tighter spacing
   fieldRows.forEach(row => {
     row.forEach((field: any) => {
-      sectionHeight += field.description ? 70 : 45;
+      sectionHeight += field.description ? 60 : 35; // Reduced from 70 and 45
     });
   });
+
+  // Add a small bottom padding
+  sectionHeight += 10; // Small padding at bottom
 
   // Draw rounded rectangle background
   doc.roundedRect(40, yPosition, 532, sectionHeight, 5)
@@ -331,7 +393,7 @@ function drawRoundedSection(doc: PDFKit.PDFDocument, yPosition: number, title: s
     });
 
     // Move to next row
-    currentY += row.some((f: any) => f.description) ? 70 : 45;
+    currentY += row.some((f: any) => f.description) ? 60 : 35; // Reduced from 70 and 45
   });
 
   return yPosition + sectionHeight;

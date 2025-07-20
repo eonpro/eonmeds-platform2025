@@ -482,9 +482,9 @@ router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
       blood_pressure: fields['Blood Pressure'] || '',
       
       // Treatment readiness
-      commitment_level: fields['What is your usual level of daily physical activity?'] || '5',
+      commitment_level: fields['commitment_level'] || fields['How committed are you to starting treatment?'] || fields['What is your usual level of daily physical activity?'] || '5',
       over_18: fields['18+ Disclosure : By submitting this form. I certify that I am over 18 years of age and that the date of birth provided in this form is legitimate and it belongs to me.'] ? 'yes' : 'no',
-      referral_source: fields['How did you hear about us?'] || '',
+      referral_source: fields['How did you hear about us?'] || fields['referral_source'] || '',
       
       // Consent
       consent_telehealth: fields['By clicking this box, I acknowledge that I have read, understood, and agree to the Terms of Use, and I acknowledge the Privacy Policy, Informed Telemedicine Consent, and the Cancellation Policy. If you live in Florida, you also accept the Florida Weight Loss Consumer Bill of Rights and the Florida Consent.'] ? 'yes' : 'no',
@@ -497,7 +497,10 @@ router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
       utm_campaign: fields.utm_campaign || fields['UTM Campaign'] || '',
       utm_content: fields.utm_content || fields['UTM Content'] || '',
       utm_term: fields.utm_term || fields['UTM Term'] || '',
-      utm_id: fields.utm_id || fields['UTM ID'] || ''
+      utm_id: fields.utm_id || fields['UTM ID'] || '',
+      
+      // Pass all raw fields for additional info section
+      allFields: fields
     };
     
     // Generate PDF using PDFService
