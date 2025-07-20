@@ -67,18 +67,13 @@ export class PDFService {
 
         doc.pipe(stream);
 
-        // Add EONMeds logo from URL
-        // Note: PDFKit doesn't support direct SVG from URL, so we'll use the text for now
-        // In production, you would download and convert the SVG to PNG
-        doc.fontSize(24)
+        // Add EONMeds logo
+        // For now, we'll create a styled text logo that matches the brand
+        // In production, convert the SVG to PNG and use doc.image()
+        doc.fontSize(36)
            .fillColor('#20c997')
+           .font('Helvetica-Bold')
            .text('eonmeds', 40, 40, { align: 'left' })
-           .fillColor('#000000');
-        
-        // Add a note about the logo
-        doc.fontSize(8)
-           .fillColor('#999999')
-           .text('(Logo: https://static.wixstatic.com/shapes/c49a9b_5fd302ab673e48be9489f00b87d2d8ca.svg)', 40, 65)
            .fillColor('#000000');
 
         // Title
@@ -190,8 +185,10 @@ export class PDFService {
           [
             { 
               label: 'ARE YOU OVER THE AGE OF 18?', 
-              value: webhookData.over_18 === 'yes' ? '✓' : 'No',
-              isCheckmark: webhookData.over_18 === 'yes',
+              value: webhookData.over_18 === 'yes' ? '✓ Accepted ✓' : 'Not accepted',
+              description: '18+ Disclosure: By submitting this form. I certify that I am over 18 years of age and that the date of birth provided in this form is legitimate and it belongs to me.',
+              isConsent: true,
+              isAccepted: webhookData.over_18 === 'yes',
               fullWidth: true
             }
           ]
@@ -262,7 +259,8 @@ export class PDFService {
 
         // Add Additional Information section to show all other fields
         if (webhookData.allFields && Object.keys(webhookData.allFields).length > 0) {
-          const additionalFields: any[] = [];
+          const additionalFieldRows: any[] = [];
+          const tempRow: any[] = [];
           
           // Filter out fields we've already shown
           const shownFields = [
@@ -286,19 +284,32 @@ export class PDFService {
             'UTM Source', 'UTM Medium', 'UTM Campaign', 'UTM Content', 'UTM Term', 'UTM ID'
           ];
           
+          let fieldCount = 0;
           Object.entries(webhookData.allFields).forEach(([key, value]) => {
             if (!shownFields.includes(key) && value && value !== '') {
-              additionalFields.push([
-                {
-                  label: key.toUpperCase().replace(/_/g, ' '),
-                  value: formatAnswer(String(value)),
-                  fullWidth: true
-                }
-              ]);
+              tempRow.push({
+                label: key.toUpperCase().replace(/_/g, ' '),
+                value: formatAnswer(String(value)),
+                fullWidth: false
+              });
+              
+              fieldCount++;
+              
+              // Group fields in pairs
+              if (tempRow.length === 2) {
+                additionalFieldRows.push([...tempRow]);
+                tempRow.length = 0;
+              }
             }
           });
           
-          if (additionalFields.length > 0) {
+          // Add any remaining field
+          if (tempRow.length > 0) {
+            tempRow[0].fullWidth = true; // Make single field full width
+            additionalFieldRows.push([...tempRow]);
+          }
+          
+          if (additionalFieldRows.length > 0) {
             // Check if we need a new page
             if (doc.y > 600) {
               doc.addPage();
@@ -307,7 +318,7 @@ export class PDFService {
               currentY = doc.y + 20;
             }
             
-            drawRoundedSection(doc, currentY, 'Additional Information', additionalFields);
+            drawRoundedSection(doc, currentY, 'Additional Information', additionalFieldRows);
           }
         }
 
