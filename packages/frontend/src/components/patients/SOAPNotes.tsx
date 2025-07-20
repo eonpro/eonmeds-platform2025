@@ -89,13 +89,13 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
       case 'approved':
         return (
           <span className="status-badge approved">
-            ✓ Approved by {note.approved_by_name} {note.approved_by_credentials}
+            Approved by {note.approved_by_name} {note.approved_by_credentials}
           </span>
         );
       case 'rejected':
-        return <span className="status-badge rejected">✗ Rejected</span>;
+        return <span className="status-badge rejected">Rejected</span>;
       default:
-        return <span className="status-badge pending">⏳ Pending Provider Approval</span>;
+        return <span className="status-badge pending">Pending Provider Approval</span>;
     }
   };
 
@@ -114,12 +114,10 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
         >
           {generating ? (
             <>
-              <span className="becca-icon">🤖</span>
               Generating with BECCA AI...
             </>
           ) : (
             <>
-              <span className="becca-icon">🤖</span>
               Generate SOAP Note with BECCA AI
             </>
           )}
@@ -128,13 +126,12 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
 
       {error && (
         <div className="error-message">
-          <span>⚠️</span> {error}
+          {error}
         </div>
       )}
 
       {soapNotes.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">📋</div>
           <h3>No SOAP Notes Yet</h3>
           <p>Click "Generate SOAP Note with BECCA AI" to create the first SOAP note from the patient's intake form.</p>
         </div>
