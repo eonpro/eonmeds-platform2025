@@ -4,6 +4,7 @@ import { LoadingSpinner } from '../common/LoadingSpinner';
 import BeccaAIModal from '../ai/BeccaAIModal';
 import { useAuth } from '../../hooks/useAuth';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { ConfirmDialog } from '../common/ConfirmDialog';
 import './SOAPNotes.css';
 
 interface SOAPNote {
@@ -31,6 +32,11 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [beccaStatus, setBeccaStatus] = useState<'idle' | 'analyzing' | 'creating' | 'ready'>('idle');
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    noteId: '',
+    onConfirm: () => {}
+  });
   
   // Check if user can delete SOAP notes
   const canDelete = user?.role === 'admin' || user?.role === 'doctor' || user?.role === 'superadmin';
@@ -101,19 +107,23 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
   };
 
   // Delete SOAP note
-  const handleDeleteNote = async (noteId: string) => {
-    if (!window.confirm('Are you sure you want to delete this SOAP note?')) {
-      return;
-    }
-    
-    try {
-      await api.delete(`/api/v1/ai/soap-notes/${noteId}`);
-      // Refresh the list
-      await fetchSOAPNotes();
-    } catch (err: any) {
-      console.error('Error deleting SOAP note:', err);
-      setError(err.response?.data?.error || 'Failed to delete SOAP note');
-    }
+  const handleDeleteNote = (noteId: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      noteId,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/api/v1/ai/soap-notes/${noteId}`);
+          // Refresh the list
+          await fetchSOAPNotes();
+          setError(null);
+        } catch (err: any) {
+          console.error('Error deleting SOAP note:', err);
+          setError(err.response?.data?.error || 'Failed to delete SOAP note');
+        }
+        setConfirmDialog({ ...confirmDialog, isOpen: false });
+      }
+    });
   };
 
   // Format date for display
@@ -234,6 +244,18 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
           </div>
         )}
       </div>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Delete SOAP Note"
+        message="Are you sure you want to delete this SOAP note?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        type="danger"
+      />
     </>
   );
 }; 

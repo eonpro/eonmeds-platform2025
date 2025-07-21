@@ -4,6 +4,8 @@ import { CreateInvoiceModal } from './CreateInvoiceModal';
 import { InvoiceDetailsModal } from './InvoiceDetailsModal';
 import { PaymentModal } from './PaymentModal';
 import { MarkAsPaidModal } from './MarkAsPaidModal';
+import { ConfirmDialog } from '../common/ConfirmDialog';
+import { AlertDialog } from '../common/AlertDialog';
 import './PatientInvoices.css';
 
 interface Invoice {
@@ -50,6 +52,17 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
     totalPaid: 0
   });
   const [error, setError] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    message: '',
+    onConfirm: () => {}
+  });
+  const [alertDialog, setAlertDialog] = useState({
+    isOpen: false,
+    type: 'info' as 'success' | 'error' | 'warning' | 'info',
+    title: '',
+    message: ''
+  });
 
   const loadInvoices = useCallback(async () => {
     try {
@@ -67,24 +80,40 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
 
   const handleDeleteInvoice = async (invoice: Invoice) => {
     if (invoice.status === 'paid') {
-      alert('Cannot delete paid invoices');
+      setAlertDialog({
+        isOpen: true,
+        type: 'error',
+        title: 'Cannot Delete',
+        message: 'Cannot delete paid invoices'
+      });
       return;
     }
     
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete invoice ${invoice.invoice_number}?\n\nThis action cannot be undone.`
-    );
-    
-    if (!confirmDelete) return;
-    
-    try {
-      await apiClient.delete(`/api/v1/payments/invoices/${invoice.id}`);
-      alert('Invoice deleted successfully');
-      loadInvoices(); // Reload the list
-    } catch (error: any) {
-      console.error('Error deleting invoice:', error);
-      alert(error.response?.data?.error || 'Failed to delete invoice');
-    }
+    setConfirmDialog({
+      isOpen: true,
+      message: `Are you sure you want to delete invoice ${invoice.invoice_number}? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          await apiClient.delete(`/api/v1/payments/invoices/${invoice.id}`);
+          setAlertDialog({
+            isOpen: true,
+            type: 'success',
+            title: 'Success',
+            message: 'Invoice deleted successfully'
+          });
+          loadInvoices(); // Reload the list
+        } catch (error: any) {
+          console.error('Error deleting invoice:', error);
+          setAlertDialog({
+            isOpen: true,
+            type: 'error',
+            title: 'Error',
+            message: error.response?.data?.error || 'Failed to delete invoice'
+          });
+        }
+        setConfirmDialog({ ...confirmDialog, isOpen: false });
+      }
+    });
   };
 
   useEffect(() => {
@@ -322,6 +351,27 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
           }}
         />
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Delete Invoice"
+        message={confirmDialog.message}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        type="danger"
+      />
+
+      {/* Alert Dialog */}
+      <AlertDialog
+        isOpen={alertDialog.isOpen}
+        type={alertDialog.type}
+        title={alertDialog.title}
+        message={alertDialog.message}
+        onClose={() => setAlertDialog({ ...alertDialog, isOpen: false })}
+      />
     </div>
   );
 }; 

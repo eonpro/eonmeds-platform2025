@@ -1,0 +1,110 @@
+/* Alert Dialog Styles */
+.alert-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.alert-dialog-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 360px;
+  width: 90%;
+  padding: 24px;
+  text-align: center;
+  animation: slideIn 0.3s ease;
+}
+
+.alert-dialog-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Icon colors based on type */
+.alert-dialog-content.success .alert-dialog-icon {
+  background-color: #d1fae5;
+  color: #10b981;
+}
+
+.alert-dialog-content.error .alert-dialog-icon {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.alert-dialog-content.warning .alert-dialog-icon {
+  background-color: #fef3c7;
+  color: #f59e0b;
+}
+
+.alert-dialog-content.info .alert-dialog-icon {
+  background-color: #dbeafe;
+  color: #3b82f6;
+}
+
+.alert-dialog-body h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  font-family: 'Poppins', sans-serif;
+}
+
+.alert-dialog-body p {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.5;
+  font-family: 'Poppins', sans-serif;
+}
+
+.alert-dialog-close {
+  padding: 8px 24px;
+  background-color: #14a97b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.alert-dialog-close:hover {
+  background-color: #0f8a63;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(20, 169, 123, 0.3);
+}
+
+/* Type-specific button colors */
+.alert-dialog-content.error .alert-dialog-close {
+  background-color: #dc2626;
+}
+
+.alert-dialog-content.error .alert-dialog-close:hover {
+  background-color: #b91c1c;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.alert-dialog-content.warning .alert-dialog-close {
+  background-color: #f59e0b;
+}
+
+.alert-dialog-content.warning .alert-dialog-close:hover {
+  background-color: #d97706;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+} 
