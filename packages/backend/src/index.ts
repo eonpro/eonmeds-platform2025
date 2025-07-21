@@ -16,6 +16,7 @@ import auditRoutes from './routes/audit.routes';
 import paymentRoutes from './routes/payment.routes';
 import packageRoutes from './routes/package.routes';
 import aiRoutes from './routes/ai.routes';
+import invoiceRoutes from './routes/invoice.routes';
 
 // Load environment variables
 dotenv.config();
@@ -87,6 +88,7 @@ app.use('/api/v1/documents', documentRoutes);
 app.use('/api/v1/audit', auditRoutes);
 // Payment routes - but webhook is already registered above
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/payments/invoices', invoiceRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/ai', aiRoutes);
 console.log('✅ All routes registered (database check happens per route)');
