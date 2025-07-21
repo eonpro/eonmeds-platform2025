@@ -91,6 +91,15 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
         await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
         break;
 
+      // External payment events
+      case 'charge.succeeded':
+        await handleChargeSucceeded(event.data.object as Stripe.Charge);
+        break;
+      
+      case 'checkout.session.completed':
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+        break;
+
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
@@ -391,8 +400,283 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   console.log(`❌ Payment failed: ${paymentIntent.id}`);
 }
 
+// External payment events
+async function handleChargeSucceeded(charge: Stripe.Charge) {
+  console.log(`💰 External charge succeeded: ${charge.id} - Amount: $${charge.amount / 100}`);
+  
+  // Skip if this charge was already processed through payment_intent
+  if (charge.payment_intent) {
+    console.log('Charge is part of payment_intent, skipping to avoid duplicate processing');
+    return;
+  }
+  
+  try {
+    // Extract customer information
+    const customerEmail = charge.billing_details?.email || 
+                         (charge.customer ? await getCustomerEmail(charge.customer as string) : null);
+    
+    if (!customerEmail) {
+      console.error('Cannot process charge without customer email');
+      return;
+    }
+    
+    // Find or create patient
+    let patient = await findPatientByEmail(customerEmail);
+    
+    if (!patient && charge.customer) {
+      // Try to find by Stripe customer ID
+      patient = await findPatientByStripeCustomerId(charge.customer as string);
+    }
+    
+    if (!patient) {
+      // Create new patient from charge data
+      patient = await createPatientFromCharge(charge);
+    }
+    
+    // Create invoice for this external payment
+    await createInvoiceFromExternalPayment(charge, patient);
+    
+    // Update patient status to subscriptions
+    await updatePatientStatusToSubscriptions(patient.patient_id);
+    
+    console.log(`✅ Processed external payment for patient ${patient.patient_id}`);
+  } catch (error) {
+    console.error('Error processing external charge:', error);
+  }
+}
+
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+  console.log(`🛒 Checkout session completed: ${session.id} - Amount: $${(session.amount_total || 0) / 100}`);
+  
+  try {
+    // Extract customer information
+    const customerEmail = session.customer_email || 
+                         (session.customer ? await getCustomerEmail(session.customer as string) : null);
+    
+    if (!customerEmail) {
+      console.error('Cannot process checkout session without customer email');
+      return;
+    }
+    
+    // Find or create patient
+    let patient = await findPatientByEmail(customerEmail);
+    
+    if (!patient && session.customer) {
+      // Try to find by Stripe customer ID
+      patient = await findPatientByStripeCustomerId(session.customer as string);
+    }
+    
+    if (!patient) {
+      // Create new patient from checkout session
+      patient = await createPatientFromCheckoutSession(session);
+    }
+    
+    // Create invoice for this checkout session
+    await createInvoiceFromCheckoutSession(session, patient);
+    
+    // Update patient status to subscriptions
+    await updatePatientStatusToSubscriptions(patient.patient_id);
+    
+    // If this created a subscription, it will be handled by subscription events
+    if (session.mode === 'subscription') {
+      console.log('Checkout created subscription, will be handled by subscription events');
+    }
+    
+    console.log(`✅ Processed checkout session for patient ${patient.patient_id}`);
+  } catch (error) {
+    console.error('Error processing checkout session:', error);
+  }
+}
+
 // Helper to generate invoice number
 async function generateInvoiceNumber(): Promise<string> {
   const result = await pool.query('SELECT generate_invoice_number() as number');
   return result.rows[0].number;
+} 
+
+// Helper functions for external payment processing
+
+async function getCustomerEmail(customerId: string): Promise<string | null> {
+  if (!stripe) return null;
+  
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    return (customer as Stripe.Customer).email;
+  } catch (error) {
+    console.error('Error fetching customer:', error);
+    return null;
+  }
+}
+
+async function findPatientByEmail(email: string) {
+  const result = await pool.query(
+    'SELECT * FROM patients WHERE LOWER(email) = LOWER($1)',
+    [email]
+  );
+  return result.rows[0] || null;
+}
+
+async function findPatientByStripeCustomerId(customerId: string) {
+  const result = await pool.query(
+    'SELECT * FROM patients WHERE stripe_customer_id = $1',
+    [customerId]
+  );
+  return result.rows[0] || null;
+}
+
+async function generatePatientId(): Promise<string> {
+  const result = await pool.query('SELECT generate_patient_id() as id');
+  return result.rows[0].id;
+}
+
+async function createPatientFromCharge(charge: Stripe.Charge) {
+  const billing = charge.billing_details;
+  const patientId = await generatePatientId();
+  
+  // Parse name into first and last
+  const nameParts = (billing?.name || 'Unknown').split(' ');
+  const firstName = nameParts[0] || 'Unknown';
+  const lastName = nameParts.slice(1).join(' ') || 'Patient';
+  
+  const result = await pool.query(
+    `INSERT INTO patients (
+      patient_id, first_name, last_name, email, phone,
+      stripe_customer_id, status, form_type, created_at,
+      membership_hashtags
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)
+    RETURNING *`,
+    [
+      patientId,
+      firstName,
+      lastName,
+      billing?.email || `unknown_${Date.now()}@external.com`,
+      billing?.phone,
+      typeof charge.customer === 'string' ? charge.customer : null,
+      'subscriptions', // Direct to subscriptions since they paid
+      'external_stripe',
+      ['activemember'] // Add active member hashtag
+    ]
+  );
+  
+  console.log(`✅ Created new patient ${patientId} from external charge`);
+  return result.rows[0];
+}
+
+async function createPatientFromCheckoutSession(session: Stripe.Checkout.Session) {
+  const patientId = await generatePatientId();
+  
+  // Try to get customer details
+  const customerDetails = session.customer_details;
+  const nameParts = (customerDetails?.name || 'Unknown').split(' ');
+  const firstName = nameParts[0] || 'Unknown';
+  const lastName = nameParts.slice(1).join(' ') || 'Patient';
+  
+  const result = await pool.query(
+    `INSERT INTO patients (
+      patient_id, first_name, last_name, email, phone,
+      stripe_customer_id, status, form_type, created_at,
+      membership_hashtags
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)
+    RETURNING *`,
+    [
+      patientId,
+      firstName,
+      lastName,
+      session.customer_email || customerDetails?.email || `unknown_${Date.now()}@external.com`,
+      customerDetails?.phone,
+      typeof session.customer === 'string' ? session.customer : null,
+      'subscriptions',
+      'external_checkout',
+      ['activemember']
+    ]
+  );
+  
+  console.log(`✅ Created new patient ${patientId} from checkout session`);
+  return result.rows[0];
+}
+
+async function createInvoiceFromExternalPayment(charge: Stripe.Charge, patient: any) {
+  const invoiceNumber = await generateInvoiceNumber();
+  
+  await pool.query(
+    `INSERT INTO invoices (
+      invoice_number, patient_id, stripe_charge_id, stripe_customer_id,
+      invoice_date, status, total_amount, amount_paid,
+      currency, description, metadata, created_at, paid_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+    ON CONFLICT (stripe_charge_id) DO NOTHING`,
+    [
+      invoiceNumber,
+      patient.patient_id,
+      charge.id,
+      charge.customer,
+      new Date(charge.created * 1000),
+      'paid',
+      charge.amount / 100,
+      charge.amount / 100,
+      charge.currency.toUpperCase(),
+      charge.description || 'External Stripe Payment',
+      JSON.stringify({
+        ...charge.metadata,
+        external_payment: true,
+        capture_source: 'webhook',
+        payment_method: charge.payment_method
+      })
+    ]
+  );
+  
+  console.log(`✅ Created invoice ${invoiceNumber} from external charge ${charge.id}`);
+}
+
+async function createInvoiceFromCheckoutSession(session: Stripe.Checkout.Session, patient: any) {
+  const invoiceNumber = await generateInvoiceNumber();
+  
+  await pool.query(
+    `INSERT INTO invoices (
+      invoice_number, patient_id, stripe_session_id, stripe_customer_id,
+      invoice_date, status, total_amount, amount_paid,
+      currency, description, metadata, created_at, paid_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())`,
+    [
+      invoiceNumber,
+      patient.patient_id,
+      session.id,
+      session.customer,
+      new Date(),
+      'paid',
+      (session.amount_total || 0) / 100,
+      (session.amount_total || 0) / 100,
+      session.currency?.toUpperCase() || 'USD',
+      'Checkout Session Payment',
+      JSON.stringify({
+        mode: session.mode,
+        external_payment: true,
+        capture_source: 'checkout',
+        payment_status: session.payment_status
+      })
+    ]
+  );
+  
+  console.log(`✅ Created invoice ${invoiceNumber} from checkout session ${session.id}`);
+}
+
+async function updatePatientStatusToSubscriptions(patientId: string) {
+  const result = await pool.query(
+    `UPDATE patients 
+     SET status = 'subscriptions',
+         membership_hashtags = array_append(
+           COALESCE(membership_hashtags, ARRAY[]::text[]), 
+           'activemember'
+         ),
+         status_updated_at = NOW()
+     WHERE patient_id = $1 AND status = 'qualified'
+     RETURNING *`,
+    [patientId]
+  );
+  
+  if (result.rows.length > 0) {
+    console.log(`✅ Updated patient ${patientId} from qualified to subscriptions`);
+  } else {
+    console.log(`ℹ️ Patient ${patientId} already has subscriptions status or doesn't exist`);
+  }
 } 
