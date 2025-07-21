@@ -3,15 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --exec 'ts-node --transpile-only -P tsconfig.loose.json' src/index.ts",
-    "build": "tsc",
-    "build:simple": "echo 'No build needed for simple server'",
     "start": "node dist/index.js",
-    "start:simple": "node simple-server.js",
-    "start:full": "node dist/index.js",
-    "build:full": "babel src --out-dir dist --extensions '.ts,.js' --copy-files",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "migrate:invoices": "ts-node --transpile-only -P tsconfig.loose.json src/scripts/run-invoice-migration.ts"
+    "dev": "nodemon",
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint . --ext .ts",
+    "migrate": "ts-node src/scripts/run-migrations.ts",
+    "backfill-payments": "ts-node --transpile-only -P tsconfig.loose.json src/scripts/backfill-stripe-payments.ts"
   },
   "keywords": [],
   "author": "",
