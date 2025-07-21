@@ -89,7 +89,9 @@ export class AIService {
 
       // Save to database
       if (soapNote) {
-        await this.saveSOAPNote(patientId, soapNote, {
+        // Get the UUID id for the patient
+        const patientUUID = patientData.id;
+        await this.saveSOAPNote(patientUUID, soapNote, {
           model: modelUsed,
           responseTime,
           usage: completion.usage
@@ -119,6 +121,7 @@ export class AIService {
     
     try {
       // Get patient and webhook data
+      // Handle both UUID and patient_id formats
       const query = `
         SELECT 
           p.*,
@@ -128,7 +131,7 @@ export class AIService {
           p.heyflow_submission_id = we.webhook_id 
           OR p.heyflow_submission_id = we.payload->>'id'
         )
-        WHERE p.patient_id = $1
+        WHERE p.patient_id = $1 OR p.id::text = $1
         LIMIT 1
       `;
       

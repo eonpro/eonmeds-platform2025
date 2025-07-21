@@ -60,6 +60,20 @@ router.get('/soap-notes/:patientId',
       const { status } = req.query;
 
       // Query to get SOAP notes
+      // First get the patient's UUID if needed
+      const patientResult = await pool.query(
+        'SELECT id FROM patients WHERE patient_id = $1 OR id::text = $1',
+        [patientId]
+      );
+      
+      if (patientResult.rows.length === 0) {
+        return res.status(404).json({
+          error: 'Patient not found'
+        });
+      }
+      
+      const patientUUID = patientResult.rows[0].id;
+      
       let query = `
         SELECT 
           sn.*,
@@ -69,7 +83,7 @@ router.get('/soap-notes/:patientId',
         WHERE sn.patient_id = $1
       `;
       
-      const params: any[] = [patientId];
+      const params: any[] = [patientUUID];
       
       if (status) {
         query += ' AND sn.status = $2';
