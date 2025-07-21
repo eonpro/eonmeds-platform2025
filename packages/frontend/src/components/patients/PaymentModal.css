@@ -24,6 +24,17 @@
   animation: modalSlideIn 0.3s ease-out;
 }
 
+.payment-modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
 @keyframes modalSlideIn {
   from {
     opacity: 0;
@@ -81,36 +92,69 @@
 
 /* Invoice Summary Section */
 .invoice-summary {
-  padding: 24px;
-  background: #f9fafb;
+  padding: 0;
+  background: white;
   border-bottom: 1px solid #e5e7eb;
+}
+
+/* Card Details Modal */
+.card-details-modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  padding: 0;
+}
+
+.card-details-modal .modal-header {
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 16px 16px 0 0;
+}
+
+.card-details-modal .modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.card-details-modal .modal-body {
+  padding: 24px;
 }
 
 .invoice-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
+  align-items: center;
+  padding: 12px 24px;
+  background: #374151;
+  color: white;
+  margin-bottom: 0;
 }
 
 .invoice-id {
   font-size: 18px;
   font-weight: 600;
-  color: #111827;
+  color: white;
   margin: 0;
 }
 
 .amount-badge {
-  background: #10b981;
+  background: transparent;
   color: white;
-  padding: 6px 16px;
-  border-radius: 20px;
+  padding: 0;
+  border-radius: 0;
   font-size: 18px;
   font-weight: 600;
 }
 
 .invoice-items {
-  margin-bottom: 20px;
+  padding: 24px;
+  margin-bottom: 0;
 }
 
 .invoice-items h4 {
@@ -151,8 +195,8 @@
 }
 
 .invoice-totals {
-  margin-top: 16px;
-  padding-top: 16px;
+  padding: 16px 24px 24px 24px;
+  margin-top: 0;
   border-top: 1px solid #e5e7eb;
 }
 
@@ -180,12 +224,16 @@
 }
 
 .payment-section h4 {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  color: #111827;
+  color: #6b7280;
   text-transform: uppercase;
-  letter-spacing: 0.025em;
-  margin: 0 0 16px 0;
+  letter-spacing: 0.05em;
+  margin: -24px -24px 16px -24px;
+  padding: 12px 24px;
+  background: #374151;
+  color: white;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .error-message {
