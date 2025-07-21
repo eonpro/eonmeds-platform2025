@@ -28,6 +28,8 @@ export class AIService {
    */
   static async generateSOAPNote(patientId: string): Promise<any> {
     try {
+      const startTime = Date.now();
+      
       // Get patient data
       const patientData = await this.getPatientData(patientId);
       
@@ -83,11 +85,12 @@ export class AIService {
 
       const soapNote = completion.choices[0]?.message?.content;
       const responseTime = Date.now() - startTime;
+      const modelUsed = completion.model || 'gpt-4';
 
       // Save to database
       if (soapNote) {
         await this.saveSOAPNote(patientId, soapNote, {
-          model: 'gpt-4',
+          model: modelUsed,
           responseTime,
           usage: completion.usage
         });
