@@ -195,9 +195,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
 
         <div className="invoice-summary">
-          <div className="summary-header">
+          <div className="invoice-header">
             <h3>Invoice #{invoice.invoice_number || invoice.id}</h3>
-            <span className="amount-due">{formatCurrency(invoice.amount_due)}</span>
+            <div className="amount">{formatCurrency(invoice.amount_due)}</div>
           </div>
           
           {invoice.items && invoice.items.length > 0 && (

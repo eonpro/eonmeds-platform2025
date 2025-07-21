@@ -127,14 +127,24 @@
 }
 
 .payment-modal-content .invoice-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 24px;
   background: white;
   color: #111827;
   margin-bottom: 0;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.payment-modal-content .invoice-header h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.payment-modal-content .invoice-header .amount {
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
 }
 
 .payment-modal-content .invoice-id {

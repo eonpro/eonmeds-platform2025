@@ -251,10 +251,10 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
                             </button>
                             <button 
                               onClick={() => handleDeleteInvoice(invoice)}
-                              className="action-btn delete-btn"
+                              className="delete-invoice-btn"
                               title="Delete Invoice"
                             >
-                              Delete
+                              ×
                             </button>
                           </>
                         )}

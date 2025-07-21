@@ -583,7 +583,6 @@
   align-items: center;
   gap: 15px;
   margin-bottom: 30px;
-  justify-content: space-between; /* Push edit button to the right */
 }
 
 .section-header > div {
@@ -607,31 +606,7 @@
   font-family: 'SF Mono', Monaco, monospace;
 }
 
-.edit-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 16px;
-  background: #14a97b;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: 'Poppins', sans-serif;
-}
 
-.edit-btn svg {
-  width: 14px;
-  height: 14px;
-}
-
-.edit-btn:hover {
-  background-color: #14a97b; /* Keep same color on hover */
-  transform: none;
-}
 
 /* Basic Info Section */
 .basic-info-section {
