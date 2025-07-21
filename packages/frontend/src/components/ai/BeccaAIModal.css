@@ -86,30 +86,9 @@
   height: 200px;
 }
 
-.becca-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 250px;
-  height: 250px;
-  background: radial-gradient(circle, rgba(100, 150, 255, 0.2) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(60px);
-  animation: pulse 3s ease-in-out infinite;
-  pointer-events: none;
-}
 
-@keyframes pulse {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 0.4;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 0.8;
-  }
-}
+
+
 
 .becca-title {
   color: #333333;
