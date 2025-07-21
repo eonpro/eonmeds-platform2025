@@ -597,58 +597,84 @@ export const PatientProfile: React.FC = () => {
           </div>
           
           <div className="timeline-content">
-            {/* Intake Form Note - moved to top */}
-            {timelineNotes.filter(note => note.id === 'intake-form').map(note => (
-              <div key={note.id} className="timeline-note intake-form-note">
-                <div className="intake-form-note-content">
-                  <div className="intake-form-info">
-                    <p className="note-title">{patient.patient_id} - Intake Form</p>
-                    <p className="note-subtitle">Weight Loss Program</p>
-                    <div className="form-action-buttons">
+            {/* All Timeline Notes - sorted by date, newest first */}
+            <div className="timeline-notes">
+              {/* First show SOAP notes (newest first) */}
+              {timelineNotes
+                .filter(note => note.id.startsWith('soap-'))
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .map(note => (
+                <div key={note.id} className={`timeline-note soap-note-timeline`}>
+                  <div className="note-header">
+                    <span className="note-date">
+                      {new Date(note.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="soap-note-content">
+                    <div className="soap-note-info">
+                      <p className="soap-note-title">SOAP Note Attached</p>
                       <button 
-                        className="view-form-btn"
-                        onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                        className="view-soap-note-btn"
+                        onClick={() => setActiveTab('soap')}
                       >
-                        View Form
-                      </button>
-                      <button 
-                        className="download-form-btn"
-                        onClick={downloadPDF}
-                      >
-                        Download
+                        View SOAP Note
                       </button>
                     </div>
                   </div>
                 </div>
+              ))}
+              
+              {/* Then show intake form */}
+              {timelineNotes.filter(note => note.id === 'intake-form').map(note => (
+                <div key={note.id} className="timeline-note intake-form-note">
+                  <div className="intake-form-note-content">
+                    <div className="intake-form-info">
+                      <p className="note-title">{patient.patient_id} - Intake Form</p>
+                      <p className="note-subtitle">Weight Loss Program</p>
+                      <div className="form-action-buttons">
+                        <button 
+                          className="view-form-btn"
+                          onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                        >
+                          View Form
+                        </button>
+                        <button 
+                          className="download-form-btn"
+                          onClick={downloadPDF}
+                        >
+                          Download
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Status Dropdown */}
+              <div className="status-dropdown-section">
+                <select 
+                  className="status-dropdown"
+                  value={patientStatus}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  style={{ backgroundColor: getStatusColor(patientStatus) }}
+                >
+                  <option value="pending">PENDING REVIEW</option>
+                  <option value="qualified">QUALIFIED</option>
+                  <option value="not_qualified">NOT QUALIFIED</option>
+                  <option value="follow_up">FOLLOW UP</option>
+                  <option value="enrolled">ENROLLED</option>
+                </select>
               </div>
-            ))}
-            
-            {/* Status Dropdown - moved up */}
-            <div className="status-dropdown-section">
-              <select 
-                className="status-dropdown"
-                value={patientStatus}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                style={{ backgroundColor: getStatusColor(patientStatus) }}
-              >
-                <option value="pending">PENDING REVIEW</option>
-                <option value="qualified">QUALIFIED</option>
-                <option value="not_qualified">NOT QUALIFIED</option>
-                <option value="follow_up">FOLLOW UP</option>
-                <option value="enrolled">ENROLLED</option>
-              </select>
-            </div>
-
-            {/* Regular Timeline Notes */}
-            <div className="timeline-notes">
+              
+              {/* Then show other notes (newest first) */}
               {timelineNotes
-                .filter(note => note.id !== 'intake-form')
+                .filter(note => note.id !== 'intake-form' && !note.id.startsWith('soap-'))
                 .sort((a, b) => {
                   // Sort by date, newest first
                   return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                 })
                 .map(note => (
-                <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''} ${note.id.startsWith('soap-') ? 'soap-note-timeline' : ''}`}>
+                <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''}`}>
                   <div className="note-header">
                     <span className="note-date">
                       {new Date(note.createdAt).toLocaleDateString()}
@@ -669,21 +695,7 @@ export const PatientProfile: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  {note.id.startsWith('soap-') ? (
-                    <div className="soap-note-content">
-                      <div className="soap-note-info">
-                        <p className="soap-note-title">SOAP Note Attached</p>
-                        <button 
-                          className="view-soap-note-btn"
-                          onClick={() => setActiveTab('soap')}
-                        >
-                          View SOAP Note
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="note-content">{note.content}</p>
-                  )}
+                  <p className="note-content">{note.content}</p>
                 </div>
               ))}
             </div>
