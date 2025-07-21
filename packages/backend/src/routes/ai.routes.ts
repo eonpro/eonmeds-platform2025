@@ -76,10 +76,8 @@ router.get('/soap-notes/:patientId',
       
       let query = `
         SELECT 
-          sn.*,
-          u.full_name as approver_name
+          sn.*
         FROM soap_notes sn
-        LEFT JOIN users u ON sn.approved_by = u.id
         WHERE sn.patient_id = $1
       `;
       
@@ -101,8 +99,13 @@ router.get('/soap-notes/:patientId',
 
     } catch (error) {
       console.error('Error fetching SOAP notes:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        patientId: req.params.patientId
+      });
       res.status(500).json({
-        error: 'Failed to fetch SOAP notes'
+        error: 'Failed to fetch SOAP notes',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }

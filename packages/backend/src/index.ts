@@ -142,7 +142,7 @@ async function initializeDatabase() {
             original_content TEXT,
             status VARCHAR(50) NOT NULL DEFAULT 'pending',
             created_by VARCHAR(255) NOT NULL DEFAULT 'BECCA AI',
-            approved_by UUID REFERENCES users(id),
+            approved_by UUID,
             approved_by_name VARCHAR(255),
             approved_by_credentials VARCHAR(255),
             created_at TIMESTAMP DEFAULT NOW(),
