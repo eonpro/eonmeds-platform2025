@@ -1,159 +1,33 @@
 import Stripe from 'stripe';
 import { stripeConfig } from '../config/stripe.config';
 
-export class StripeService {
-  private stripe: Stripe | null = null;
+// Initialize Stripe
+const stripe = stripeConfig.apiKey ? new Stripe(stripeConfig.apiKey, {
+  apiVersion: '2024-06-20' as Stripe.LatestApiVersion,
+}) : null;
 
-  constructor() {
-    // Initialize Stripe with API key from config if available
-    if (stripeConfig.apiKey) {
-      this.stripe = new Stripe(stripeConfig.apiKey, {
-        apiVersion: '2023-10-16',
-      });
-    } else {
-      console.warn('⚠️  Stripe API key not configured. Stripe functionality will be disabled.');
-    }
-  }
-
-  // Helper to check if Stripe is configured
-  private isConfigured(): boolean {
-    return this.stripe !== null;
-  }
-
-  // ==================== CUSTOMER METHODS ====================
-  
-  // Create a new Stripe customer from patient data
-  async createCustomer(patientData: any) {
-    if (!this.isConfigured()) {
-      return { success: false, error: 'Stripe is not configured. Please add STRIPE_SECRET_KEY to environment variables.' };
-    }
-    
+class StripeService {
+  // Create a payment intent
+  async createPaymentIntent(amount: number, customerId: string, metadata?: any) {
     try {
-      const customerData = {
-        email: patientData.email,
-        name: `${patientData.first_name} ${patientData.last_name}`,
-        phone: patientData.phone,
-        address: {
-          line1: patientData.address_street || patientData.address,
-          line2: patientData.apartment_number,
-          city: patientData.city,
-          state: patientData.state,
-          postal_code: patientData.zip,
-          country: 'US'
-        },
-        metadata: {
-          ...stripeConfig.customer.defaultMetadata,
-          patient_id: patientData.patient_id,
-          form_type: patientData.form_type,
-          created_from: 'eonmeds_platform'
-        }
-      };
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
 
-      const customer = await this.stripe.customers.create(customerData);
-      return { success: true, customer };
-    } catch (error: any) {
-      console.error('Error creating Stripe customer:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // Retrieve an existing Stripe customer
-  async getCustomer(customerId: string) {
-    try {
-      const customer = await this.stripe.customers.retrieve(customerId);
-      return { success: true, customer };
-    } catch (error: any) {
-      console.error('Error retrieving Stripe customer:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // Update customer information
-  async updateCustomer(customerId: string, updateData: Stripe.CustomerUpdateParams) {
-    try {
-      const customer = await this.stripe.customers.update(customerId, updateData);
-      return { success: true, customer };
-    } catch (error: any) {
-      console.error('Error updating Stripe customer:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // ==================== PAYMENT METHOD METHODS ====================
-
-  // Attach a payment method to a customer
-  async attachPaymentMethod(paymentMethodId: string, customerId: string) {
-    try {
-      const paymentMethod = await this.stripe.paymentMethods.attach(
-        paymentMethodId,
-        { customer: customerId }
-      );
-      return { success: true, paymentMethod };
-    } catch (error: any) {
-      console.error('Error attaching payment method:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // List payment methods for a customer
-  async listPaymentMethods(customerId: string) {
-    try {
-      const paymentMethods = await this.stripe.paymentMethods.list({
-        customer: customerId,
-        type: 'card'
-      });
-      return { success: true, paymentMethods: paymentMethods.data };
-    } catch (error: any) {
-      console.error('Error listing payment methods:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // Set default payment method for customer
-  async setDefaultPaymentMethod(customerId: string, paymentMethodId: string) {
-    try {
-      const customer = await this.stripe.customers.update(customerId, {
-        invoice_settings: {
-          default_payment_method: paymentMethodId
-        }
-      });
-      return { success: true, customer };
-    } catch (error: any) {
-      console.error('Error setting default payment method:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // Detach payment method from customer
-  async detachPaymentMethod(paymentMethodId: string) {
-    if (!this.isConfigured()) {
-      return { success: false, error: 'Stripe is not configured' };
-    }
-    
-    try {
-      const paymentMethod = await this.stripe.paymentMethods.detach(paymentMethodId);
-      return { success: true, paymentMethod };
-    } catch (error: any) {
-      console.error('Error detaching payment method:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // ==================== PAYMENT INTENT METHODS ====================
-
-  // Create a payment intent for invoice payment
-  async createPaymentIntent(amount: number, customerId: string, metadata: any = {}) {
-    try {
-      const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount), // Ensure whole number
         currency: 'usd',
         customer: customerId,
-        setup_future_usage: 'off_session',
         metadata: {
           ...metadata,
-          platform: 'eonmeds'
-        }
+          platform: 'eonmeds',
+          test_mode: process.env.NODE_ENV !== 'production' ? 'true' : 'false'
+        },
+        automatic_payment_methods: {
+          enabled: true,
+        },
       });
+
       return { success: true, paymentIntent };
     } catch (error: any) {
       console.error('Error creating payment intent:', error);
@@ -161,24 +35,8 @@ export class StripeService {
     }
   }
 
-  // Confirm a payment intent
-  async confirmPaymentIntent(paymentIntentId: string, paymentMethodId: string) {
-    try {
-      const paymentIntent = await this.stripe.paymentIntents.confirm(
-        paymentIntentId,
-        { payment_method: paymentMethodId }
-      );
-      return { success: true, paymentIntent };
-    } catch (error: any) {
-      console.error('Error confirming payment intent:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // ==================== INVOICE/CHARGE METHODS ====================
-
-  // Charge an invoice using payment intent
-  async chargeInvoice(invoiceData: {
+  // Charge an invoice
+  async chargeInvoice(params: {
     amount: number;
     customerId: string;
     paymentMethodId: string;
@@ -186,97 +44,174 @@ export class StripeService {
     invoiceNumber: string;
     patientId: string;
   }) {
-    // Test mode simulation when Stripe is not configured
-    if (!this.isConfigured()) {
-      console.log('🧪 TEST MODE: Simulating successful payment');
-      console.log('Invoice:', invoiceData.invoiceNumber);
-      console.log('Amount:', invoiceData.amount);
-      console.log('Payment Method:', invoiceData.paymentMethodId);
-      
-      // Simulate successful payment in test mode
-      return {
-        success: true,
-        paymentIntent: {
-          id: `pi_test_${Date.now()}`,
-          amount: Math.round(invoiceData.amount * 100),
-          currency: 'usd',
-          status: 'succeeded',
-          payment_method: invoiceData.paymentMethodId,
-          metadata: {
-            invoice_id: invoiceData.invoiceId,
-            invoice_number: invoiceData.invoiceNumber,
-            patient_id: invoiceData.patientId,
-            platform: 'eonmeds',
-            test_mode: 'true'
-          },
-          created: Math.floor(Date.now() / 1000),
-          charges: {
-            data: [{
-              id: `ch_test_${Date.now()}`,
-              amount: Math.round(invoiceData.amount * 100),
-              paid: true,
-              status: 'succeeded'
-            }]
-          }
-        }
-      };
-    }
-    
     try {
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
       // Create payment intent with invoice metadata
-      const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: Math.round(invoiceData.amount * 100), // Convert to cents
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(params.amount), // Ensure whole number
         currency: 'usd',
-        customer: invoiceData.customerId,
-        payment_method: invoiceData.paymentMethodId,
+        customer: params.customerId,
+        payment_method: params.paymentMethodId,
         confirm: true,
-        off_session: true,
         metadata: {
-          invoice_id: invoiceData.invoiceId,
-          invoice_number: invoiceData.invoiceNumber,
-          patient_id: invoiceData.patientId,
-          platform: 'eonmeds'
+          invoice_id: params.invoiceId,
+          invoice_number: params.invoiceNumber,
+          patient_id: params.patientId,
+          platform: 'eonmeds',
+          test_mode: process.env.NODE_ENV !== 'production' ? 'true' : 'false'
         }
       });
 
-      return { success: true, paymentIntent };
-    } catch (error: any) {
-      console.error('Error charging invoice:', error);
-      
-      // Handle specific error types
-      if (error.type === 'StripeCardError') {
-        return { 
-          success: false, 
-          error: error.message,
-          requiresAction: error.code === 'authentication_required'
+      if (paymentIntent.status === 'requires_action') {
+        return {
+          success: false,
+          requiresAction: true,
+          clientSecret: paymentIntent.client_secret,
+          error: 'Payment requires additional authentication'
         };
       }
-      
+
+      if (paymentIntent.status === 'succeeded') {
+        return { success: true, paymentIntent };
+      }
+
+      return {
+        success: false,
+        error: `Payment failed with status: ${paymentIntent.status}`
+      };
+    } catch (error: any) {
+      console.error('Error charging invoice:', error);
       return { success: false, error: error.message };
     }
   }
 
-  // ==================== SUBSCRIPTION METHODS (if needed) ====================
+  // List payment methods for a customer
+  async listPaymentMethods(customerId: string) {
+    try {
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      const paymentMethods = await stripe.paymentMethods.list({
+        customer: customerId,
+        type: 'card',
+      });
+
+      return { success: true, paymentMethods: paymentMethods.data };
+    } catch (error: any) {
+      console.error('Error listing payment methods:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Detach a payment method
+  async detachPaymentMethod(paymentMethodId: string) {
+    try {
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      await stripe.paymentMethods.detach(paymentMethodId);
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error detaching payment method:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Create a customer
+  async createCustomer(params: {
+    email: string;
+    name: string;
+    phone?: string;
+    metadata?: any;
+  }) {
+    try {
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      const customer = await stripe.customers.create({
+        email: params.email,
+        name: params.name,
+        phone: params.phone,
+        metadata: {
+          ...params.metadata,
+          platform: 'eonmeds'
+        }
+      });
+
+      return { success: true, customer };
+    } catch (error: any) {
+      console.error('Error creating customer:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Update a customer
+  async updateCustomer(customerId: string, params: {
+    email?: string;
+    name?: string;
+    phone?: string;
+    metadata?: any;
+  }) {
+    try {
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      const customer = await stripe.customers.update(customerId, {
+        email: params.email,
+        name: params.name,
+        phone: params.phone,
+        metadata: params.metadata
+      });
+
+      return { success: true, customer };
+    } catch (error: any) {
+      console.error('Error updating customer:', error);
+      return { success: false, error: error.message };
+    }
+  }
 
   // Create a subscription
-  async createSubscription(customerId: string, priceId: string, paymentMethodId?: string) {
+  async createSubscription(params: {
+    customerId: string;
+    priceId: string;
+    paymentMethodId?: string;
+    trialDays?: number;
+    metadata?: any;
+  }) {
     try {
-      const subscriptionData: Stripe.SubscriptionCreateParams = {
-        customer: customerId,
-        items: [{ price: priceId }],
-        payment_behavior: stripeConfig.subscription.paymentBehavior,
-        expand: stripeConfig.subscription.expand
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      const subscriptionParams: Stripe.SubscriptionCreateParams = {
+        customer: params.customerId,
+        items: [{ price: params.priceId }],
+        payment_behavior: 'default_incomplete',
+        payment_settings: { save_default_payment_method: 'on_subscription' },
+        expand: ['latest_invoice.payment_intent'],
+        metadata: {
+          ...params.metadata,
+          platform: 'eonmeds'
+        }
       };
 
-      if (paymentMethodId) {
-        subscriptionData.default_payment_method = paymentMethodId;
+      if (params.paymentMethodId) {
+        subscriptionParams.default_payment_method = params.paymentMethodId;
       }
 
-      if (stripeConfig.subscription.trialPeriodDays > 0) {
-        subscriptionData.trial_period_days = stripeConfig.subscription.trialPeriodDays;
+      if (params.trialDays) {
+        subscriptionParams.trial_period_days = params.trialDays;
       }
 
-      const subscription = await this.stripe.subscriptions.create(subscriptionData);
+      const subscription = await stripe.subscriptions.create(subscriptionParams);
+
       return { success: true, subscription };
     } catch (error: any) {
       console.error('Error creating subscription:', error);
@@ -287,12 +222,18 @@ export class StripeService {
   // Cancel a subscription
   async cancelSubscription(subscriptionId: string, immediately: boolean = false) {
     try {
-      const subscription = immediately
-        ? await this.stripe.subscriptions.cancel(subscriptionId)
-        : await this.stripe.subscriptions.update(subscriptionId, {
-            cancel_at_period_end: true
-          });
-      
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      const subscription = await stripe.subscriptions.update(subscriptionId, {
+        cancel_at_period_end: !immediately
+      });
+
+      if (immediately) {
+        await stripe.subscriptions.cancel(subscriptionId);
+      }
+
       return { success: true, subscription };
     } catch (error: any) {
       console.error('Error canceling subscription:', error);
@@ -300,45 +241,133 @@ export class StripeService {
     }
   }
 
-  // Pause a subscription
-  async pauseSubscription(subscriptionId: string) {
+  // Attach a payment method to a customer
+  async attachPaymentMethod(paymentMethodId: string, customerId: string) {
     try {
-      const subscription = await this.stripe.subscriptions.update(subscriptionId, {
-        pause_collection: {
-          behavior: 'mark_uncollectible'
-        }
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      const paymentMethod = await stripe.paymentMethods.attach(paymentMethodId, {
+        customer: customerId,
       });
-      return { success: true, subscription };
+
+      return { success: true, paymentMethod };
     } catch (error: any) {
-      console.error('Error pausing subscription:', error);
+      console.error('Error attaching payment method:', error);
       return { success: false, error: error.message };
     }
   }
 
-  // Resume a paused subscription
-  async resumeSubscription(subscriptionId: string) {
+  // Create a setup intent for saving payment methods
+  async createSetupIntent(customerId: string) {
     try {
-      const subscription = await this.stripe.subscriptions.update(subscriptionId, {
-        pause_collection: null
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      const setupIntent = await stripe.setupIntents.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        usage: 'off_session',
       });
-      return { success: true, subscription };
+
+      return { success: true, setupIntent };
     } catch (error: any) {
-      console.error('Error resuming subscription:', error);
+      console.error('Error creating setup intent:', error);
       return { success: false, error: error.message };
     }
   }
 
-  // Get subscription details
-  async getSubscription(subscriptionId: string) {
+  // Retrieve a customer
+  async retrieveCustomer(customerId: string) {
     try {
-      const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
-      return { success: true, subscription };
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      const customer = await stripe.customers.retrieve(customerId);
+      
+      if (customer.deleted) {
+        return { success: false, error: 'Customer has been deleted' };
+      }
+
+      return { success: true, customer };
     } catch (error: any) {
-      console.error('Error retrieving subscription:', error);
+      console.error('Error retrieving customer:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Create an invoice
+  async createInvoice(params: {
+    customerId: string;
+    description?: string;
+    metadata?: any;
+  }) {
+    try {
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      const invoice = await stripe.invoices.create({
+        customer: params.customerId,
+        description: params.description,
+        metadata: {
+          ...params.metadata,
+          platform: 'eonmeds'
+        },
+        auto_advance: true,
+      });
+
+      return { success: true, invoice };
+    } catch (error: any) {
+      console.error('Error creating invoice:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Add an invoice item
+  async addInvoiceItem(params: {
+    customerId: string;
+    amount: number;
+    description: string;
+    invoiceId?: string;
+  }) {
+    try {
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      const invoiceItem = await stripe.invoiceItems.create({
+        customer: params.customerId,
+        amount: Math.round(params.amount),
+        currency: 'usd',
+        description: params.description,
+        invoice: params.invoiceId,
+      });
+
+      return { success: true, invoiceItem };
+    } catch (error: any) {
+      console.error('Error adding invoice item:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Finalize an invoice
+  async finalizeInvoice(invoiceId: string) {
+    try {
+      if (!stripe) {
+        return { success: false, error: 'Stripe not configured' };
+      }
+
+      const invoice = await stripe.invoices.finalizeInvoice(invoiceId);
+      return { success: true, invoice };
+    } catch (error: any) {
+      console.error('Error finalizing invoice:', error);
       return { success: false, error: error.message };
     }
   }
 }
 
-// Export a singleton instance
 export default new StripeService(); 

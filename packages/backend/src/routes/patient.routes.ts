@@ -349,6 +349,50 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// Update patient status route
+router.put('/:id/status', authenticateToken, async (req: Request, res: Response): Promise<Response> => {
+  const client = await pool.connect();
+  
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    // Validate status
+    const validStatuses = ['lead', 'qualified', 'needs_follow_up', 'disqualified', 'active', 'inactive'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+    
+    // Start transaction
+    await client.query('BEGIN');
+    
+    // Update patient status
+    const result = await client.query(
+      'UPDATE patients SET status = $1, updated_at = NOW() WHERE patient_id = $2 RETURNING *',
+      [status, id]
+    );
+    
+    if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+    
+    // Commit transaction
+    await client.query('COMMIT');
+    
+    return res.json(result.rows[0]);
+  } catch (error: unknown) {
+    await client.query('ROLLBACK');
+    console.error('Error updating patient status:', error);
+    return res.status(500).json({ 
+      error: 'Failed to update patient status',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  } finally {
+    client.release();
+  }
+});
+
 // Send invite to patient
 router.post('/:id/invite', authenticateToken, async (req, res) => {
   try {
@@ -527,7 +571,7 @@ router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
 
 // Delete a patient
 // Temporarily removed authenticateToken for testing
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request, res: Response): Promise<Response> => {
   const client = await pool.connect();
   
   try {
@@ -554,8 +598,8 @@ router.delete('/:id', async (req, res) => {
     await client.query('DELETE FROM weight_loss_intake WHERE patient_id = $1', [id]);
     
     // Delete from patients table
-    const deleteResult = await client.query(
-      'DELETE FROM patients WHERE id = $1 RETURNING id',
+    await client.query(
+      'DELETE FROM patients WHERE id = $1',
       [id]
     );
     
@@ -564,20 +608,15 @@ router.delete('/:id', async (req, res) => {
     
     console.log(`Deleted patient ${patient.patient_id}: ${patient.first_name} ${patient.last_name}`);
     
-    res.json({ 
-      success: true, 
+    return res.json({ 
       message: 'Patient deleted successfully',
-      deletedPatient: {
-        id: patient.id,
-        patient_id: patient.patient_id,
-        name: `${patient.first_name} ${patient.last_name}`
-      }
+      patient_id: patient.patient_id
     });
     
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error deleting patient:', error);
-    res.status(500).json({ error: 'Failed to delete patient' });
+    return res.status(500).json({ error: 'Failed to delete patient' });
   } finally {
     client.release();
   }

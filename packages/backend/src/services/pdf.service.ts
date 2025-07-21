@@ -2,49 +2,7 @@ import PDFDocument from 'pdfkit';
 import { PassThrough } from 'stream';
 import * as path from 'path';
 
-interface IntakeFormData {
-  // Patient Information
-  firstname?: string;
-  lastname?: string;
-  email?: string;
-  PhoneNumber?: string;
-  dob?: string;
-  gender?: string;
-  
-  // Address Information
-  street?: string;
-  apt?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  country?: string;
-  
-  // Medical History
-  glp1_medication?: string;
-  diabetes_type1?: string;
-  thyroid_cancer?: string;
-  endocrine_neoplasia?: string;
-  pancreatitis?: string;
-  pregnant_breastfeeding?: string;
-  medication_allergies?: string;
-  blood_pressure?: string;
-  
-  // Treatment Readiness
-  commitment_level?: string;
-  over_18?: string;
-  referral_source?: string;
-  
-  // Consent
-  consent_telehealth?: string;
-  consent_treatment?: string;
-  consent_terms?: string;
-  consent_cancellation?: string;
-  
-  // Form Metadata
-  submitted_at?: string;
-  form_type?: string;
-}
-
+// Main PDF Service class
 export class PDFService {
   static async generateIntakeFormPDF(patientData: any, webhookData: any): Promise<Buffer> {
     return new Promise((resolve, reject) => {
@@ -583,133 +541,34 @@ function drawRoundedSection(doc: PDFKit.PDFDocument, yPosition: number, title: s
   return yPosition + sectionHeight;
 }
 
-// Compact version for Additional Information fields
-function drawCompactSection(doc: PDFKit.PDFDocument, yPosition: number, title: string, fieldRows: any[]): number {
-  // For very large sections, we need to handle page breaks
-  const pageHeight = 700; // Usable height on a page
-  const titleHeight = 35;
-  const fieldHeight = 20; // Reduced from 25 for more compact display
-  const bottomPadding = 10;
-  
-  // Calculate how many fields fit on current page
-  const remainingSpace = pageHeight - yPosition;
-  const fieldsOnFirstPage = Math.floor((remainingSpace - titleHeight - bottomPadding) / fieldHeight);
-  
-  if (fieldsOnFirstPage < 3 && fieldRows.length > 3) {
-    // Not enough room, start on new page
-    doc.addPage();
-    yPosition = 50;
-  }
-  
-  // Draw first section
-  const firstBatch = fieldRows.slice(0, Math.min(fieldsOnFirstPage, fieldRows.length));
-  let sectionHeight = titleHeight + (firstBatch.length * fieldHeight) + bottomPadding;
-  
-  // Draw rounded rectangle background
-  doc.roundedRect(40, yPosition, 532, sectionHeight, 5)
-     .fillColor('#f5f5f5')
-     .fill();
-
-  // Section title
-  doc.fillColor('#000000')
-     .fontSize(14)
-     .font('Helvetica-Bold')
-     .text(title, 60, yPosition + 15);
-
-  // Reset font for fields
-  doc.font('Helvetica')
-     .fontSize(10);
-
-  let currentY = yPosition + 35;
-
-  // Draw first batch of fields
-  firstBatch.forEach(row => {
-    row.forEach((field: any) => {
-      // Label and value on same line for very compact display
-      doc.fillColor('#666666')
-         .fontSize(8)
-         .text(field.label + ':', 60, currentY, { continued: true })
-         .fillColor('#000000')
-         .fontSize(9)
-         .text(' ' + (field.value || 'Not provided'), { align: 'left' });
-    });
-    currentY += fieldHeight;
-  });
-  
-  let finalY = yPosition + sectionHeight;
-  
-  // Handle remaining fields if any
-  if (fieldRows.length > fieldsOnFirstPage) {
-    const remainingFields = fieldRows.slice(fieldsOnFirstPage);
-    const fieldsPerPage = Math.floor((pageHeight - 70) / fieldHeight); // 70 for margins
-    
-    for (let i = 0; i < remainingFields.length; i += fieldsPerPage) {
-      doc.addPage();
-      const batch = remainingFields.slice(i, i + fieldsPerPage);
-      const batchHeight = titleHeight + (batch.length * fieldHeight) + bottomPadding;
-      
-      // Draw section
-      doc.roundedRect(40, 50, 532, batchHeight, 5)
-         .fillColor('#f5f5f5')
-         .fill();
-      
-      // Section title
-      doc.fillColor('#000000')
-         .fontSize(14)
-         .font('Helvetica-Bold')
-         .text(title + ' (continued)', 60, 65);
-      
-      // Fields
-      doc.font('Helvetica')
-         .fontSize(10);
-      
-      currentY = 85;
-      batch.forEach(row => {
-        row.forEach((field: any) => {
-          doc.fillColor('#666666')
-             .fontSize(8)
-             .text(field.label + ':', 60, currentY, { continued: true })
-             .fillColor('#000000')
-             .fontSize(9)
-             .text(' ' + (field.value || 'Not provided'), { align: 'left' });
-        });
-        currentY += fieldHeight;
-      });
-      
-      finalY = 50 + batchHeight;
-    }
-  }
-
-  return finalY;
-}
-
-// Updated date formatter to match mockup
+// Helper functions that are actually used
 function formatDateFull(date: string | Date): string {
-  if (!date) return '';
+  if (!date) return 'N/A';
   const d = new Date(date);
-  return d.toISOString();
+  return d.toLocaleString('en-US', { 
+    month: 'long', day: 'numeric', year: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true 
+  });
 }
 
-// New date formatter for long format
 function formatDateLong(date: string | Date): string {
-  if (!date) return '';
+  if (!date) return 'N/A';
   const d = new Date(date);
-  return d.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
+  return d.toLocaleDateString('en-US', { 
+    month: 'long', day: 'numeric', year: 'numeric' 
   });
 }
 
-// Keep existing helper functions unchanged
-function formatDate(date: string | Date): string {
-  if (!date) return '';
-  const d = new Date(date);
-  return d.toLocaleDateString('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric'
-  });
+function calculateAge(dateOfBirth: string | Date): number {
+  if (!dateOfBirth) return 0;
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
 }
 
 function formatPhone(phone: string): string {
@@ -737,7 +596,6 @@ function formatAnswer(answer: string): string {
   return capitalizeFirst(answer);
 }
 
-// Updated commitment formatter with visual indicator
 function formatCommitmentWithVisual(doc: any, level: string): string {
   if (!level) return 'Not specified';
   const num = parseInt(level);
@@ -747,11 +605,16 @@ function formatCommitmentWithVisual(doc: any, level: string): string {
   return level;
 }
 
-function formatCommitmentLevel(level: string): string {
-  if (!level) return 'Not specified';
-  const num = parseInt(level);
-  if (!isNaN(num)) {
-    return `${num}/5`;
-  }
-  return level;
+function getShippingLabelUrl(state: string): string {
+  const shippingLabels: { [key: string]: string } = {
+    'TX': 'https://drive.google.com/file/d/1hqJrN1hC2HQ5YEJnNdJVLOjBHa_W3cWL/view?usp=drive_link',
+    'IA': 'https://drive.google.com/file/d/12cQrZKTvHhupBD-cCaKHW5Y8SiFupZ2F/view?usp=drive_link',
+    'NY': 'https://drive.google.com/file/d/1RJOa2r2nLT_zl8pJi6mCYHJkCXu5iGdT/view?usp=drive_link',
+    'FL': 'https://drive.google.com/file/d/11cRDShUcaLRNOb6oKpb_UJvfJBAcvSU8/view?usp=drive_link',
+    'TN': 'https://drive.google.com/file/d/1Xe6qKbiCCdABV4RVvqJXxO2UoOGJGbNh/view?usp=drive_link',
+    'NC': 'https://drive.google.com/file/d/1_cO9zqbtqb9CtNkHJhXCejf9ZQ-8hckb/view?usp=drive_link',
+    'DEFAULT': 'https://drive.google.com/file/d/1U9VQ8nJYDYPb2Y91T6u5iQLnDLu0vOZB/view?usp=drive_link'
+  };
+  
+  return shippingLabels[state.toUpperCase()] || shippingLabels['DEFAULT'];
 } 

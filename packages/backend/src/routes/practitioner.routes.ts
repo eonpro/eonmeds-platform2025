@@ -4,8 +4,8 @@ import { authenticateToken } from '../middleware/auth';
 const router = Router();
 
 // Practitioner routes
-router.get('/', authenticateToken, async (req, res) => {
-  res.json({ message: 'Practitioner routes not implemented yet' });
+router.get('/', (_, res) => {
+  res.json({ message: 'Practitioner routes not yet implemented' });
 });
 
 export default router; 

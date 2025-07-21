@@ -69,7 +69,7 @@ async function backfillPayments() {
     await processCheckoutSessions(fromDate, endDate, stats, isDryRun);
     
     // Display summary
-    displaySummary(stats, fromDate);
+    displaySummary(stats);
     
   } catch (error) {
     console.error('\n❌ Fatal error during backfill:', error);
@@ -219,7 +219,7 @@ async function processCheckoutSessions(startDate: Date, endDate: Date, stats: Ba
   }
 }
 
-function displaySummary(stats: BackfillStats, startDate: Date) {
+function displaySummary(stats: BackfillStats) {
   console.log('\n\n📊 Backfill Summary:');
   console.log('═══════════════════════════════════════');
   console.log(`✅ Successfully processed: ${stats.processed}`);
