@@ -153,15 +153,16 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
             onClick={handleGenerateSOAP}
             disabled={generating}
           >
-            {generating ? (
-              <>
-                Generating with BECCA AI...
-              </>
-            ) : (
-              <>
-                Generate SOAP Note with BECCA AI
-              </>
-            )}
+            <div className="generate-btn-content">
+              <span className="generate-btn-text">
+                {generating ? 'Generating new SOAP with' : 'Generate a new SOAP with'} EONMed's
+              </span>
+              <div className="becca-orb-icon">
+                <div className="orb-gradient"></div>
+              </div>
+              <span className="becca-text">Becca</span>
+              <span className="ai-text">AI</span>
+            </div>
           </button>
         </div>
 
