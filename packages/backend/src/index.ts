@@ -23,16 +23,29 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5002;
 
-// Middleware
+// CORS must be before all routes
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware
+// Request logging middleware (before body parsing)
 app.use((req, _res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
 });
+
+// IMPORTANT: Stripe webhook endpoint MUST be registered before body parsing middleware
+// This is because Stripe requires the raw body for signature verification
+app.post('/api/v1/payments/webhook/stripe', 
+  express.raw({ type: 'application/json' }), 
+  (req, res, next) => {
+    // Import and use the webhook handler directly
+    const { handleStripeWebhook } = require('./controllers/stripe-webhook.controller');
+    handleStripeWebhook(req, res);
+  }
+);
+
+// NOW we can add body parsing middleware for all other routes
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
@@ -65,13 +78,14 @@ app.get('/api/v1', (_req, res) => {
 app.use('/api/v1/webhooks', webhookRoutes);
 console.log('✅ Webhook routes loaded (always available)');
 
-// Register all routes immediately (with database check inside each route)
+// Register all routes (with database check inside each route)
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/patients', patientRoutes);
 app.use('/api/v1/practitioners', practitionerRoutes);
 app.use('/api/v1/appointments', appointmentRoutes);
 app.use('/api/v1/documents', documentRoutes);
 app.use('/api/v1/audit', auditRoutes);
+// Payment routes - but webhook is already registered above
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/ai', aiRoutes);

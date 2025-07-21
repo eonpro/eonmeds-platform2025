@@ -1,27 +1,27 @@
 import { Router, Request, Response } from 'express';
 import { createPaymentIntent, chargeInvoice, getPaymentMethods, detachPaymentMethod } from '../controllers/payment.controller';
-import { handleStripeWebhook } from '../controllers/stripe-webhook.controller';
-import { pool } from '../config/database';
+import { handleStripeWebhook, handleChargeSucceeded, handleCheckoutSessionCompleted } from '../controllers/stripe-webhook.controller';
 import express from 'express';
 
 const router = Router();
 
-// Payment routes
+// Payment routes (these use JSON body parser)
 router.post('/charge-invoice', chargeInvoice);
 router.post('/create-payment-intent', createPaymentIntent);
 router.get('/patients/:patientId/cards', getPaymentMethods);
 router.delete('/payment-methods/:paymentMethodId', detachPaymentMethod);
 
-// Stripe webhook - requires raw body
-router.post('/webhook/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
+// Stripe webhook - MUST be before any body parsing middleware
+// The raw body is required for signature verification
+router.post('/webhook/stripe', 
+  express.raw({ type: 'application/json' }), 
+  handleStripeWebhook
+);
 
 // TEST ONLY: Webhook test endpoint that bypasses signature verification
 if (process.env.NODE_ENV !== 'production') {
   router.post('/webhook/stripe/test', async (req: Request, res: Response) => {
     console.log('📨 TEST: Stripe webhook received:', req.body.type);
-    
-    // Import the webhook handler functions
-    const { handleChargeSucceeded, handleCheckoutSessionCompleted } = await import('../controllers/stripe-webhook.controller');
     
     try {
       // Process based on event type
