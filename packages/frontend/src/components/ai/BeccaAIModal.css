@@ -6,9 +6,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -19,57 +18,13 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
   }
   to {
     opacity: 1;
-  }
-}
-
-.becca-modal {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 30px;
-  padding: 40px;
-  max-width: 450px;
-  width: 90%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08),
-              0 0 80px rgba(255, 255, 255, 0.5);
-  animation: slideUp 0.4s ease-out;
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.becca-modal::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at center, rgba(150, 200, 255, 0.05) 0%, transparent 70%);
-  animation: rotate 30s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
 }
 
@@ -77,45 +32,61 @@
   position: relative;
   z-index: 1;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 
 .becca-animation-container {
   position: relative;
-  margin: 0 auto 30px;
+  width: 250px;
+  height: 250px;
+  animation: floatAnimation 3s ease-in-out infinite;
+}
+
+@keyframes floatAnimation {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.becca-logo {
   width: 200px;
-  height: 200px;
-}
-
-
-
-
-
-.becca-title {
+  height: auto;
   color: #333333;
-  font-family: 'Poppins', sans-serif;
-  font-size: 32px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  margin: 0 0 20px 0;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  animation: logoFadeIn 0.6s ease-out;
 }
 
-
-
-.becca-status {
-  color: rgba(50, 50, 50, 0.8);
-  font-family: 'Poppins', sans-serif;
-  font-size: 18px;
-  font-weight: 300;
-  margin: 0 0 20px 0;
-  line-height: 1.5;
-  animation: messageChange 0.5s ease-out;
-}
-
-@keyframes messageChange {
+@keyframes logoFadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.becca-status {
+  color: rgba(50, 50, 50, 0.9);
+  font-family: 'Poppins', sans-serif;
+  font-size: 20px;
+  font-weight: 300;
+  margin: 0;
+  max-width: 500px;
+  line-height: 1.5;
+  animation: messageSlideIn 0.5s ease-out;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -124,16 +95,19 @@
 }
 
 .becca-success-icon {
-  margin-top: 20px;
-  animation: checkmark 0.6s ease-out;
+  margin-top: 10px;
+  animation: successBounce 0.6s ease-out;
 }
 
-@keyframes checkmark {
-  from {
+@keyframes successBounce {
+  0% {
     transform: scale(0) rotate(-45deg);
     opacity: 0;
   }
-  to {
+  50% {
+    transform: scale(1.2) rotate(5deg);
+  }
+  100% {
     transform: scale(1) rotate(0deg);
     opacity: 1;
   }
@@ -145,21 +119,17 @@
 
 /* Responsive design */
 @media (max-width: 480px) {
-  .becca-modal {
-    padding: 30px 20px;
-    max-width: 95%;
+  .becca-animation-container {
+    width: 200px;
+    height: 200px;
   }
   
-  .becca-title {
-    font-size: 26px;
+  .becca-logo {
+    width: 160px;
   }
   
   .becca-status {
-    font-size: 16px;
-  }
-  
-  .becca-animation-container {
-    width: 150px;
-    height: 150px;
+    font-size: 18px;
+    padding: 0 20px;
   }
 } 
