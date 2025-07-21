@@ -110,7 +110,7 @@ export class AIService {
           p.heyflow_submission_id = we.webhook_id 
           OR p.heyflow_submission_id = we.payload->>'id'
         )
-        WHERE p.id = $1 OR p.patient_id = $1
+        WHERE p.patient_id = $1
         LIMIT 1
       `;
       

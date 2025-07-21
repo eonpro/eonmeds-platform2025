@@ -17,8 +17,9 @@ router.post('/generate-soap/:patientId',
       
       // Check if OpenAI is configured
       if (!process.env.OPENAI_API_KEY) {
+        console.error('OPENAI_API_KEY is not configured');
         return res.status(503).json({
-          error: 'AI service not configured. Please contact administrator.'
+          error: 'AI service not configured. Please add OPENAI_API_KEY to environment variables.'
         });
       }
 
