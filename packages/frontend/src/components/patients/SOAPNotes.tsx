@@ -67,8 +67,8 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
       
       if (response.data.success) {
         setBeccaStatus('ready');
-        // Wait a bit before refreshing to show the success state
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Wait 2 seconds before refreshing to show the success state
+        await new Promise(resolve => setTimeout(resolve, 2000));
         // Refresh the list to show the new note
         await fetchSOAPNotes();
       } else {
