@@ -26,45 +26,59 @@ export class AIService {
   /**
    * Generate SOAP note from patient intake data
    */
-  static async generateSOAPNote(patientId: string): Promise<{
-    success: boolean;
-    soapNote?: string;
-    error?: string;
-    usage?: any;
-  }> {
-    const startTime = Date.now();
-    
+  static async generateSOAPNote(patientId: string): Promise<any> {
     try {
       // Get patient data
       const patientData = await this.getPatientData(patientId);
       
       if (!patientData) {
-        return {
-          success: false,
-          error: 'Patient not found'
-        };
+        throw new Error('Patient not found');
       }
 
-      // Create the prompt
-      const prompt = this.createSOAPPrompt(patientData);
-      
-      // Call OpenAI
-      const client = this.getClient();
-      const completion = await client.chat.completions.create({
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a medical professional creating SOAP notes for a weight loss clinic. Generate accurate, professional medical documentation based on patient intake forms.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 2000
-      });
+      // Prepare the prompt
+      const prompt = this.prepareSOAPPrompt(patientData);
+
+      // Try with GPT-4 first, fallback to GPT-3.5 if quota exceeded
+      let completion;
+      try {
+        completion = await this.openai.chat.completions.create({
+          model: 'gpt-4',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a medical professional creating SOAP notes from patient intake forms. Create clear, professional, and concise SOAP notes following standard medical documentation practices.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 1500
+        });
+      } catch (error: any) {
+        // If quota exceeded, try with GPT-3.5
+        if (error.status === 429 || error.message?.includes('quota')) {
+          console.log('GPT-4 quota exceeded, falling back to GPT-3.5-turbo');
+          completion = await this.openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a medical professional creating SOAP notes from patient intake forms. Create clear, professional, and concise SOAP notes following standard medical documentation practices.'
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.3,
+            max_tokens: 1500
+          });
+        } else {
+          throw error;
+        }
+      }
 
       const soapNote = completion.choices[0]?.message?.content;
       const responseTime = Date.now() - startTime;
