@@ -629,24 +629,6 @@ export const PatientProfile: React.FC = () => {
               </select>
             </div>
 
-            {/* Add Note Section */}
-            <div className="note-input-wrapper">
-              <textarea
-                className="note-input"
-                placeholder="Add a note..."
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                rows={3}
-              />
-              <button 
-                className="save-note-btn"
-                onClick={addTimelineNote}
-                disabled={!newNote.trim()}
-              >
-                Save Note
-              </button>
-            </div>
-
             {/* Regular Timeline Notes */}
             <div className="timeline-notes">
               {timelineNotes.filter(note => note.id !== 'intake-form').map(note => (
@@ -682,6 +664,24 @@ export const PatientProfile: React.FC = () => {
                   )}
                 </div>
               ))}
+            </div>
+
+            {/* Add Note Section */}
+            <div className="note-input-wrapper">
+              <textarea
+                className="note-input"
+                placeholder="Add a note..."
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                rows={3}
+              />
+              <button 
+                className="save-note-btn"
+                onClick={addTimelineNote}
+                disabled={!newNote.trim()}
+              >
+                Save Note
+              </button>
             </div>
           </div>
         </div>
@@ -1392,7 +1392,7 @@ export const PatientProfile: React.FC = () => {
                       // Add SOAP note creation to timeline
                       const soapNote: TimelineNote = {
                         id: `soap-${Date.now()}`,
-                        content: `SOAP Note Created`,
+                        content: `SOAP Note Attached`,
                         createdAt: new Date(),
                         isPinned: false
                       };
