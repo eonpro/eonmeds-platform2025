@@ -179,4 +179,53 @@ router.put('/soap-notes/:soapNoteId/status',
 // Import pool
 import { pool } from '../config/database';
 
+/**
+ * Delete a SOAP note (only if not approved)
+ * DELETE /api/v1/ai/soap-notes/:soapNoteId
+ */
+router.delete('/soap-notes/:soapNoteId',
+  checkJwt,
+  checkRole(['admin', 'doctor', 'superadmin']),
+  async (req: Request, res: Response) => {
+    try {
+      const { soapNoteId } = req.params;
+      
+      // First check if the note exists and is not approved
+      const checkResult = await pool.query(
+        'SELECT status FROM soap_notes WHERE id = $1',
+        [soapNoteId]
+      );
+      
+      if (checkResult.rows.length === 0) {
+        return res.status(404).json({
+          error: 'SOAP note not found'
+        });
+      }
+      
+      if (checkResult.rows[0].status === 'approved') {
+        return res.status(403).json({
+          error: 'Cannot delete approved SOAP notes'
+        });
+      }
+      
+      // Delete the note
+      await pool.query(
+        'DELETE FROM soap_notes WHERE id = $1',
+        [soapNoteId]
+      );
+      
+      res.json({
+        success: true,
+        message: 'SOAP note deleted successfully'
+      });
+      
+    } catch (error) {
+      console.error('Error deleting SOAP note:', error);
+      res.status(500).json({
+        error: 'Failed to delete SOAP note'
+      });
+    }
+  }
+);
+
 export default router; 

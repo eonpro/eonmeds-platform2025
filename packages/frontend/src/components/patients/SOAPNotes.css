@@ -121,6 +121,32 @@
   font-weight: 600;
 }
 
+/* Note Actions */
+.note-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.delete-note-btn {
+  background: none;
+  border: 1px solid #dc3545;
+  color: #dc3545;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-note-btn:hover {
+  background: #dc3545;
+  color: white;
+}
+
 /* Status Badges */
 .status-badge {
   padding: 6px 16px;

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { LoadingSpinner } from '../common/LoadingSpinner';
+import BeccaAIModal from '../ai/BeccaAIModal';
+import { useAuth } from '../../hooks/useAuth';
 import './SOAPNotes.css';
 
 interface SOAPNote {
@@ -21,10 +23,15 @@ interface SOAPNotesProps {
 
 export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) => {
   const api = useApi();
+  const { user } = useAuth();
   const [soapNotes, setSoapNotes] = useState<SOAPNote[]>([]);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [beccaStatus, setBeccaStatus] = useState<'idle' | 'analyzing' | 'creating' | 'ready'>('idle');
+  
+  // Check if user can delete SOAP notes
+  const canDelete = user?.role === 'admin' || user?.role === 'doctor' || user?.role === 'superadmin';
 
   // Fetch existing SOAP notes
   const fetchSOAPNotes = async () => {
@@ -49,18 +56,28 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
   const handleGenerateSOAP = async () => {
     setGenerating(true);
     setError(null);
+    setBeccaStatus('analyzing');
     
     try {
+      // Simulate analyzing phase
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setBeccaStatus('creating');
+      
       const response = await api.post(`/api/v1/ai/generate-soap/${patientId}`);
       
       if (response.data.success) {
+        setBeccaStatus('ready');
+        // Wait a bit before refreshing to show the success state
+        await new Promise(resolve => setTimeout(resolve, 1500));
         // Refresh the list to show the new note
         await fetchSOAPNotes();
       } else {
         setError(response.data.error || 'Failed to generate SOAP note');
+        setBeccaStatus('idle');
       }
     } catch (err: any) {
       console.error('Error generating SOAP note:', err);
+      setBeccaStatus('idle');
       
       if (err.response?.status === 503) {
         setError('BECCA AI is not configured. Please contact your administrator to set up the AI service.');
@@ -69,6 +86,22 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
       }
     } finally {
       setGenerating(false);
+    }
+  };
+
+  // Delete SOAP note
+  const handleDeleteNote = async (noteId: string) => {
+    if (!window.confirm('Are you sure you want to delete this SOAP note?')) {
+      return;
+    }
+    
+    try {
+      await api.delete(`/api/v1/ai/soap-notes/${noteId}`);
+      // Refresh the list
+      await fetchSOAPNotes();
+    } catch (err: any) {
+      console.error('Error deleting SOAP note:', err);
+      setError(err.response?.data?.error || 'Failed to delete SOAP note');
     }
   };
 
@@ -104,66 +137,88 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
   }
 
   return (
-    <div className="soap-notes-container">
-      <div className="soap-header">
-        <h2>SOAP Notes - {patientName}</h2>
-        <button 
-          className="generate-soap-btn"
-          onClick={handleGenerateSOAP}
-          disabled={generating}
-        >
-          {generating ? (
-            <>
-              Generating with BECCA AI...
-            </>
-          ) : (
-            <>
-              Generate SOAP Note with BECCA AI
-            </>
-          )}
-        </button>
+    <>
+      <BeccaAIModal 
+        isOpen={generating}
+        status={beccaStatus}
+        patientName={patientName}
+        onClose={() => setBeccaStatus('idle')}
+      />
+      
+      <div className="soap-notes-container">
+        <div className="soap-header">
+          <h2>SOAP Notes - {patientName}</h2>
+          <button 
+            className="generate-soap-btn"
+            onClick={handleGenerateSOAP}
+            disabled={generating}
+          >
+            {generating ? (
+              <>
+                Generating with BECCA AI...
+              </>
+            ) : (
+              <>
+                Generate SOAP Note with BECCA AI
+              </>
+            )}
+          </button>
+        </div>
+
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
+
+        {soapNotes.length === 0 ? (
+          <div className="empty-state">
+            <h3>No SOAP Notes Yet</h3>
+            <p>Click "Generate SOAP Note with BECCA AI" to create the first SOAP note from the patient's intake form.</p>
+          </div>
+        ) : (
+          <div className="soap-notes-list">
+            {soapNotes.map((note) => (
+              <div key={note.id} className="soap-note-card">
+                <div className="soap-note-header">
+                  <div className="note-meta">
+                    <span className="created-date">
+                      Created: {formatDate(note.created_at)}
+                    </span>
+                    {note.version > 1 && (
+                      <span className="version">v{note.version}</span>
+                    )}
+                  </div>
+                  <div className="note-actions">
+                    {getStatusBadge(note)}
+                    {canDelete && note.status !== 'approved' && (
+                      <button 
+                        className="delete-note-btn"
+                        onClick={() => handleDeleteNote(note.id)}
+                        title="Delete SOAP Note"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="soap-note-content">
+                  <pre>{note.content}</pre>
+                </div>
+
+                {note.approved_at && (
+                  <div className="approval-info">
+                    Approved on {formatDate(note.approved_at)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
-
-      {soapNotes.length === 0 ? (
-        <div className="empty-state">
-          <h3>No SOAP Notes Yet</h3>
-          <p>Click "Generate SOAP Note with BECCA AI" to create the first SOAP note from the patient's intake form.</p>
-        </div>
-      ) : (
-        <div className="soap-notes-list">
-          {soapNotes.map((note) => (
-            <div key={note.id} className="soap-note-card">
-              <div className="soap-note-header">
-                <div className="note-meta">
-                  <span className="created-date">
-                    Created: {formatDate(note.created_at)}
-                  </span>
-                  {note.version > 1 && (
-                    <span className="version">v{note.version}</span>
-                  )}
-                </div>
-                {getStatusBadge(note)}
-              </div>
-              
-              <div className="soap-note-content">
-                <pre>{note.content}</pre>
-              </div>
-
-              {note.approved_at && (
-                <div className="approval-info">
-                  Approved on {formatDate(note.approved_at)}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    </>
   );
 }; 
