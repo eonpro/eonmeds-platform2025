@@ -133,6 +133,41 @@ async function initializeDatabase() {
           CREATE INDEX IF NOT EXISTS idx_payment_date ON invoice_payments(payment_date);
         `);
         
+        // Create SOAP Notes table for BECCA AI
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS soap_notes (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            patient_id UUID REFERENCES patients(id) ON DELETE CASCADE,
+            content TEXT NOT NULL,
+            original_content TEXT,
+            status VARCHAR(50) NOT NULL DEFAULT 'pending',
+            created_by VARCHAR(255) NOT NULL DEFAULT 'BECCA AI',
+            approved_by UUID REFERENCES users(id),
+            approved_by_name VARCHAR(255),
+            approved_by_credentials VARCHAR(255),
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            approved_at TIMESTAMP,
+            version INTEGER DEFAULT 1,
+            edit_history JSONB DEFAULT '[]',
+            ai_model VARCHAR(50) DEFAULT 'gpt-4',
+            ai_response_time_ms INTEGER,
+            prompt_tokens INTEGER,
+            completion_tokens INTEGER,
+            total_tokens INTEGER,
+            CONSTRAINT valid_status CHECK (status IN ('pending', 'approved', 'rejected'))
+          );
+        `);
+        
+        // Create indexes for SOAP notes
+        await pool.query(`
+          CREATE INDEX IF NOT EXISTS idx_soap_notes_patient_id ON soap_notes(patient_id);
+        `);
+        
+        await pool.query(`
+          CREATE INDEX IF NOT EXISTS idx_soap_notes_status ON soap_notes(status);
+        `);
+        
         console.log('✅ Database tables verified/created');
       } catch (tableError) {
         console.log('Note: Could not verify/create tables:', (tableError as Error).message);
