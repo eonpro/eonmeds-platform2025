@@ -156,7 +156,7 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
           >
             <div className="generate-btn-content">
               <span className="generate-btn-text">
-                {generating ? 'Generating new SOAP with' : 'Generate a new SOAP with'} EONMed's
+                {generating ? 'Generating new SOAP with' : 'Generate a new SOAP with'}
               </span>
               <div className="becca-orb-icon">
                 <DotLottieReact
@@ -165,8 +165,7 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
                   autoplay
                 />
               </div>
-              <span className="becca-text">Becca.</span>
-              <span className="ai-text">AI</span>
+              <span className="becca-text">Becca.<span className="ai-text">AI</span></span>
             </div>
           </button>
         </div>
