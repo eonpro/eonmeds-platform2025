@@ -275,9 +275,66 @@ export const Clients: React.FC = () => {
       </div>
 
       <div className="clients-table-container">
-        <div className="empty-state">
-          <h2>No clients yet</h2>
-        </div>
+        {loading ? (
+          <div className="loading-state">
+            <p>Loading clients...</p>
+          </div>
+        ) : displayedPatients.length === 0 ? (
+          <div className="empty-state">
+            <h2>No clients yet</h2>
+          </div>
+        ) : (
+          <table className="clients-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Date Joined</th>
+                <th>BMI</th>
+                <th>Status</th>
+                <th>Tags</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayedPatients.map((patient) => {
+                const statusInfo = getPatientStatus(patient);
+                return (
+                  <tr key={patient.id} onClick={() => handlePatientClick(patient.id)} className="clickable-row">
+                    <td>{patient.first_name} {patient.last_name}</td>
+                    <td>{patient.email}</td>
+                    <td>{formatPhoneNumber(patient.phone)}</td>
+                    <td>{formatDate(patient.created_at)}</td>
+                    <td>{patient.bmi || '-'}</td>
+                    <td>
+                      <span className={`status-badge status-${statusInfo.status}`}>
+                        {statusInfo.label}
+                      </span>
+                    </td>
+                    <td>
+                      {patient.membership_hashtags && patient.membership_hashtags.length > 0 ? (
+                        <div className="tag-list">
+                          {patient.membership_hashtags.map(tag => (
+                            <span key={tag} className="tag">#{tag}</span>
+                          ))}
+                        </div>
+                      ) : '-'}
+                    </td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <button 
+                        className="delete-btn"
+                        onClick={() => handleDelete(patient.id, `${patient.first_name} ${patient.last_name}`)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <AddNewClientModal
