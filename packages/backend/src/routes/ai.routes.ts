@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { AIService } from '../services/ai.service';
-import { authenticateToken, requireRole } from '../middleware/auth';
+import { checkJwt, checkRole } from '../middleware/auth0';
 
 const router = Router();
 
@@ -9,8 +9,8 @@ const router = Router();
  * POST /api/v1/ai/generate-soap/:patientId
  */
 router.post('/generate-soap/:patientId', 
-  authenticateToken,
-  requireRole(['admin', 'doctor', 'representative']),
+  checkJwt,
+  checkRole(['admin', 'doctor', 'representative']),
   async (req: Request, res: Response) => {
     try {
       const { patientId } = req.params;
@@ -51,8 +51,8 @@ router.post('/generate-soap/:patientId',
  * GET /api/v1/ai/soap-notes/:patientId
  */
 router.get('/soap-notes/:patientId',
-  authenticateToken,
-  requireRole(['admin', 'doctor', 'representative']),
+  checkJwt,
+  checkRole(['admin', 'doctor', 'representative']),
   async (req: Request, res: Response) => {
     try {
       const { patientId } = req.params;
@@ -98,15 +98,16 @@ router.get('/soap-notes/:patientId',
  * PUT /api/v1/ai/soap-notes/:soapNoteId/status
  */
 router.put('/soap-notes/:soapNoteId/status',
-  authenticateToken,
-  requireRole(['doctor']),
+  checkJwt,
+  checkRole(['doctor']),
   async (req: Request, res: Response) => {
     try {
       const { soapNoteId } = req.params;
       const { status, content } = req.body;
-      const userId = req.user?.id;
-      const userFullName = req.user?.full_name;
-      const userCredentials = req.user?.credentials || 'MD';
+      const auth = (req as any).auth;
+      const userId = auth?.sub;
+      const userFullName = auth?.name || 'Dr.';
+      const userCredentials = 'MD';
 
       if (!['approved', 'rejected'].includes(status)) {
         return res.status(400).json({
