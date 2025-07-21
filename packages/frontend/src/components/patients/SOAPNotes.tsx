@@ -3,6 +3,7 @@ import { useApi } from '../../hooks/useApi';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import BeccaAIModal from '../ai/BeccaAIModal';
 import { useAuth } from '../../hooks/useAuth';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import './SOAPNotes.css';
 
 interface SOAPNote {
@@ -158,9 +159,13 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
                 {generating ? 'Generating new SOAP with' : 'Generate a new SOAP with'} EONMed's
               </span>
               <div className="becca-orb-icon">
-                <div className="orb-gradient"></div>
+                <DotLottieReact
+                  src="https://lottie.host/9c7564a3-b6ee-4e8b-8b5e-14a59b28c515/3Htnjbp08p.lottie"
+                  loop
+                  autoplay
+                />
               </div>
-              <span className="becca-text">Becca</span>
+              <span className="becca-text">Becca.</span>
               <span className="ai-text">AI</span>
             </div>
           </button>
