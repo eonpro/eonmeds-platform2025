@@ -677,7 +677,7 @@ export const PatientProfile: React.FC = () => {
                       className="view-soap-btn"
                       onClick={() => setActiveTab('soap')}
                     >
-                      View
+                      View SOAP Note
                     </button>
                   )}
                 </div>
@@ -1395,7 +1395,7 @@ export const PatientProfile: React.FC = () => {
                       // Add SOAP note creation to timeline
                       const soapNote: TimelineNote = {
                         id: `soap-${Date.now()}`,
-                        content: `SOAP Note created - ${noteDate}`,
+                        content: `SOAP Note Created`,
                         createdAt: new Date(),
                         isPinned: false
                       };
