@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import jwksClient from 'jwks-rsa';
 import bcrypt from 'bcrypt';
 import { query } from '../config/database';
 
@@ -209,4 +208,5 @@ export function applyRoleMiddleware(router: any, defaultRole: string = 'admin'):
     // Apply default role requirement
     requireRole([defaultRole])(req, res, next);
   });
+  return; // Explicit return
 } 

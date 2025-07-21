@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
+import Stripe from 'stripe';
 import { pool } from '../config/database';
-import stripeService from '../services/stripe.service';
+import { StripeService } from '../services/stripe.service';
+
+const stripeService = new StripeService();
 
 // Create a payment intent
 export const createPaymentIntent = async (req: Request, res: Response): Promise<Response> => {

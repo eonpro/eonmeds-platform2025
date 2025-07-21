@@ -114,43 +114,49 @@ router.get('/today', async (_req: Request, res: Response): Promise<Response> => 
   try {
     const result = await pool.query(`
       SELECT 
-        id,
-        patient_id,
-        first_name,
-        last_name,
-        email,
-        phone,
-        status,
-        created_at,
-        heyflow_submission_id
-      FROM patients
-      WHERE created_at >= CURRENT_DATE
-      ORDER BY created_at DESC
+        p.id,
+        p.patient_id, 
+        p.first_name, 
+        p.last_name, 
+        p.email, 
+        p.status,
+        p.membership_hashtags,
+        p.heyflow_submission_id,
+        p.created_at,
+        we.created_at as webhook_received_at,
+        we.payload
+      FROM patients p
+      LEFT JOIN webhook_events we ON we.webhook_id = p.heyflow_submission_id
+      WHERE DATE(p.created_at) = CURRENT_DATE
+      ORDER BY p.created_at DESC
     `);
-    
-    // Also get webhook events from today
-    const webhookResult = await pool.query(`
-      SELECT 
-        id,
-        created_at,
-        processed,
-        error_message,
-        payload
-      FROM webhook_events
-      WHERE created_at >= CURRENT_DATE
-      ORDER BY created_at DESC
-    `);
-    
-    res.json({
-      patients_today: result.rows.length,
-      patients: result.rows,
-      webhooks_today: webhookResult.rows.length,
-      webhooks: webhookResult.rows,
-      current_time: new Date().toISOString()
+
+    const summary = {
+      total_patients_today: result.rows.length,
+      by_status: {},
+      by_hashtag: {},
+      patients: result.rows
+    };
+
+    // Group by status
+    result.rows.forEach(patient => {
+      summary.by_status[patient.status] = (summary.by_status[patient.status] || 0) + 1;
+      
+      // Count hashtags
+      if (patient.membership_hashtags) {
+        patient.membership_hashtags.forEach(tag => {
+          summary.by_hashtag[tag] = (summary.by_hashtag[tag] || 0) + 1;
+        });
+      }
     });
+
+    return res.json(summary);
   } catch (error) {
-    console.error('Error fetching today\'s data:', error);
-    res.status(500).json({ error: 'Failed to fetch today\'s data' });
+    console.error('Error checking patient debug data:', error);
+    return res.status(500).json({ 
+      error: 'Failed to check patient data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 

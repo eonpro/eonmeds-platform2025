@@ -31,17 +31,16 @@ router.post('/generate-soap/:patientId',
           error: result.error || 'Failed to generate SOAP note'
         });
       }
-
-      res.json({
+      
+      return res.json({
         success: true,
-        soapNote: result.soapNote,
-        usage: result.usage
+        soapNote: result.data
       });
-
     } catch (error) {
-      console.error('Error in generate-soap endpoint:', error);
-      res.status(500).json({
-        error: 'Internal server error'
+      console.error('Error generating SOAP note:', error);
+      return res.status(500).json({
+        error: 'Failed to generate SOAP note',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
@@ -58,54 +57,27 @@ router.get('/soap-notes/:patientId',
     try {
       const { patientId } = req.params;
       const { status } = req.query;
-
-      // Query to get SOAP notes
-      // First get the patient's UUID if needed
-      const patientResult = await pool.query(
-        'SELECT id FROM patients WHERE patient_id = $1 OR id::text = $1',
-        [patientId]
-      );
       
-      if (patientResult.rows.length === 0) {
-        return res.status(404).json({
-          error: 'Patient not found'
-        });
-      }
-      
-      const patientUUID = patientResult.rows[0].id;
-      
-      let query = `
-        SELECT 
-          sn.*
-        FROM soap_notes sn
-        WHERE sn.patient_id = $1
-      `;
-      
-      const params: any[] = [patientUUID];
+      let query = 'SELECT * FROM soap_notes WHERE patient_id = $1';
+      const params: any[] = [patientId];
       
       if (status) {
-        query += ' AND sn.status = $2';
+        query += ' AND status = $2';
         params.push(status);
       }
       
-      query += ' ORDER BY sn.created_at DESC';
-
+      query += ' ORDER BY created_at DESC';
+      
       const result = await pool.query(query, params);
-
-      res.json({
+      
+      return res.json({
         success: true,
         soapNotes: result.rows
       });
-
     } catch (error) {
       console.error('Error fetching SOAP notes:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        patientId: req.params.patientId
-      });
-      res.status(500).json({
-        error: 'Failed to fetch SOAP notes',
-        details: error instanceof Error ? error.message : 'Unknown error'
+      return res.status(500).json({
+        error: 'Failed to fetch SOAP notes'
       });
     }
   }
@@ -123,53 +95,88 @@ router.put('/soap-notes/:soapNoteId/status',
       const { soapNoteId } = req.params;
       const { status, content } = req.body;
       const auth = (req as any).auth;
-      const userId = auth?.sub;
-      const userFullName = auth?.name || 'Dr.';
-      const userCredentials = 'MD';
-
+      
+      // Validate status
       if (!['approved', 'rejected'].includes(status)) {
         return res.status(400).json({
-          error: 'Invalid status. Must be approved or rejected.'
+          error: 'Invalid status. Must be "approved" or "rejected"'
         });
       }
-
-      const query = `
-        UPDATE soap_notes
-        SET 
-          status = $2,
-          content = COALESCE($3, content),
-          approved_by = $4,
-          approved_by_name = $5,
-          approved_by_credentials = $6,
-          approved_at = NOW(),
-          version = version + 1
-        WHERE id = $1
-        RETURNING *
-      `;
-
-      const result = await pool.query(query, [
-        soapNoteId,
-        status,
-        content, // Allow editing before approval
-        userId,
-        userFullName,
-        userCredentials
-      ]);
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          error: 'SOAP note not found'
+      
+      // Begin transaction
+      const client = await pool.connect();
+      
+      try {
+        await client.query('BEGIN');
+        
+        // Get user details
+        const userResult = await client.query(
+          'SELECT id, first_name, last_name FROM users WHERE auth0_id = $1',
+          [auth.sub]
+        );
+        
+        if (userResult.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return res.status(404).json({ error: 'User not found' });
+        }
+        
+        const user = userResult.rows[0];
+        
+        // Update SOAP note
+        const updateResult = await client.query(
+          `UPDATE soap_notes 
+           SET status = $1, 
+               content = COALESCE($2, content),
+               approved_by = $3,
+               approved_by_name = $4,
+               approved_at = NOW(),
+               updated_at = NOW()
+           WHERE id = $5
+           RETURNING *`,
+          [
+            status,
+            content,
+            user.id,
+            `${user.first_name} ${user.last_name}`,
+            soapNoteId
+          ]
+        );
+        
+        if (updateResult.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return res.status(404).json({ error: 'SOAP note not found' });
+        }
+        
+        // Log the action
+        await client.query(
+          `INSERT INTO ai_audit_log (
+            action_type, performed_by, user_role, patient_id,
+            action_details, created_at
+          ) VALUES ($1, $2, $3, $4, $5, NOW())`,
+          [
+            `soap_note_${status}`,
+            user.id,
+            'doctor',
+            updateResult.rows[0].patient_id,
+            JSON.stringify({ soap_note_id: soapNoteId, status })
+          ]
+        );
+        
+        await client.query('COMMIT');
+        
+        return res.json({
+          success: true,
+          soapNote: updateResult.rows[0]
         });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
       }
-
-      res.json({
-        success: true,
-        soapNote: result.rows[0]
-      });
-
     } catch (error) {
       console.error('Error updating SOAP note status:', error);
-      res.status(500).json({
+      return res.status(500).json({
         error: 'Failed to update SOAP note status'
       });
     }
@@ -197,31 +204,25 @@ router.delete('/soap-notes/:soapNoteId',
       );
       
       if (checkResult.rows.length === 0) {
-        return res.status(404).json({
-          error: 'SOAP note not found'
-        });
+        return res.status(404).json({ error: 'SOAP note not found' });
       }
       
       if (checkResult.rows[0].status === 'approved') {
-        return res.status(403).json({
-          error: 'Cannot delete approved SOAP notes'
+        return res.status(403).json({ 
+          error: 'Cannot delete approved SOAP notes' 
         });
       }
       
-      // Delete the note
-      await pool.query(
-        'DELETE FROM soap_notes WHERE id = $1',
-        [soapNoteId]
-      );
+      // Delete the SOAP note
+      await pool.query('DELETE FROM soap_notes WHERE id = $1', [soapNoteId]);
       
-      res.json({
+      return res.json({
         success: true,
         message: 'SOAP note deleted successfully'
       });
-      
     } catch (error) {
       console.error('Error deleting SOAP note:', error);
-      res.status(500).json({
+      return res.status(500).json({
         error: 'Failed to delete SOAP note'
       });
     }

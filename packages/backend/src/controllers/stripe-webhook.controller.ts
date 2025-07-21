@@ -335,9 +335,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   );
   
   // Record payment in payment history
-  const paymentIntentId = typeof invoice.payment_intent === 'string' ? invoice.payment_intent : 
-                         (invoice.payment_intent && typeof invoice.payment_intent === 'object' && 'id' in invoice.payment_intent) ? 
-                         invoice.payment_intent.id : undefined;
+  const paymentIntentId = invoice.payment_intent as string | undefined;
   
   if (paymentIntentId) {
     await pool.query(

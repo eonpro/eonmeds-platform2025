@@ -1,7 +1,6 @@
 import { expressjwt as jwt, GetVerificationKey } from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
 import { Request } from 'express';
-import axios from 'axios';
 
 // Auth0 configuration from environment variables
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
