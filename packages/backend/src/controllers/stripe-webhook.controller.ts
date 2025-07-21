@@ -401,7 +401,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
 }
 
 // External payment events
-async function handleChargeSucceeded(charge: Stripe.Charge) {
+export async function handleChargeSucceeded(charge: Stripe.Charge) {
   console.log(`💰 External charge succeeded: ${charge.id} - Amount: $${charge.amount / 100}`);
   
   // Skip if this charge was already processed through payment_intent
@@ -445,7 +445,7 @@ async function handleChargeSucceeded(charge: Stripe.Charge) {
   }
 }
 
-async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   console.log(`🛒 Checkout session completed: ${session.id} - Amount: $${(session.amount_total || 0) / 100}`);
   
   try {
