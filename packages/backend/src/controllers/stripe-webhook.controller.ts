@@ -378,7 +378,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
 }
 
 // External payment events
-async function handleChargeSucceeded(charge: Stripe.Charge) {
+export async function handleChargeSucceeded(charge: Stripe.Charge) {
   console.log(`💰 External charge succeeded: ${charge.id} - Amount: $${charge.amount / 100}`);
   
   // Skip if this charge was already processed through payment_intent
