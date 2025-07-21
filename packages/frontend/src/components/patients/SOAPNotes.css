@@ -92,21 +92,30 @@
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: 80px 40px;
   background: #f8f9fa;
   border-radius: 12px;
   border: 2px dashed #dee2e6;
+  margin-top: 40px;
 }
 
 .empty-state h3 {
-  color: #495057;
-  margin-bottom: 10px;
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .empty-state p {
-  color: #6c757d;
-  max-width: 400px;
+  color: #666;
+  max-width: 500px;
   margin: 0 auto;
+  font-size: 16px;
+  line-height: 1.6;
+  background-color: #f7cf6c;
+  padding: 20px 30px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 /* SOAP Notes List */
