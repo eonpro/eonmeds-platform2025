@@ -91,7 +91,7 @@
 }
 
 /* Invoice Summary Section */
-.invoice-summary {
+.payment-modal-content .invoice-summary {
   padding: 0;
   background: white;
   border-bottom: 1px solid #e5e7eb;
@@ -126,38 +126,39 @@
   padding: 24px;
 }
 
-.invoice-header {
+.payment-modal-content .invoice-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 24px;
-  background: #374151;
-  color: white;
+  padding: 24px;
+  background: white;
+  color: #111827;
   margin-bottom: 0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.invoice-id {
+.payment-modal-content .invoice-id {
   font-size: 18px;
   font-weight: 600;
-  color: white;
+  color: #111827;
   margin: 0;
 }
 
-.amount-badge {
+.payment-modal-content .amount-badge {
   background: transparent;
-  color: white;
+  color: #111827;
   padding: 0;
   border-radius: 0;
   font-size: 18px;
   font-weight: 600;
 }
 
-.invoice-items {
+.payment-modal-content .invoice-items {
   padding: 24px;
   margin-bottom: 0;
 }
 
-.invoice-items h4 {
+.payment-modal-content .invoice-items h4 {
   font-size: 12px;
   font-weight: 600;
   color: #6b7280;
@@ -194,7 +195,7 @@
   color: #111827;
 }
 
-.invoice-totals {
+.payment-modal-content .invoice-totals {
   padding: 16px 24px 24px 24px;
   margin-top: 0;
   border-top: 1px solid #e5e7eb;
@@ -219,18 +220,18 @@
 }
 
 /* Payment Section */
-.payment-section {
+.payment-modal-content .payment-section {
   padding: 24px;
 }
 
-.payment-section h4 {
+.payment-modal-content .payment-section h4 {
   font-size: 12px;
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: -24px -24px 16px -24px;
-  padding: 12px 24px;
+  padding: 16px 24px;
   background: #374151;
   color: white;
   border-bottom: 1px solid #e5e7eb;
