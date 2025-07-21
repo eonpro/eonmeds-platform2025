@@ -199,7 +199,7 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
         {soapNotes.length === 0 ? (
           <div className="empty-state">
             <h3>No SOAP Notes Yet</h3>
-            <p>Click "Generate SOAP Note with BECCA AI" to<br />create the first SOAP note from the patient's<br />intake form.</p>
+            <p>Click "Generate SOAP Note with BECCA AI" to create the first SOAP note from the patient's intake form.</p>
           </div>
         ) : (
           <div className="soap-notes-list">
