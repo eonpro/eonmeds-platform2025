@@ -30,7 +30,7 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
   const fetchSOAPNotes = async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/ai/soap-notes/${patientId}`);
+      const response = await api.get(`/api/v1/ai/soap-notes/${patientId}`);
       setSoapNotes(response.data.soapNotes || []);
       setError(null);
     } catch (err) {
@@ -51,7 +51,7 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
     setError(null);
     
     try {
-      const response = await api.post(`/ai/generate-soap/${patientId}`);
+      const response = await api.post(`/api/v1/ai/generate-soap/${patientId}`);
       
       if (response.data.success) {
         // Refresh the list to show the new note
