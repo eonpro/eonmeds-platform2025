@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
-import LoadingSpinner from '../common/LoadingSpinner';
+import { LoadingSpinner } from '../common/LoadingSpinner';
 import './SOAPNotes.css';
 
 interface SOAPNote {
