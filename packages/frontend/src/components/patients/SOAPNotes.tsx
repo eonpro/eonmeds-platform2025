@@ -20,9 +20,10 @@ interface SOAPNote {
 interface SOAPNotesProps {
   patientId: string;
   patientName: string;
+  onSOAPCreated?: (noteDate: string) => void;
 }
 
-export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) => {
+export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, onSOAPCreated }) => {
   const api = useApi();
   const { user } = useAuth();
   const [soapNotes, setSoapNotes] = useState<SOAPNote[]>([]);
@@ -72,6 +73,15 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName }) 
         await new Promise(resolve => setTimeout(resolve, 2000));
         // Refresh the list to show the new note
         await fetchSOAPNotes();
+        // Notify parent component about new SOAP note
+        const today = new Date().toLocaleDateString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric'
+        });
+        if (onSOAPCreated) {
+          onSOAPCreated(today);
+        }
       } else {
         setError(response.data.error || 'Failed to generate SOAP note');
         setBeccaStatus('idle');

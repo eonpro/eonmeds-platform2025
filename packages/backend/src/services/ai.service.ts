@@ -181,6 +181,11 @@ export class AIService {
     // Get location info
     const city = patientData.city || fields.city || 'Not provided';
     const state = patientData.state || fields.state || 'Not provided';
+    
+    // Determine encounter type based on state
+    const telehealthStates = ['AR', 'Arkansas', 'GA', 'Georgia', 'MS', 'Mississippi', 
+                              'NC', 'North Carolina', 'RI', 'Rhode Island', 'TX', 'Texas'];
+    const encounterType = telehealthStates.includes(state) ? 'Telehealth' : 'Asynchronous';
 
     // Format DOB to remove time
     const dobDate = new Date(patientData.date_of_birth);
@@ -219,7 +224,7 @@ SOAP NOTE – GLP-1 Weight Loss Program
 Patient Name: [Full Name]
 DOB: [Date]
 Date of Intake Submission: [Today's Date]
-Encounter Type: Telehealth
+Encounter Type: ${encounterType}
 Provider: [Insert Provider Name]
 Location: [City, State]
 Email: [Email]

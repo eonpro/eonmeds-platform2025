@@ -672,6 +672,14 @@ export const PatientProfile: React.FC = () => {
                     </div>
                   </div>
                   <p className="note-content">{note.content}</p>
+                  {note.id.startsWith('soap-') && (
+                    <button 
+                      className="view-soap-btn"
+                      onClick={() => setActiveTab('soap')}
+                    >
+                      View
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -1383,6 +1391,18 @@ export const PatientProfile: React.FC = () => {
                   <SOAPNotes 
                     patientId={patient.patient_id}
                     patientName={`${patient.first_name} ${patient.last_name}`}
+                    onSOAPCreated={(noteDate) => {
+                      // Add SOAP note creation to timeline
+                      const soapNote: TimelineNote = {
+                        id: `soap-${Date.now()}`,
+                        content: `SOAP Note created - ${noteDate}`,
+                        createdAt: new Date(),
+                        isPinned: false
+                      };
+                      const updatedNotes = [soapNote, ...timelineNotes];
+                      setTimelineNotes(updatedNotes);
+                      localStorage.setItem(`patient-notes-${id}`, JSON.stringify(updatedNotes));
+                    }}
                   />
                 </div>
               )}
