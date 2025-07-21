@@ -8,7 +8,7 @@ const router = Router();
 
 // Get all patients with pagination, search, and filters
 // Temporarily removed authenticateToken for testing
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response): Promise<Response> => {
   try {
     const { 
       page = '1', 
@@ -94,7 +94,7 @@ router.get('/', async (req, res) => {
     
     console.log(`Returning ${patientsResult.rows.length} patients out of ${totalCount} total`);
     
-    res.json({
+    return res.json({
       patients: patientsResult.rows,
       pagination: {
         page: pageNum,
@@ -105,7 +105,7 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching patients:', error);
-    res.status(500).json({ error: 'Failed to fetch patients' });
+    return res.status(500).json({ error: 'Failed to fetch patients' });
   }
 });
 
@@ -155,7 +155,7 @@ router.get('/today', async (req, res) => {
 });
 
 // Get patient by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response): Promise<Response> => {
   try {
     const { id } = req.params;
     
@@ -199,15 +199,15 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Patient not found' });
     }
     
-    res.json(result.rows[0]);
+    return res.json(result.rows[0]);
   } catch (error) {
     console.error('Error fetching patient:', error);
-    res.status(500).json({ error: 'Failed to fetch patient' });
+    return res.status(500).json({ error: 'Failed to fetch patient' });
   }
 });
 
 // Create patient
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response): Promise<Response> => {
   try {
     const patientData = req.body;
     
@@ -261,7 +261,7 @@ router.post('/', async (req, res) => {
       ]
     );
     
-    res.status(201).json(result.rows[0]);
+    return res.status(201).json(result.rows[0]);
   } catch (error: any) {
     console.error('Error creating patient:', error);
     
@@ -270,12 +270,12 @@ router.post('/', async (req, res) => {
       return res.status(409).json({ error: 'A patient with this email already exists' });
     }
     
-    res.status(500).json({ error: 'Failed to create patient' });
+    return res.status(500).json({ error: 'Failed to create patient' });
   }
 });
 
 // Update patient
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: Request, res: Response): Promise<Response> => {
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -336,7 +336,7 @@ router.put('/:id', async (req, res) => {
       patient.bmi = bmi.toFixed(2);
     }
     
-    res.json(patient);
+    return res.json(patient);
   } catch (error) {
     console.error('Error updating patient:', error);
     
@@ -345,7 +345,7 @@ router.put('/:id', async (req, res) => {
       return res.status(409).json({ error: 'A patient with this email already exists' });
     }
     
-    res.status(500).json({ error: 'Failed to update patient' });
+    return res.status(500).json({ error: 'Failed to update patient' });
   }
 });
 
@@ -394,7 +394,7 @@ router.put('/:id/status', authenticateToken, async (req: Request, res: Response)
 });
 
 // Send invite to patient
-router.post('/:id/invite', authenticateToken, async (req, res) => {
+router.post('/:id/invite', authenticateToken, async (req: Request, res: Response): Promise<Response> => {
   try {
     const { id } = req.params;
     const { email } = req.body;
@@ -421,14 +421,14 @@ router.post('/:id/invite', authenticateToken, async (req, res) => {
       [id]
     );
     
-    res.json({ 
+    return res.json({ 
       success: true, 
       message: 'Invite sent successfully',
       email: email || patient.email
     });
   } catch (error) {
     console.error('Error sending invite:', error);
-    res.status(500).json({ error: 'Failed to send invite' });
+    return res.status(500).json({ error: 'Failed to send invite' });
   }
 });
 
@@ -443,10 +443,10 @@ router.get('/:id/intake', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Intake data not found' });
     }
     
-    res.json(intakeData);
+    return res.json(intakeData);
   } catch (error) {
     console.error('Error fetching intake data:', error);
-    res.status(500).json({ error: 'Failed to fetch intake data' });
+    return res.status(500).json({ error: 'Failed to fetch intake data' });
   }
 });
 
@@ -469,15 +469,15 @@ router.get('/:id/webhook-data', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'No webhook data found' });
     }
     
-    res.json(result.rows[0].payload);
+    return res.json(result.rows[0].payload);
   } catch (error) {
     console.error('Error fetching webhook data:', error);
-    res.status(500).json({ error: 'Failed to fetch webhook data' });
+    return res.status(500).json({ error: 'Failed to fetch webhook data' });
   }
 });
 
 // GET /api/v1/patients/:id/intake-pdf - Generate intake form PDF
-router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
+router.get('/:id/intake-pdf', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     
@@ -496,7 +496,8 @@ router.get('/:id/intake-pdf', async (req: Request, res: Response) => {
     `, [id]);
     
     if (patientResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Patient not found' });
+      res.status(404).json({ error: 'Patient not found' });
+      return;
     }
     
     const patient = patientResult.rows[0];
@@ -623,7 +624,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<Response> => 
 });
 
 // Debug endpoint to check patient data
-router.get('/:id/debug', async (req, res) => {
+router.get('/:id/debug', async (req: Request, res: Response): Promise<Response> => {
   try {
     const { id } = req.params;
     
@@ -656,10 +657,10 @@ router.get('/:id/debug', async (req, res) => {
       has_new_format: !!(patient.address_house || patient.address_street || patient.apartment_number)
     };
     
-    res.json(addressInfo);
+    return res.json(addressInfo);
   } catch (error) {
     console.error('Debug error:', error);
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 

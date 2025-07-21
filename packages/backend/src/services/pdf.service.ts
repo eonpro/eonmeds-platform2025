@@ -166,7 +166,7 @@ export class PDFService {
           [
             { 
               label: 'HOW COMMITTED ARE YOU TO STARTING TREATMENT? (SCALE 1-5)', 
-              value: formatCommitmentWithVisual(doc, webhookData.commitment_level),
+              value: formatCommitmentWithVisual(webhookData.commitment_level),
               isSpecial: true,
               fullWidth: true
             }
@@ -559,18 +559,6 @@ function formatDateLong(date: string | Date): string {
   });
 }
 
-function calculateAge(dateOfBirth: string | Date): number {
-  if (!dateOfBirth) return 0;
-  const today = new Date();
-  const birthDate = new Date(dateOfBirth);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age;
-}
-
 function formatPhone(phone: string): string {
   if (!phone) return '';
   const cleaned = phone.replace(/\D/g, '');
@@ -596,25 +584,11 @@ function formatAnswer(answer: string): string {
   return capitalizeFirst(answer);
 }
 
-function formatCommitmentWithVisual(doc: any, level: string): string {
+function formatCommitmentWithVisual(level: string): string {
   if (!level) return 'Not specified';
   const num = parseInt(level);
   if (!isNaN(num)) {
     return `${num}/5`;
   }
   return level;
-}
-
-function getShippingLabelUrl(state: string): string {
-  const shippingLabels: { [key: string]: string } = {
-    'TX': 'https://drive.google.com/file/d/1hqJrN1hC2HQ5YEJnNdJVLOjBHa_W3cWL/view?usp=drive_link',
-    'IA': 'https://drive.google.com/file/d/12cQrZKTvHhupBD-cCaKHW5Y8SiFupZ2F/view?usp=drive_link',
-    'NY': 'https://drive.google.com/file/d/1RJOa2r2nLT_zl8pJi6mCYHJkCXu5iGdT/view?usp=drive_link',
-    'FL': 'https://drive.google.com/file/d/11cRDShUcaLRNOb6oKpb_UJvfJBAcvSU8/view?usp=drive_link',
-    'TN': 'https://drive.google.com/file/d/1Xe6qKbiCCdABV4RVvqJXxO2UoOGJGbNh/view?usp=drive_link',
-    'NC': 'https://drive.google.com/file/d/1_cO9zqbtqb9CtNkHJhXCejf9ZQ-8hckb/view?usp=drive_link',
-    'DEFAULT': 'https://drive.google.com/file/d/1U9VQ8nJYDYPb2Y91T6u5iQLnDLu0vOZB/view?usp=drive_link'
-  };
-  
-  return shippingLabels[state.toUpperCase()] || shippingLabels['DEFAULT'];
 } 

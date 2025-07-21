@@ -1,11 +1,11 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
-// Practitioner routes
-router.get('/', (_, res) => {
-  res.json({ message: 'Practitioner routes not yet implemented' });
+// Stub routes - to be implemented
+router.get('/', (_req: Request, res: Response): Response => {
+  return res.json({ message: 'Practitioner routes not yet implemented' });
 });
 
 export default router; 
