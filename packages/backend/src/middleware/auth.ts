@@ -192,7 +192,7 @@ export const requireRole = (allowedRoles: string[]) => {
       });
     }
 
-    next();
+    return next();
   };
 }; 
 
