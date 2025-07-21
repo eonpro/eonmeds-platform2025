@@ -36,12 +36,13 @@ export class AIService {
       }
 
       // Prepare the prompt
-      const prompt = this.prepareSOAPPrompt(patientData);
+      const prompt = this.createSOAPPrompt(patientData);
 
       // Try with GPT-4 first, fallback to GPT-3.5 if quota exceeded
       let completion;
+      const client = this.getClient();
       try {
-        completion = await this.openai.chat.completions.create({
+        completion = await client.chat.completions.create({
           model: 'gpt-4',
           messages: [
             {
@@ -60,7 +61,7 @@ export class AIService {
         // If quota exceeded, try with GPT-3.5
         if (error.status === 429 || error.message?.includes('quota')) {
           console.log('GPT-4 quota exceeded, falling back to GPT-3.5-turbo');
-          completion = await this.openai.chat.completions.create({
+          completion = await client.chat.completions.create({
             model: 'gpt-3.5-turbo',
             messages: [
               {
