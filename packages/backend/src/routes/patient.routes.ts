@@ -674,7 +674,9 @@ router.get('/:id/debug', async (req: Request, res: Response): Promise<Response> 
     return res.json(addressInfo);
   } catch (error) {
     console.error('Debug error:', error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 });
 

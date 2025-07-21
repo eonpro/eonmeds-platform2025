@@ -335,7 +335,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   );
   
   // Record payment in payment history
-  const paymentIntentId = invoice.payment_intent as string | undefined;
+  const paymentIntentId = (invoice as any).payment_intent as string | undefined;
   
   if (paymentIntentId) {
     await pool.query(
@@ -372,75 +372,13 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   // TODO: Update patient hashtag to 'paymentissue'
 }
 
-// Payment succeeded
-async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
-  console.log(`✅ Payment succeeded: ${paymentIntent.id} - Amount: $${paymentIntent.amount / 100}`);
-  
-  // Check if this payment is for an invoice
-  const invoiceId = paymentIntent.metadata?.invoice_id;
-  if (!invoiceId) {
-    console.log('No invoice_id in payment metadata, skipping invoice update');
-    return;
-  }
-  
-  try {
-    // Start transaction
-    await pool.query('BEGIN');
-    
-    // Create payment record
-    const paymentQuery = `
-      INSERT INTO payments (
-        invoice_id, 
-        amount, 
-        payment_method, 
-        payment_date, 
-        status, 
-        stripe_payment_id,
-        stripe_charge_id
-      ) VALUES ($1, $2, $3, NOW(), $4, $5, $6)
-      RETURNING id
-    `;
-    
-    await pool.query(paymentQuery, [
-      invoiceId,
-      paymentIntent.amount / 100, // Convert from cents
-      'stripe',
-      'paid',
-      paymentIntent.id,
-      paymentIntent.charges?.data[0]?.id || null
-    ]);
-    
-    // Update invoice status
-    const updateInvoiceQuery = `
-      UPDATE invoices 
-      SET 
-        status = 'paid',
-        amount_paid = amount_due,
-        amount_due = 0,
-        paid_at = NOW(),
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $1
-    `;
-    
-    await pool.query(updateInvoiceQuery, [invoiceId]);
-    
-    // Commit transaction
-    await pool.query('COMMIT');
-    
-    console.log(`✅ Invoice ${invoiceId} marked as paid via Stripe payment`);
-  } catch (error) {
-    await pool.query('ROLLBACK');
-    console.error('Error updating invoice from payment intent:', error);
-  }
-}
-
 // Payment failed
 async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   console.log(`❌ Payment failed: ${paymentIntent.id}`);
 }
 
 // External payment events
-export async function handleChargeSucceeded(charge: Stripe.Charge) {
+async function handleChargeSucceeded(charge: Stripe.Charge) {
   console.log(`💰 External charge succeeded: ${charge.id} - Amount: $${charge.amount / 100}`);
   
   // Skip if this charge was already processed through payment_intent

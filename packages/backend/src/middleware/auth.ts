@@ -206,7 +206,6 @@ export function applyRoleMiddleware(router: any, defaultRole: string = 'admin'):
     }
     
     // Apply default role requirement
-    requireRole([defaultRole])(req, res, next);
+    return requireRole([defaultRole])(req, res, next);
   });
-  return; // Explicit return
 } 
