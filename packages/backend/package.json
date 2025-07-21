@@ -10,7 +10,8 @@
     "test": "jest",
     "lint": "eslint . --ext .ts",
     "migrate": "ts-node src/scripts/run-migrations.ts",
-    "backfill-payments": "ts-node --transpile-only -P tsconfig.loose.json src/scripts/backfill-stripe-payments.ts"
+    "backfill-payments": "ts-node --transpile-only -P tsconfig.loose.json src/scripts/backfill-stripe-payments.ts",
+    "sync-stripe": "node sync-stripe-customers.js"
   },
   "keywords": [],
   "author": "",
