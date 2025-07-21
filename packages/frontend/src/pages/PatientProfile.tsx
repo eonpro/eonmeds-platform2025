@@ -166,7 +166,17 @@ export const PatientProfile: React.FC = () => {
     // Load saved timeline notes from localStorage for now
     const savedNotes = localStorage.getItem(`patient-notes-${id}`);
     if (savedNotes) {
-      setTimelineNotes(JSON.parse(savedNotes));
+      const notes = JSON.parse(savedNotes);
+      // Clean up any old SOAP note format
+      const cleanedNotes = notes.map((note: TimelineNote) => {
+        if (note.id.startsWith('soap-') && note.content.includes('SOAP Note created -')) {
+          return { ...note, content: 'SOAP Note Attached' };
+        }
+        return note;
+      });
+      setTimelineNotes(cleanedNotes);
+      // Save cleaned notes back to localStorage
+      localStorage.setItem(`patient-notes-${id}`, JSON.stringify(cleanedNotes));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -653,7 +663,9 @@ export const PatientProfile: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  <p className="note-content">{note.content}</p>
+                  <p className="note-content">
+                    {note.id.startsWith('soap-') ? 'SOAP Note Attached' : note.content}
+                  </p>
                   {note.id.startsWith('soap-') && (
                     <button 
                       className="view-soap-btn"
