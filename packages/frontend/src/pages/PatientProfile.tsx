@@ -642,7 +642,7 @@ export const PatientProfile: React.FC = () => {
             {/* Regular Timeline Notes */}
             <div className="timeline-notes">
               {timelineNotes.filter(note => note.id !== 'intake-form').map(note => (
-                <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''}`}>
+                <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''} ${note.id.startsWith('soap-') ? 'soap-note-timeline' : ''}`}>
                   <div className="note-header">
                     <span className="note-date">
                       {new Date(note.createdAt).toLocaleDateString()}
@@ -663,16 +663,20 @@ export const PatientProfile: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  <p className="note-content">
-                    {note.id.startsWith('soap-') ? 'SOAP Note Attached' : note.content}
-                  </p>
-                  {note.id.startsWith('soap-') && (
-                    <button 
-                      className="view-soap-btn"
-                      onClick={() => setActiveTab('soap')}
-                    >
-                      View SOAP Note
-                    </button>
+                  {note.id.startsWith('soap-') ? (
+                    <div className="soap-note-content">
+                      <div className="soap-note-info">
+                        <p className="soap-note-title">SOAP Note Attached</p>
+                        <button 
+                          className="view-soap-note-btn"
+                          onClick={() => setActiveTab('soap')}
+                        >
+                          View SOAP Note
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="note-content">{note.content}</p>
                   )}
                 </div>
               ))}

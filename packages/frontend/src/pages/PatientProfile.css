@@ -289,23 +289,7 @@
   line-height: 1.5;
 }
 
-.view-soap-btn {
-  margin-top: 10px;
-  padding: 6px 12px;
-  background-color: #14a97b;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.view-soap-btn:hover {
-  background-color: #0e8a5f;
-  transform: translateY(-1px);
-}
+/* view-soap-btn styles removed - using soap-note-timeline styles instead */
 
 /* Profile Content Section */
 .profile-content-section {
@@ -1050,6 +1034,69 @@
 
 .intake-form-note .view-form-btn:hover {
   background-color: #000000;
+}
+
+/* SOAP Note Timeline Entry Styles */
+.soap-note-timeline {
+  background-color: #a4d8ec !important; /* Light blue background */
+  border-color: #a4d8ec !important;
+  border: none !important;
+  padding: 20px !important;
+  border-radius: 12px !important;
+  margin-bottom: 16px !important;
+}
+
+.soap-note-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  width: 100%;
+}
+
+.soap-note-info {
+  text-align: center;
+  width: 100%;
+}
+
+.soap-note-title {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000000;
+  font-family: 'Poppins', sans-serif;
+}
+
+.view-soap-note-btn {
+  background-color: #000000;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.view-soap-note-btn:hover {
+  background-color: #333333;
+  transform: translateY(-1px);
+}
+
+/* Override the note header for SOAP notes */
+.soap-note-timeline .note-header {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+/* Hide pin and delete buttons for SOAP notes */
+.soap-note-timeline .note-actions {
+  display: none;
 }
 
 /* New styles for form action buttons */
