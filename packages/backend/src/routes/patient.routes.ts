@@ -131,7 +131,12 @@ router.get('/today', async (_req: Request, res: Response): Promise<Response> => 
       ORDER BY p.created_at DESC
     `);
 
-    const summary = {
+    const summary: {
+      total_patients_today: number;
+      by_status: Record<string, number>;
+      by_hashtag: Record<string, number>;
+      patients: any[];
+    } = {
       total_patients_today: result.rows.length,
       by_status: {},
       by_hashtag: {},
@@ -139,12 +144,12 @@ router.get('/today', async (_req: Request, res: Response): Promise<Response> => 
     };
 
     // Group by status
-    result.rows.forEach(patient => {
+    result.rows.forEach((patient: any) => {
       summary.by_status[patient.status] = (summary.by_status[patient.status] || 0) + 1;
       
       // Count hashtags
       if (patient.membership_hashtags) {
-        patient.membership_hashtags.forEach(tag => {
+        patient.membership_hashtags.forEach((tag: string) => {
           summary.by_hashtag[tag] = (summary.by_hashtag[tag] || 0) + 1;
         });
       }

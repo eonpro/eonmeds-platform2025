@@ -90,7 +90,7 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
         console.log(`💳 Payment succeeded: ${paymentIntent.id}`);
         
         // Check if this is related to an invoice
-        if (paymentIntent.invoice) {
+        if ('invoice' in paymentIntent && paymentIntent.invoice) {
           // Invoice payments are handled by invoice.payment_succeeded
           break;
         }
@@ -132,7 +132,7 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
       case 'charge.succeeded':
         await handleChargeSucceeded(event.data.object as Stripe.Charge);
         break;
-      
+
       case 'checkout.session.completed':
         await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
         break;
@@ -144,10 +144,10 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
     // Store all webhook events for audit
     await storeWebhookEvent(event);
 
-    res.json({ received: true });
+    return res.json({ received: true });
   } catch (error) {
     console.error('Error processing webhook:', error);
-    res.status(500).json({ error: 'Webhook handler failed' });
+    return res.status(500).json({ error: 'Webhook handler failed' });
   }
 };
 

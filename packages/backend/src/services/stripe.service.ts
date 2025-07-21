@@ -6,7 +6,7 @@ const stripe = stripeConfig.apiKey ? new Stripe(stripeConfig.apiKey, {
   apiVersion: '2024-06-20' as Stripe.LatestApiVersion,
 }) : null;
 
-class StripeService {
+export class StripeService {
   // Create a payment intent
   async createPaymentIntent(amount: number, customerId: string, metadata?: any) {
     try {
