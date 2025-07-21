@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt, { SignOptions } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+import jwksClient from 'jwks-rsa';
 import bcrypt from 'bcrypt';
-import ms from 'ms';
 import { query } from '../config/database';
 
 // Extend Express Request type
@@ -40,7 +40,7 @@ export const generateToken = (user: any): string => {
   }
   
   const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
-  const options: SignOptions = {
+  const options: jwt.SignOptions = {
     expiresIn: expiresIn as any // Type assertion to handle the StringValue type
   };
   
@@ -55,7 +55,7 @@ export const generateRefreshToken = (userId: string): string => {
   }
   
   const expiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || '30d';
-  const options: SignOptions = {
+  const options: jwt.SignOptions = {
     expiresIn: expiresIn as any // Type assertion to handle the StringValue type
   };
   
@@ -196,3 +196,17 @@ export const requireRole = (allowedRoles: string[]) => {
     next();
   };
 }; 
+
+// Apply role checking middleware to all routes by default
+export function applyRoleMiddleware(router: any, defaultRole: string = 'admin'): void {
+  router.use((req: Request, res: Response, next: NextFunction) => {
+    // Skip role check for specific routes
+    const publicRoutes = ['/health', '/auth/login', '/auth/register'];
+    if (publicRoutes.includes(req.path)) {
+      return next();
+    }
+    
+    // Apply default role requirement
+    requireRole([defaultRole])(req, res, next);
+  });
+} 

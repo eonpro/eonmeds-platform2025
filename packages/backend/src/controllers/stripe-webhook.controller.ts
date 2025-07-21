@@ -14,7 +14,12 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
     console.warn('⚠️  Stripe not configured - skipping webhook processing');
     return res.status(200).json({ received: true, warning: 'Stripe not configured' });
   }
+  
   const sig = req.headers['stripe-signature'] as string;
+  if (!sig) {
+    console.error('Webhook Error: No stripe-signature header value was provided.');
+    return res.status(400).json({ error: 'Webhook Error: No stripe-signature header value was provided.' });
+  }
   let event: Stripe.Event;
 
   // If no webhook secret is configured, skip signature verification (development only!)
@@ -81,7 +86,42 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
 
       // Payment events
       case 'payment_intent.succeeded':
-        await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        console.log(`💳 Payment succeeded: ${paymentIntent.id}`);
+        
+        // Check if this is related to an invoice
+        if (paymentIntent.invoice) {
+          // Invoice payments are handled by invoice.payment_succeeded
+          break;
+        }
+        
+        // For one-time payments, create an invoice record
+        if (paymentIntent.metadata?.invoice_id) {
+          let chargeId: string | undefined;
+          
+          if (paymentIntent.latest_charge && stripe) {
+            try {
+              const charge = await stripe.charges.retrieve(paymentIntent.latest_charge as string);
+              chargeId = charge.id;
+            } catch (error) {
+              console.error('Error retrieving charge:', error);
+            }
+          }
+            
+          await pool.query(
+            `UPDATE invoices 
+             SET status = 'paid',
+                 stripe_payment_intent_id = $1,
+                 stripe_charge_id = $2,
+                 payment_date = NOW()
+             WHERE id = $3`,
+            [
+              paymentIntent.id,
+              chargeId || null,
+              paymentIntent.metadata.invoice_id
+            ]
+          );
+        }
         break;
       
       case 'payment_intent.payment_failed':
@@ -295,7 +335,9 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   );
   
   // Record payment in payment history
-  const paymentIntentId = typeof invoice.payment_intent === 'string' ? invoice.payment_intent : invoice.payment_intent?.id;
+  const paymentIntentId = typeof invoice.payment_intent === 'string' ? invoice.payment_intent : 
+                         (invoice.payment_intent && typeof invoice.payment_intent === 'object' && 'id' in invoice.payment_intent) ? 
+                         invoice.payment_intent.id : undefined;
   
   if (paymentIntentId) {
     await pool.query(

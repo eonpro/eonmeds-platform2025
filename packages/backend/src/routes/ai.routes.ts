@@ -11,7 +11,7 @@ const router = Router();
 router.post('/generate-soap/:patientId', 
   checkJwt,
   checkRole(['admin', 'doctor', 'representative']),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<Response> => {
     try {
       const { patientId } = req.params;
       
@@ -54,7 +54,7 @@ router.post('/generate-soap/:patientId',
 router.get('/soap-notes/:patientId',
   checkJwt,
   checkRole(['admin', 'doctor', 'representative']),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<Response> => {
     try {
       const { patientId } = req.params;
       const { status } = req.query;
@@ -118,7 +118,7 @@ router.get('/soap-notes/:patientId',
 router.put('/soap-notes/:soapNoteId/status',
   checkJwt,
   checkRole(['doctor']),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<Response> => {
     try {
       const { soapNoteId } = req.params;
       const { status, content } = req.body;
@@ -186,7 +186,7 @@ import { pool } from '../config/database';
 router.delete('/soap-notes/:soapNoteId',
   checkJwt,
   checkRole(['admin', 'doctor', 'superadmin']),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<Response> => {
     try {
       const { soapNoteId } = req.params;
       

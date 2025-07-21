@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 

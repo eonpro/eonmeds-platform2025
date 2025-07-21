@@ -110,7 +110,7 @@ router.get('/', async (req: Request, res: Response): Promise<Response> => {
 });
 
 // Get all patients from today (debug endpoint)
-router.get('/today', async (req, res) => {
+router.get('/today', async (_req: Request, res: Response): Promise<Response> => {
   try {
     const result = await pool.query(`
       SELECT 
@@ -341,8 +341,11 @@ router.put('/:id', async (req: Request, res: Response): Promise<Response> => {
     console.error('Error updating patient:', error);
     
     // Handle unique constraint violation
-    if (error.code === '23505' && error.constraint === 'patients_email_key') {
-      return res.status(409).json({ error: 'A patient with this email already exists' });
+    if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+      const pgError = error as any;
+      if (pgError.constraint === 'patients_email_key') {
+        return res.status(409).json({ error: 'A patient with this email already exists' });
+      }
     }
     
     return res.status(500).json({ error: 'Failed to update patient' });

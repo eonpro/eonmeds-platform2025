@@ -1,6 +1,7 @@
-import { expressjwt, GetVerificationKey } from 'express-jwt';
+import { expressjwt as jwt, GetVerificationKey } from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
-import { Request, Response, NextFunction, RequestHandler, ErrorRequestHandler } from 'express';
+import { Request } from 'express';
+import axios from 'axios';
 
 // Auth0 configuration from environment variables
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
@@ -11,7 +12,7 @@ if (!AUTH0_DOMAIN || !AUTH0_AUDIENCE) {
 }
 
 // Configure the JWT validation middleware
-export const checkJwt = expressjwt({
+export const checkJwt = jwt({
   // Dynamically provide a signing key based on the kid in the header
   secret: jwksRsa.expressJwtSecret({
     cache: true,
@@ -27,17 +28,17 @@ export const checkJwt = expressjwt({
 });
 
 // Middleware to check specific permissions
-export const checkPermission = (permission: string): RequestHandler => {
-  return (req, res, next) => {
-    const user = (req as any).auth;
+export const checkPermission = (permission: string) => {
+  return (_req: Request, res: any, next: any) => {
+    const req = _req as any;
     
-    if (!user) {
+    if (!req.auth) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     // Check if user has the required permission
-    const permissions = user.permissions || [];
+    const permissions = req.auth.permissions || [];
     if (!permissions.includes(permission)) {
       res.status(403).json({ 
         error: 'Forbidden', 
@@ -51,21 +52,22 @@ export const checkPermission = (permission: string): RequestHandler => {
   };
 };
 
-// Middleware to check if user has any of the specified roles
-export const checkRole = (roles: string[]): RequestHandler => {
-  return (req, res, next) => {
-    const user = (req as any).auth;
+// Middleware to check if user has specific role
+export const checkRole = (role: string | string[]) => {
+  return (_req: Request, res: any, next: any) => {
+    const req = _req as any;
+    const roles = Array.isArray(role) ? role : [role];
     
-    if (!user) {
+    if (!req.auth) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     // Get user roles from Auth0 token
     // Check multiple possible locations where roles might be stored
-    const userRoles = user['https://eonmeds.com/roles'] || 
-                     user['https://eonmeds.us.auth0.com/roles'] ||
-                     user.roles || 
+    const userRoles = req.auth['https://eonmeds.com/roles'] || 
+                     req.auth['https://eonmeds.us.auth0.com/roles'] ||
+                     req.auth.roles || 
                      [];
     
     // For now, allow all authenticated users to access AI features
@@ -102,7 +104,7 @@ export const getUserLanguage = (req: Request): string => {
 };
 
 // Error handler for JWT errors
-export const handleAuthError: ErrorRequestHandler = (err, req, res, next) => {
+export const handleAuthError = (err: any, _req: Request, res: any, _next: any) => {
   if (err.name === 'UnauthorizedError') {
     res.status(401).json({
       error: 'Unauthorized',
@@ -110,6 +112,6 @@ export const handleAuthError: ErrorRequestHandler = (err, req, res, next) => {
     });
     return;
   }
-  next(err);
+  _next(err);
   return;
 }; 

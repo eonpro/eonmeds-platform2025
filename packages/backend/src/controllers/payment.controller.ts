@@ -94,9 +94,12 @@ export const chargeInvoice = async (req: Request, res: Response): Promise<Respon
     
     // Create payment record
     const paymentIntentData = chargeResult.paymentIntent;
-    const chargeId = paymentIntentData && 'charges' in paymentIntentData && paymentIntentData.charges 
-      ? paymentIntentData.charges.data[0]?.id 
-      : undefined;
+    let chargeId: string | undefined;
+    
+    if (paymentIntentData && 'charges' in paymentIntentData && paymentIntentData.charges) {
+      const charges = paymentIntentData.charges as Stripe.ApiList<Stripe.Charge>;
+      chargeId = charges.data[0]?.id;
+    }
     
     await pool.query(
       `INSERT INTO invoice_payments (
