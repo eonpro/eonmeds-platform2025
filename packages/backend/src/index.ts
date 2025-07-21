@@ -36,7 +36,7 @@ app.use((req, _res, next) => {
 // This is because Stripe requires the raw body for signature verification
 app.post('/api/v1/payments/webhook/stripe', 
   express.raw({ type: 'application/json' }), 
-  (req, res, next) => {
+  (req, res) => {
     // Import and use the webhook handler directly
     const { handleStripeWebhook } = require('./controllers/stripe-webhook.controller');
     handleStripeWebhook(req, res);

@@ -23,7 +23,7 @@ const fromDate = fromIndex !== -1 && args[fromIndex + 1] ? new Date(args[fromInd
 
 // Initialize Stripe
 const stripe = new Stripe(stripeConfig.apiKey || '', {
-  apiVersion: '2024-06-20'
+  apiVersion: '2024-06-20' as Stripe.LatestApiVersion
 });
 
 interface BackfillStats {

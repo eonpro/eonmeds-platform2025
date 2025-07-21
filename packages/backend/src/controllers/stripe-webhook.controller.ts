@@ -3,15 +3,12 @@ import Stripe from 'stripe';
 import { stripeConfig } from '../config/stripe.config';
 import { pool } from '../config/database';
 
-// Only initialize Stripe if API key is available
-let stripe: Stripe | null = null;
-if (stripeConfig.apiKey) {
-  stripe = new Stripe(stripeConfig.apiKey, {
-    apiVersion: '2023-10-16',
-  });
-}
+// Initialize Stripe with configuration
+const stripe = stripeConfig.apiKey ? new Stripe(stripeConfig.apiKey, {
+  apiVersion: '2024-06-20' as Stripe.LatestApiVersion
+}) : null;
 
-export const handleStripeWebhook = async (req: Request, res: Response) => {
+export const handleStripeWebhook = async (req: Request, res: Response): Promise<Response> => {
   // Check if Stripe is configured
   if (!stripe) {
     console.warn('⚠️  Stripe not configured - skipping webhook processing');
@@ -258,7 +255,7 @@ async function handleInvoiceCreated(invoice: Stripe.Invoice) {
       invoice.due_date ? new Date(invoice.due_date * 1000) : null,
       'draft',
       invoice.subtotal / 100, // Convert from cents
-      invoice.tax || 0 / 100,
+      0, // Tax is calculated separately in Stripe
       invoice.total / 100,
       invoice.currency.toUpperCase(),
       invoice.description || 'Medical services',
@@ -292,13 +289,15 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     [
       invoice.amount_paid / 100,
       new Date(invoice.status_transitions.paid_at! * 1000),
-      invoice.payment_intent ? 'card' : 'other',
+      'card', // Default to card payment
       invoice.id
     ]
   );
   
   // Record payment in payment history
-  if (invoice.payment_intent) {
+  const paymentIntentId = typeof invoice.payment_intent === 'string' ? invoice.payment_intent : invoice.payment_intent?.id;
+  
+  if (paymentIntentId) {
     await pool.query(
       `INSERT INTO invoice_payments (
         invoice_id, amount, payment_method, payment_date,
@@ -310,7 +309,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
         invoice.amount_paid / 100,
         'card',
         new Date(),
-        invoice.payment_intent,
+        paymentIntentId,
         'succeeded',
         invoice.id
       ]

@@ -3,7 +3,7 @@ import { pool } from '../config/database';
 import stripeService from '../services/stripe.service';
 
 // Create a payment intent
-export const createPaymentIntent = async (req: Request, res: Response) => {
+export const createPaymentIntent = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { amount, customerId, metadata } = req.body;
     
@@ -21,20 +21,20 @@ export const createPaymentIntent = async (req: Request, res: Response) => {
       });
     }
     
-    res.json({
+    return res.json({
       clientSecret: result.paymentIntent?.client_secret,
       paymentIntentId: result.paymentIntent?.id
     });
   } catch (error) {
     console.error('Error creating payment intent:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to create payment intent'
     });
   }
 };
 
 // Charge an invoice
-export const chargeInvoice = async (req: Request, res: Response) => {
+export const chargeInvoice = async (req: Request, res: Response): Promise<Response> => {
   try {
     const {
       invoiceId,
@@ -93,6 +93,11 @@ export const chargeInvoice = async (req: Request, res: Response) => {
     );
     
     // Create payment record
+    const paymentIntentData = chargeResult.paymentIntent;
+    const chargeId = paymentIntentData && 'charges' in paymentIntentData && paymentIntentData.charges 
+      ? paymentIntentData.charges.data[0]?.id 
+      : undefined;
+    
     await pool.query(
       `INSERT INTO invoice_payments (
         invoice_id, amount, payment_method, payment_date,
@@ -102,27 +107,27 @@ export const chargeInvoice = async (req: Request, res: Response) => {
         invoiceId,
         amount,
         'card',
-        chargeResult.paymentIntent?.id,
-        chargeResult.paymentIntent?.charges?.data[0]?.id,
+        paymentIntentData?.id,
+        chargeId,
         'succeeded'
       ]
     );
     
-    res.json({
+    return res.json({
       success: true,
       paymentIntent: chargeResult.paymentIntent
     });
     
   } catch (error) {
     console.error('Error charging invoice:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to process payment'
     });
   }
 };
 
 // Get payment methods for a patient
-export const getPaymentMethods = async (req: Request, res: Response) => {
+export const getPaymentMethods = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { patientId } = req.params;
     
@@ -155,20 +160,20 @@ export const getPaymentMethods = async (req: Request, res: Response) => {
       });
     }
     
-    res.json({
+    return res.json({
       paymentMethods: result.paymentMethods
     });
     
   } catch (error) {
     console.error('Error fetching payment methods:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to fetch payment methods'
     });
   }
 };
 
 // Detach a payment method
-export const detachPaymentMethod = async (req: Request, res: Response) => {
+export const detachPaymentMethod = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { paymentMethodId } = req.params;
     
@@ -180,14 +185,14 @@ export const detachPaymentMethod = async (req: Request, res: Response) => {
       });
     }
     
-    res.json({
+    return res.json({
       success: true,
       message: 'Payment method removed successfully'
     });
     
   } catch (error) {
     console.error('Error detaching payment method:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to remove payment method'
     });
   }

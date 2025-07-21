@@ -1,4 +1,3 @@
-import { Pool } from 'pg';
 import { pool } from '../config/database';
 
 export interface Patient {
@@ -228,9 +227,12 @@ export class PatientService {
       
       const result = await client.query(query, [patientId, status, reviewedBy]);
       
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     } finally {
       client.release();
     }
   }
-} 
+}
+
+// Default export
+export default PatientService; 

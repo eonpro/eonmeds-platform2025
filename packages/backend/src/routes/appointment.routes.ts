@@ -3,9 +3,9 @@ import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
-// Appointment routes
-router.get('/', authenticateToken, async (req, res) => {
-  res.json({ message: 'Appointment routes not implemented yet' });
+// Stub routes - to be implemented
+router.get('/', (_, res) => {
+  res.json({ message: 'Appointment routes not yet implemented' });
 });
 
 export default router; 
