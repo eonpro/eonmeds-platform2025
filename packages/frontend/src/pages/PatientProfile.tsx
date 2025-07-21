@@ -641,7 +641,13 @@ export const PatientProfile: React.FC = () => {
 
             {/* Regular Timeline Notes */}
             <div className="timeline-notes">
-              {timelineNotes.filter(note => note.id !== 'intake-form').map(note => (
+              {timelineNotes
+                .filter(note => note.id !== 'intake-form')
+                .sort((a, b) => {
+                  // Sort by date, newest first
+                  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                })
+                .map(note => (
                 <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''} ${note.id.startsWith('soap-') ? 'soap-note-timeline' : ''}`}>
                   <div className="note-header">
                     <span className="note-date">
