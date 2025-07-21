@@ -182,11 +182,19 @@ export class AIService {
     const city = patientData.city || fields.city || 'Not provided';
     const state = patientData.state || fields.state || 'Not provided';
 
+    // Format DOB to remove time
+    const dobDate = new Date(patientData.date_of_birth);
+    const formattedDOB = dobDate.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    });
+
     const prompt = `Generate a professional SOAP note for a weight loss clinic using the following patient data and format exactly:
 
 PATIENT INFORMATION:
 - Name: ${patientData.first_name} ${patientData.last_name}
-- DOB: ${patientData.date_of_birth}
+- DOB: ${formattedDOB}
 - Email: ${patientData.email}
 - Phone: ${patientData.phone}
 - Location: ${city}, ${state}
