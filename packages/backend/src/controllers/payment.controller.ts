@@ -55,7 +55,7 @@ export const chargeInvoice = async (req: Request, res: Response): Promise<void> 
 };
 
 // Get payment methods for a patient
-export const getPaymentMethods = async (req: Request, res: Response): Promise<void> => {
+export const getPaymentMethods = async (_req: Request, res: Response): Promise<void> => {
   try {
     // For now, return empty array
     res.json({ paymentMethods: [] });
@@ -66,7 +66,7 @@ export const getPaymentMethods = async (req: Request, res: Response): Promise<vo
 };
 
 // Detach a payment method
-export const detachPaymentMethod = async (req: Request, res: Response): Promise<void> => {
+export const detachPaymentMethod = async (_req: Request, res: Response): Promise<void> => {
   try {
     res.json({ success: true });
   } catch (error) {
