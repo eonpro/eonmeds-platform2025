@@ -59,6 +59,9 @@ router.get('/soap-notes/:patientId',
       const { patientId } = req.params;
       const { status } = req.query;
       
+      // Debug log to confirm new code is deployed
+      console.log(`Fetching SOAP notes for patient: ${patientId} (VARCHAR format)`);
+      
       let query = 'SELECT * FROM soap_notes WHERE patient_id = $1';
       const params: any[] = [patientId];
       

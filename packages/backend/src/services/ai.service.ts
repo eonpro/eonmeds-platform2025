@@ -26,11 +26,14 @@ export class AIService {
   /**
    * Generate SOAP note from patient intake data
    */
-  static async generateSOAPNote(patientId: string): Promise<any> {
+  static async generateSOAPNote(patientId: string): Promise<{ success: boolean; soapNote?: any; error?: string }> {
+    const client = await pool.connect();
+    
     try {
-      const startTime = Date.now();
+      // Debug log to confirm new code is deployed
+      console.log(`AI Service: Generating SOAP note for patient ${patientId} (VARCHAR format fixed)`);
       
-      // Get patient data
+      // Fetch patient information
       const patientData = await this.getPatientData(patientId);
       
       if (!patientData) {
