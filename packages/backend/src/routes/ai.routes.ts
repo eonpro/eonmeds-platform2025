@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AIService } from '../services/ai.service';
 import { checkJwt, checkRole } from '../middleware/auth0';
+import { pool } from '../config/database';
 
 const router = Router();
 
@@ -182,9 +183,6 @@ router.put('/soap-notes/:soapNoteId/status',
     }
   }
 );
-
-// Import pool
-import { pool } from '../config/database';
 
 /**
  * Delete a SOAP note (only if not approved)
