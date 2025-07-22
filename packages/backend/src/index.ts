@@ -18,10 +18,12 @@ import packageRoutes from './routes/package.routes';
 import aiRoutes from './routes/ai.routes';
 import invoiceRoutes from './routes/invoice.routes';
 
+// Force redeployment - SOAP notes fix applied
+const app = express();
+
 // Load environment variables
 dotenv.config();
 
-const app = express();
 const PORT = process.env.PORT || 5002;
 
 // CORS must be before all routes
