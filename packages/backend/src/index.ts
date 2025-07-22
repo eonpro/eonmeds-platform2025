@@ -2,7 +2,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { testDatabaseConnection } from './config/database';
+import { testDatabaseConnection, ensureSOAPNotesTable } from './config/database';
 // Remove the audit middleware import for now since it's not used
 
 // Import routes
@@ -96,7 +96,7 @@ app.use('/api/v1/ai', aiRoutes);
 console.log('✅ All routes registered (database check happens per route)');
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log('🚀 Server is running!');
   console.log(`📡 Listening on port ${PORT}`);
   console.log('🏥 EONMeds Backend API');
@@ -105,6 +105,9 @@ app.listen(PORT, () => {
   console.log(`Database Name: ${process.env.DB_NAME ? '✓ Configured' : '✗ Missing'}`);
   console.log(`JWT Secret: ${process.env.JWT_SECRET ? '✓ Configured' : '✗ Missing'}`);
   console.log(`Port: ${PORT}`);
+  
+  await testDatabaseConnection();
+  await ensureSOAPNotesTable();
 });
 
 // Initialize database and routes

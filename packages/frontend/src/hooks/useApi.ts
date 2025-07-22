@@ -45,11 +45,24 @@ export const useApi = (): AxiosInstance => {
         // Only try to add auth header if user is authenticated
         if (isAuthenticated) {
           try {
-            const token = await getAccessTokenSilently();
+            const token = await getAccessTokenSilently({
+              authorizationParams: {
+                audience: 'https://api.eonmeds.com', // Replace with your actual audience
+                scope: 'openid profile email offline_access'
+              },
+              cacheMode: 'off' // Force fresh token
+            });
+            
+            console.log('Got access token successfully');
             config.headers.Authorization = `Bearer ${token}`;
-          } catch (error) {
-            console.warn('Could not get access token:', error);
-            // Continue without auth header
+          } catch (tokenError) {
+            console.error('Could not get access token:', tokenError);
+            console.log('Current Auth0 state:', {
+              isAuthenticated: isAuthenticated, // Use isAuthenticated from useAuth0
+              user: null, // No direct access to user object here
+              audience: 'https://api.eonmeds.com', // Replace with your actual audience
+              domain: 'https://eonmeds.us.auth0.com' // Replace with your actual domain
+            });
           }
         }
         return config;

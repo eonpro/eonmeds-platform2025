@@ -85,3 +85,48 @@ export async function query(text: string, params?: any[]) {
     throw error;
   }
 } 
+
+export async function ensureSOAPNotesTable() {
+  try {
+    // Check if soap_notes table exists
+    const tableCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'soap_notes'
+      )
+    `);
+    
+    if (!tableCheck.rows[0].exists) {
+      console.log('Creating soap_notes table...');
+      
+      await pool.query(`
+        CREATE TABLE soap_notes (
+          id SERIAL PRIMARY KEY,
+          patient_id VARCHAR(50) NOT NULL,
+          provider_id INTEGER,
+          chief_complaint TEXT,
+          subjective TEXT,
+          objective TEXT,
+          assessment TEXT,
+          plan TEXT,
+          follow_up TEXT,
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          created_by VARCHAR(255),
+          status VARCHAR(50) DEFAULT 'draft',
+          FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE
+        )
+      `);
+      
+      // Add indexes
+      await pool.query('CREATE INDEX idx_soap_notes_patient_id ON soap_notes(patient_id)');
+      await pool.query('CREATE INDEX idx_soap_notes_created_at ON soap_notes(created_at)');
+      await pool.query('CREATE INDEX idx_soap_notes_status ON soap_notes(status)');
+      
+      console.log('✅ Created soap_notes table');
+    }
+  } catch (error) {
+    console.error('Error ensuring soap_notes table:', error);
+  }
+} 
