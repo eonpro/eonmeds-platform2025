@@ -3,14 +3,15 @@ import { pool } from '../config/database';
 import Stripe from 'stripe';
 
 const stripe = process.env.STRIPE_SECRET_KEY 
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-11-20.acacia' })
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-06-30.basil' })
   : null;
 
 // Create a payment intent
-export const createPaymentIntent = async (req: Request, res: Response) => {
+export const createPaymentIntent = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!stripe) {
-      return res.status(500).json({ error: 'Stripe not configured' });
+      res.status(500).json({ error: 'Stripe not configured' });
+      return;
     }
 
     const { amount, patientId } = req.body;
@@ -31,9 +32,9 @@ export const createPaymentIntent = async (req: Request, res: Response) => {
 };
 
 // Charge an invoice
-export const chargeInvoice = async (req: Request, res: Response) => {
+export const chargeInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { invoiceId, paymentMethodId, amount } = req.body;
+    const { invoiceId, amount } = req.body;
     
     // Update invoice status
     await pool.query(
@@ -54,10 +55,8 @@ export const chargeInvoice = async (req: Request, res: Response) => {
 };
 
 // Get payment methods for a patient
-export const getPaymentMethods = async (req: Request, res: Response) => {
+export const getPaymentMethods = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { patientId } = req.params;
-    
     // For now, return empty array
     res.json({ paymentMethods: [] });
   } catch (error) {
@@ -67,10 +66,8 @@ export const getPaymentMethods = async (req: Request, res: Response) => {
 };
 
 // Detach a payment method
-export const detachPaymentMethod = async (req: Request, res: Response) => {
+export const detachPaymentMethod = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { paymentMethodId } = req.params;
-    
     res.json({ success: true });
   } catch (error) {
     console.error('Error detaching payment method:', error);
