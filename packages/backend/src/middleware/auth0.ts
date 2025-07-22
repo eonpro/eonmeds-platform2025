@@ -6,12 +6,13 @@ import { Request } from 'express';
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
 const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE;
 
+// Log warning but don't throw at build time
 if (!AUTH0_DOMAIN || !AUTH0_AUDIENCE) {
-  throw new Error('Auth0 configuration missing. Please check AUTH0_DOMAIN and AUTH0_AUDIENCE in .env');
+  console.warn('⚠️  Auth0 configuration missing. Please set AUTH0_DOMAIN and AUTH0_AUDIENCE environment variables.');
 }
 
 // Configure the JWT validation middleware
-export const checkJwt = jwt({
+export const checkJwt = AUTH0_DOMAIN && AUTH0_AUDIENCE ? jwt({
   // Dynamically provide a signing key based on the kid in the header
   secret: jwksRsa.expressJwtSecret({
     cache: true,
@@ -24,7 +25,13 @@ export const checkJwt = jwt({
   audience: AUTH0_AUDIENCE,
   issuer: `https://${AUTH0_DOMAIN}/`,
   algorithms: ['RS256']
-});
+}) : (_req: Request, res: any, _next: any) => {
+  // If Auth0 is not configured, return 503 Service Unavailable
+  res.status(503).json({
+    error: 'Service Unavailable',
+    message: 'Authentication service is not configured. Please contact system administrator.'
+  });
+};
 
 // Middleware to check specific permissions
 export const checkPermission = (permission: string) => {
