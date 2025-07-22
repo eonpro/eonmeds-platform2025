@@ -18,7 +18,7 @@ import packageRoutes from './routes/package.routes';
 import aiRoutes from './routes/ai.routes';
 import invoiceRoutes from './routes/invoice.routes';
 
-// Force redeployment - SOAP notes fix applied
+// Force redeployment - Auth0 configuration update
 const app = express();
 
 // Load environment variables

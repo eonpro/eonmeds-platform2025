@@ -1,3 +1,68 @@
+
+useApi.ts:51 Could not get access token: Pt: Missing Refresh Token (audience: 'https://api.eonmeds.com', scope: 'openid profile email offline_access')
+    at un._getTokenUsingRefreshToken (https://intuitive-learning-production.up.railway.app/static/js/main.4534becd.js:2:284512)
+    at async un._getTokenSilently (https://intuitive-learning-production.up.railway.app/static/js/main.4534becd.js:2:280373)
+    at async un.getTokenSilently (https://intuitive-learning-production.up.railway.app/static/js/main.4534becd.js:2:279318)
+SOAPNotes.tsx:48 
+ GET https://eonmeds-platform2025-production.up.railway.app/api/v1/ai/soap-notes/P0257 401 (Unauthorized)
+Promise.then		
+w	@	SOAPNotes.tsx:48
+(anonymous)	@	SOAPNotes.tsx:60
+useApi.ts:20 API Error: 401 
+{error: 'No authorization token was found'}
+error
+: 
+"No authorization token was found"
+[[Prototype]]
+: 
+Object
+constructor
+: 
+ƒ Object()
+hasOwnProperty
+: 
+ƒ hasOwnProperty()
+isPrototypeOf
+: 
+ƒ isPrototypeOf()
+propertyIsEnumerable
+: 
+ƒ propertyIsEnumerable()
+toLocaleString
+: 
+ƒ toLocaleString()
+toString
+: 
+ƒ toString()
+valueOf
+: 
+ƒ valueOf()
+__defineGetter__
+: 
+ƒ __defineGetter__()
+__defineSetter__
+: 
+ƒ __defineSetter__()
+__lookupGetter__
+: 
+ƒ __lookupGetter__()
+__lookupSetter__
+: 
+ƒ __lookupSetter__()
+__proto__
+: 
+(...)
+get __proto__
+: 
+ƒ __proto__()
+set __proto__
+: 
+ƒ __proto__()
+SOAPNotes.tsx:52 Error fetching SOAP notes: 
+Tr {message: 'Request failed with status code 401', name: 'AxiosError', code: 'ERR_BAD_REQUEST', config: {…}, request: XMLHttpRequest, …}
+w	@	SOAPNotes.tsx:52
+await in w		
+(anonymous)	@	SOAPNotes.tsx:60
 const { Client } = require('pg');
 require('dotenv').config();
 
