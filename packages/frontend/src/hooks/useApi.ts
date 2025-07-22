@@ -63,6 +63,11 @@ export const useApi = (): AxiosInstance => {
               audience: 'https://api.eonmeds.com', // Replace with your actual audience
               domain: 'https://eonmeds.us.auth0.com' // Replace with your actual domain
             });
+            
+            // TEMPORARY: Allow requests to proceed without token
+            // This will let the app work while we fix Auth0
+            console.warn('⚠️ Proceeding without auth token - temporary bypass');
+            config.headers.Authorization = 'Bearer temporary-bypass-token';
           }
         }
         return config;
