@@ -28,15 +28,12 @@ router.post('/generate-soap/:patientId',
       const result = await AIService.generateSOAPNote(patientId);
       
       if (!result.success) {
-        return res.status(400).json({
+        return res.status(500).json({
           error: result.error || 'Failed to generate SOAP note'
         });
       }
       
-      return res.json({
-        success: true,
-        soapNote: result.data
-      });
+      return res.json(result);
     } catch (error) {
       console.error('Error generating SOAP note:', error);
       return res.status(500).json({

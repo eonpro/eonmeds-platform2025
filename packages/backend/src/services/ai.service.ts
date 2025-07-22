@@ -27,8 +27,6 @@ export class AIService {
    * Generate SOAP note from patient intake data
    */
   static async generateSOAPNote(patientId: string): Promise<{ success: boolean; soapNote?: any; error?: string }> {
-    const client = await pool.connect();
-    
     try {
       // Debug log to confirm new code is deployed
       console.log(`AI Service: Generating SOAP note for patient ${patientId} (VARCHAR format fixed)`);
@@ -42,6 +40,9 @@ export class AIService {
 
       // Prepare the prompt
       const prompt = this.createSOAPPrompt(patientData);
+
+      // Track time for performance metrics
+      const startTime = Date.now();
 
       // Try with GPT-4 first, fallback to GPT-3.5 if quota exceeded
       let completion;
@@ -103,8 +104,7 @@ export class AIService {
 
       return {
         success: true,
-        soapNote,
-        usage: completion.usage
+        soapNote
       };
 
     } catch (error) {
