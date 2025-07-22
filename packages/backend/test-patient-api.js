@@ -1,47 +1,43 @@
-const https = require('https');
+#!/usr/bin/env node
 
-// Test patient ID - replace with an actual patient ID
-const patientId = 'P147118'; // Caren Sanchez
+const axios = require('axios');
 
-const options = {
-  hostname: 'eonmeds-platform2025-production.up.railway.app',
-  path: `/api/v1/patients/${patientId}`,
-  method: 'GET',
-  headers: {
-    'Accept': 'application/json'
-  }
-};
-
-console.log(`Testing patient API: https://${options.hostname}${options.path}`);
-
-const req = https.request(options, (res) => {
-  let data = '';
-
-  res.on('data', (chunk) => {
-    data += chunk;
-  });
-
-  res.on('end', () => {
-    console.log('Status:', res.statusCode);
-    console.log('Response:');
-    try {
-      const patient = JSON.parse(data);
-      console.log(JSON.stringify(patient, null, 2));
+async function testPatientAPI() {
+  const API_URL = 'https://eonmeds-platform2025-production.up.railway.app';
+  
+  try {
+    console.log('🔍 Testing patient API...\n');
+    
+    // Test the patients endpoint with qualified status
+    console.log('1. Testing GET /api/v1/patients?status=qualified');
+    const response = await axios.get(`${API_URL}/api/v1/patients`, {
+      params: {
+        status: 'qualified',
+        limit: 100,
+        offset: 0
+      }
+    });
+    
+    console.log('Response status:', response.status);
+    console.log('Response data:', JSON.stringify(response.data, null, 2));
+    
+    if (response.data.patients) {
+      console.log(`\n✅ Found ${response.data.patients.length} qualified patients`);
       
-      // Check specific fields
-      console.log('\nAddress fields:');
-      console.log('- address:', patient.address || 'NOT PRESENT');
-      console.log('- city:', patient.city || 'NOT PRESENT');
-      console.log('- state:', patient.state || 'NOT PRESENT');
-      console.log('- zip:', patient.zip || 'NOT PRESENT');
-    } catch (e) {
-      console.log('Raw response:', data);
+      // Show first 3 patients
+      response.data.patients.slice(0, 3).forEach(p => {
+        console.log(`  - ${p.patient_id}: ${p.first_name} ${p.last_name} (${p.email})`);
+      });
     }
-  });
-});
+    
+  } catch (error) {
+    console.error('❌ API Error:', error.response?.status, error.response?.data || error.message);
+    
+    if (error.response) {
+      console.log('\nResponse headers:', error.response.headers);
+      console.log('Response data:', error.response.data);
+    }
+  }
+}
 
-req.on('error', (e) => {
-  console.error('Error:', e);
-});
-
-req.end(); 
+testPatientAPI(); 

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { pool } from '../config/database';
 
 // Get all invoices for a patient
-export const getPatientInvoices = async (req: Request, res: Response) => {
+export const getPatientInvoices = async (req: Request, res: Response): Promise<void> => {
   try {
     const { patientId } = req.params;
     
@@ -53,7 +53,7 @@ export const getPatientInvoices = async (req: Request, res: Response) => {
 };
 
 // Create a new invoice
-export const createInvoice = async (req: Request, res: Response) => {
+export const createInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
     const { patient_id, amount, description, due_date, status = 'draft', items = [] } = req.body;
     
@@ -100,7 +100,7 @@ export const createInvoice = async (req: Request, res: Response) => {
 };
 
 // Delete an invoice
-export const deleteInvoice = async (req: Request, res: Response) => {
+export const deleteInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
     const { invoiceId } = req.params;
     
@@ -110,7 +110,8 @@ export const deleteInvoice = async (req: Request, res: Response) => {
     );
     
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Invoice not found' });
+      res.status(404).json({ error: 'Invoice not found' });
+      return;
     }
     
     res.json({
@@ -124,7 +125,7 @@ export const deleteInvoice = async (req: Request, res: Response) => {
 };
 
 // Charge an invoice
-export const chargeInvoice = async (req: Request, res: Response) => {
+export const chargeInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
     const { invoiceId } = req.params;
     const { payment_method_id, amount } = req.body;
@@ -143,7 +144,8 @@ export const chargeInvoice = async (req: Request, res: Response) => {
     );
     
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Invoice not found' });
+      res.status(404).json({ error: 'Invoice not found' });
+      return;
     }
     
     res.json({
@@ -157,7 +159,7 @@ export const chargeInvoice = async (req: Request, res: Response) => {
 };
 
 // Manual charge (mark as paid)
-export const chargeInvoiceManual = async (req: Request, res: Response) => {
+export const chargeInvoiceManual = async (req: Request, res: Response): Promise<void> => {
   try {
     const { invoiceId } = req.params;
     const { amount, notes } = req.body;
@@ -176,7 +178,8 @@ export const chargeInvoiceManual = async (req: Request, res: Response) => {
     );
     
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Invoice not found' });
+      res.status(404).json({ error: 'Invoice not found' });
+      return;
     }
     
     res.json({
