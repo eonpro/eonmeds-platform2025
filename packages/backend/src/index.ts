@@ -128,6 +128,28 @@ async function initializeDatabase() {
         // Import pool for direct queries
         const { pool } = await import('./config/database');
         
+        // EMERGENCY FIX: Fix SOAP notes constraint IMMEDIATELY
+        try {
+          await pool.query(`
+            DO $$ 
+            BEGIN
+              -- Only proceed if soap_notes table exists
+              IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'soap_notes') THEN
+                -- Drop the old constraint
+                ALTER TABLE soap_notes DROP CONSTRAINT IF EXISTS soap_notes_patient_id_fkey;
+                -- Change the column type
+                ALTER TABLE soap_notes ALTER COLUMN patient_id TYPE VARCHAR(50) USING patient_id::VARCHAR(50);
+                -- Add the new constraint
+                ALTER TABLE soap_notes ADD CONSTRAINT soap_notes_patient_id_fkey 
+                  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE;
+              END IF;
+            END $$;
+          `);
+          console.log('✅ SOAP notes foreign key fixed!');
+        } catch (fixErr: any) {
+          console.log('ℹ️ SOAP notes fix skipped:', fixErr.message);
+        }
+        
         // Create invoice_payments table if it doesn't exist
         await pool.query(`
           CREATE TABLE IF NOT EXISTS invoice_payments (
