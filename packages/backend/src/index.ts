@@ -154,11 +154,58 @@ async function initializeDatabase() {
           CREATE INDEX IF NOT EXISTS idx_payment_date ON invoice_payments(payment_date);
         `);
         
+        // Create invoices table
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS invoices (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            invoice_number VARCHAR(50) UNIQUE NOT NULL,
+            stripe_invoice_id VARCHAR(255) UNIQUE,
+            patient_id VARCHAR(20) NOT NULL REFERENCES patients(patient_id),
+            stripe_customer_id VARCHAR(255),
+            invoice_date DATE NOT NULL DEFAULT CURRENT_DATE,
+            due_date DATE NOT NULL,
+            status VARCHAR(50) NOT NULL DEFAULT 'draft',
+            subtotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+            tax_amount DECIMAL(10,2) DEFAULT 0,
+            discount_amount DECIMAL(10,2) DEFAULT 0,
+            total_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+            amount_paid DECIMAL(10,2) DEFAULT 0,
+            amount_due DECIMAL(10,2) GENERATED ALWAYS AS (total_amount - amount_paid) STORED,
+            currency VARCHAR(3) DEFAULT 'USD',
+            payment_method VARCHAR(50),
+            payment_date TIMESTAMP,
+            stripe_payment_intent_id VARCHAR(255),
+            description TEXT,
+            notes TEXT,
+            metadata JSONB DEFAULT '{}',
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW(),
+            paid_at TIMESTAMP,
+            voided_at TIMESTAMP
+          );
+        `);
+
+        // Create invoice_items table
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS invoice_items (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+            description VARCHAR(500) NOT NULL,
+            quantity INTEGER NOT NULL DEFAULT 1,
+            unit_price DECIMAL(10,2) NOT NULL,
+            amount DECIMAL(10,2) GENERATED ALWAYS AS (quantity * unit_price) STORED,
+            service_type VARCHAR(100),
+            stripe_price_id VARCHAR(255),
+            metadata JSONB DEFAULT '{}',
+            created_at TIMESTAMP DEFAULT NOW()
+          );
+        `);
+
         // Create SOAP Notes table for BECCA AI
         await pool.query(`
           CREATE TABLE IF NOT EXISTS soap_notes (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            patient_id UUID REFERENCES patients(id) ON DELETE CASCADE,
+            patient_id VARCHAR(50) NOT NULL REFERENCES patients(patient_id),
             content TEXT NOT NULL,
             original_content TEXT,
             status VARCHAR(50) NOT NULL DEFAULT 'pending',
