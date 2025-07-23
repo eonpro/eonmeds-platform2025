@@ -201,6 +201,41 @@ async function initializeDatabase() {
           );
         `);
 
+        // Fix SOAP Notes table - drop old constraint if exists
+        await pool.query(`
+          DO $$ 
+          BEGIN
+            -- Drop the old foreign key constraint if it exists
+            IF EXISTS (
+              SELECT 1 FROM information_schema.table_constraints 
+              WHERE constraint_name = 'soap_notes_patient_id_fkey' 
+              AND table_name = 'soap_notes'
+            ) THEN
+              ALTER TABLE soap_notes DROP CONSTRAINT soap_notes_patient_id_fkey;
+            END IF;
+            
+            -- Alter the column type if needed
+            IF EXISTS (
+              SELECT 1 FROM information_schema.columns 
+              WHERE table_name = 'soap_notes' 
+              AND column_name = 'patient_id'
+              AND data_type = 'uuid'
+            ) THEN
+              ALTER TABLE soap_notes ALTER COLUMN patient_id TYPE VARCHAR(50) USING patient_id::VARCHAR(50);
+            END IF;
+            
+            -- Add the new foreign key constraint
+            IF NOT EXISTS (
+              SELECT 1 FROM information_schema.table_constraints 
+              WHERE constraint_name = 'soap_notes_patient_id_fkey' 
+              AND table_name = 'soap_notes'
+            ) THEN
+              ALTER TABLE soap_notes ADD CONSTRAINT soap_notes_patient_id_fkey 
+              FOREIGN KEY (patient_id) REFERENCES patients(patient_id);
+            END IF;
+          END $$;
+        `);
+
         // Create SOAP Notes table for BECCA AI
         await pool.query(`
           CREATE TABLE IF NOT EXISTS soap_notes (
