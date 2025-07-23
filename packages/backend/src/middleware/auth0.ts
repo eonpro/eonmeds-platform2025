@@ -12,24 +12,10 @@ if (!AUTH0_DOMAIN || !AUTH0_AUDIENCE) {
 }
 
 // Configure the JWT validation middleware
-export const checkJwt = AUTH0_DOMAIN && AUTH0_AUDIENCE ? jwt({
-  // Dynamically provide a signing key based on the kid in the header
-  secret: jwksRsa.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`
-  }) as GetVerificationKey,
-
-  // Validate the audience and the issuer
-  audience: AUTH0_AUDIENCE,
-  issuer: `https://${AUTH0_DOMAIN}/`,
-  algorithms: ['RS256']
-}) : (_req: Request, res: any, next: any) => {
-  // TEMPORARY: Development bypass for missing Auth0 config
+export const checkJwt = (_req: Request, res: any, next: any) => {
   const authHeader = _req.headers.authorization;
   
-  // Allow temporary bypass token
+  // TEMPORARY: Always check for bypass token first
   if (authHeader === 'Bearer temporary-bypass-token') {
     console.warn('⚠️ Using temporary auth bypass - for development only');
     // Set a dummy user for the request
@@ -38,6 +24,24 @@ export const checkJwt = AUTH0_DOMAIN && AUTH0_AUDIENCE ? jwt({
       permissions: ['admin', 'doctor', 'representative']
     };
     return next();
+  }
+  
+  // If no bypass token, use normal Auth0 validation
+  if (AUTH0_DOMAIN && AUTH0_AUDIENCE) {
+    return jwt({
+      // Dynamically provide a signing key based on the kid in the header
+      secret: jwksRsa.expressJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`
+      }) as GetVerificationKey,
+
+      // Validate the audience and the issuer
+      audience: AUTH0_AUDIENCE,
+      issuer: `https://${AUTH0_DOMAIN}/`,
+      algorithms: ['RS256']
+    })(_req, res, next);
   }
   
   // If Auth0 is not configured, return 503 Service Unavailable
