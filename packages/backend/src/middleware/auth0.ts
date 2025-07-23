@@ -90,7 +90,7 @@ export const checkRole = (role: string | string[]) => {
     // Get user roles from Auth0 token
     // Check multiple possible locations where roles might be stored
     const userRoles = req.auth['https://eonmeds.com/roles'] || 
-                     req.auth['https://eonmeds.us.auth0.com/roles'] ||
+                     req.auth[`https://${AUTH0_DOMAIN}/roles`] ||
                      req.auth.roles || 
                      [];
     

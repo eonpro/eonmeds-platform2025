@@ -47,7 +47,7 @@ export const useApi = (): AxiosInstance => {
           try {
             const token = await getAccessTokenSilently({
               authorizationParams: {
-                audience: 'https://api.eonmeds.com', // Replace with your actual audience
+                audience: process.env.REACT_APP_AUTH0_AUDIENCE,
                 scope: 'openid profile email offline_access'
               },
               cacheMode: 'off' // Force fresh token
@@ -58,10 +58,10 @@ export const useApi = (): AxiosInstance => {
           } catch (tokenError) {
             console.error('Could not get access token:', tokenError);
             console.log('Current Auth0 state:', {
-              isAuthenticated: isAuthenticated, // Use isAuthenticated from useAuth0
-              user: null, // No direct access to user object here
-              audience: 'https://api.eonmeds.com', // Replace with your actual audience
-              domain: 'https://eonmeds.us.auth0.com' // Replace with your actual domain
+              isAuthenticated: isAuthenticated,
+              user: null,
+              audience: process.env.REACT_APP_AUTH0_AUDIENCE,
+              domain: process.env.REACT_APP_AUTH0_DOMAIN
             });
             
             // TEMPORARY: Allow requests to proceed without token
