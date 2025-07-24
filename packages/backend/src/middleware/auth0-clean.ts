@@ -48,6 +48,7 @@ export const checkPermission = (permission: string) => {
     }
 
     next();
+    return; // Add explicit return
   };
 };
 
@@ -61,23 +62,19 @@ export const checkRole = (role: string | string[]) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Get user roles from Auth0 token
-    const userRoles = auth['https://eonmeds.com/roles'] || 
-                     auth[`https://${AUTH0_DOMAIN}/roles`] ||
-                     auth.roles || 
-                     [];
-    
     // Check if user has at least one of the required roles
+    const userRoles = auth.roles || auth['https://eonmeds.com/roles'] || [];
     const hasRole = roles.some(r => userRoles.includes(r));
     
     if (!hasRole) {
       return res.status(403).json({ 
         error: 'Forbidden', 
-        message: 'Insufficient role privileges' 
+        message: `Missing required role: ${roles.join(' or ')}` 
       });
     }
 
     next();
+    return; // Add explicit return
   };
 };
 
@@ -96,4 +93,5 @@ export const handleAuthError = (err: any, _req: Request, res: Response, next: Ne
     });
   }
   next(err);
+  return; // Add explicit return
 }; 

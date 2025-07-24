@@ -22,7 +22,6 @@ import packageRoutes from './routes/package.routes';
 
 // Import middleware
 import { errorHandler } from './middleware/error';
-import { auditMiddleware } from './middleware/audit';
 import { requestLogger } from './middleware/logger';
 
 const app: Application = express();
@@ -31,18 +30,17 @@ const PORT = process.env.PORT || 3002;
 // Initialize database service
 const dbService = new DatabaseService(pool);
 
-// Middleware
+// CORS configuration
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://intuitive-learning-production.up.railway.app']
-    : ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
-app.use(auditMiddleware);
 
 // Health check endpoint
 app.get('/health', (_req: Request, res: Response) => {

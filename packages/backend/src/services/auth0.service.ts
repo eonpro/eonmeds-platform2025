@@ -10,7 +10,6 @@ interface Auth0Config {
 
 export class Auth0Service {
   private management: ManagementClient;
-  private auth: AuthenticationClient;
   private config: Auth0Config;
 
   constructor() {
@@ -25,17 +24,12 @@ export class Auth0Service {
       throw new Error('Auth0 configuration is incomplete. Please set all required environment variables.');
     }
 
+    // Use client credentials grant
     this.management = new ManagementClient({
       domain: this.config.domain,
       clientId: this.config.clientId,
       clientSecret: this.config.clientSecret,
-      scope: 'read:users update:users create:users delete:users'
-    });
-
-    this.auth = new AuthenticationClient({
-      domain: this.config.domain,
-      clientId: this.config.clientId,
-      clientSecret: this.config.clientSecret
+      scope: 'read:users update:users create:users delete:users read:roles create:roles update:roles delete:roles'
     });
   }
 
@@ -44,7 +38,7 @@ export class Auth0Service {
    */
   async getUser(userId: string) {
     try {
-      return await this.management.getUser({ id: userId });
+      return await this.management.users.get({ id: userId });
     } catch (error) {
       console.error('Error fetching user from Auth0:', error);
       throw error;
@@ -63,7 +57,7 @@ export class Auth0Service {
     app_metadata?: any;
   }) {
     try {
-      const user = await this.management.createUser({
+      const user = await this.management.users.create({
         ...userData,
         connection: userData.connection || 'Username-Password-Authentication'
       });
@@ -80,7 +74,7 @@ export class Auth0Service {
    */
   async updateUserMetadata(userId: string, metadata: any) {
     try {
-      return await this.management.updateUserMetadata({ id: userId }, metadata);
+      return await this.management.users.update({ id: userId }, { user_metadata: metadata });
     } catch (error) {
       console.error('Error updating user metadata:', error);
       throw error;
@@ -92,7 +86,7 @@ export class Auth0Service {
    */
   async assignRolesToUser(userId: string, roleIds: string[]) {
     try {
-      await this.management.assignRolestoUser({ id: userId }, { roles: roleIds });
+      await this.management.users.assignRoles({ id: userId }, { roles: roleIds });
     } catch (error) {
       console.error('Error assigning roles to user:', error);
       throw error;
@@ -104,7 +98,7 @@ export class Auth0Service {
    */
   async getUserRoles(userId: string) {
     try {
-      return await this.management.getUserRoles({ id: userId });
+      return await this.management.users.getRoles({ id: userId });
     } catch (error) {
       console.error('Error fetching user roles:', error);
       throw error;
@@ -162,7 +156,7 @@ export class Auth0Service {
   }) {
     try {
       // Check if user already exists
-      const existingUsers = await this.management.getUsersByEmail(patientData.email);
+      const existingUsers = await this.management.usersByEmail.getByEmail({ email: patientData.email });
       
       if (existingUsers.length > 0) {
         // Update existing user with patient metadata
