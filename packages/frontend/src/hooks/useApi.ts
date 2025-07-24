@@ -64,15 +64,14 @@ export const useApi = (): AxiosInstance => {
               domain: process.env.REACT_APP_AUTH0_DOMAIN
             });
             
-            // TEMPORARY: Allow requests to proceed without token
-            // This will let the app work while we fix Auth0
-            console.warn('⚠️ Proceeding without auth token - temporary bypass');
-            config.headers.Authorization = 'Bearer temporary-bypass-token';
+            // If we can't get a token, the user needs to re-authenticate
+            console.error('❌ Authentication required - please login again');
+            // Don't add any authorization header - let the request fail properly
+            // This will trigger proper error handling on the backend
           }
         } else {
-          // TEMPORARY: If not authenticated, use bypass token
-          console.warn('⚠️ Not authenticated - using temporary bypass token');
-          config.headers.Authorization = 'Bearer temporary-bypass-token';
+          // If not authenticated, don't add any authorization header
+          console.warn('⚠️ User not authenticated - login required');
         }
         return config;
       },

@@ -15,18 +15,12 @@ if (!AUTH0_DOMAIN || !AUTH0_AUDIENCE) {
 export const checkJwt = (_req: Request, res: any, next: any) => {
   const authHeader = _req.headers.authorization;
   
-  // TEMPORARY: Always check for bypass token first
-  if (authHeader === 'Bearer temporary-bypass-token') {
-    console.warn('⚠️ Using temporary auth bypass - for development only');
-    // Set a dummy user for the request
-    (_req as any).auth = {
-      sub: 'temporary-user',
-      permissions: ['admin', 'doctor', 'representative']
-    };
-    return next();
+  // If no auth header, return 401
+  if (!authHeader) {
+    return res.status(401).json({ error: 'No authorization header provided' });
   }
   
-  // If no bypass token, use normal Auth0 validation
+  // Use normal Auth0 validation
   if (AUTH0_DOMAIN && AUTH0_AUDIENCE) {
     return jwt({
       // Dynamically provide a signing key based on the kid in the header

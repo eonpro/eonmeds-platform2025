@@ -25,29 +25,23 @@ export const verifyHeyFlowSignature = (
  * Handle HeyFlow webhook for patient intake forms
  */
 export const handleHeyFlowWebhook = async (req: Request, res: Response): Promise<void> => {
+  const requestId = crypto.randomBytes(8).toString('hex');
+  console.log(`\n=== HeyFlow Webhook Received [${requestId}] ===`);
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Body:', JSON.stringify(req.body, null, 2));
+  
   try {
-    // Debug: Log all headers to see what HeyFlow is sending
-    console.log('=== HeyFlow Webhook Received ===');
-    console.log('Headers:', JSON.stringify(req.headers, null, 2));
-    console.log('Body:', JSON.stringify(req.body, null, 2));
-    
     // 1. Verify webhook signature for security
-    // const webhookSecret = process.env.HEYFLOW_WEBHOOK_SECRET;
+    const webhookSecret = process.env.HEYFLOW_WEBHOOK_SECRET;
     
-    // TEMPORARY: Skip signature verification for HeyFlow testing
-    console.warn('⚠️  TEMPORARILY BYPASSING SIGNATURE VERIFICATION FOR TESTING');
-    /*
-    // For development/testing, allow bypassing signature verification
-    if (process.env.NODE_ENV === 'development' && !webhookSecret) {
-      console.warn('⚠️  WEBHOOK SECRET NOT SET - Bypassing signature verification');
-    } else {
+    if (webhookSecret) {
+      console.log(`[${requestId}] Webhook secret configured, verifying signature...`);
       const signature = req.headers['x-heyflow-signature'] as string;
       
-      if (!signature || !webhookSecret) {
-        console.error('Missing signature or webhook secret');
-        console.error('Expected secret exists:', !!webhookSecret);
-        console.error('Received headers:', Object.keys(req.headers));
-        res.status(401).json({ error: 'Unauthorized' });
+      if (!signature) {
+        console.error(`[${requestId}] Missing signature header`);
+        res.status(401).json({ error: 'Missing signature' });
         return;
       }
       
@@ -55,12 +49,14 @@ export const handleHeyFlowWebhook = async (req: Request, res: Response): Promise
       const isValid = verifyHeyFlowSignature(payload, signature, webhookSecret);
       
       if (!isValid) {
-        console.error('Invalid webhook signature');
+        console.error(`[${requestId}] Invalid signature`);
         res.status(401).json({ error: 'Invalid signature' });
         return;
       }
+      console.log(`[${requestId}] Signature verified successfully`);
+    } else {
+      console.warn(`[${requestId}] ⚠️  WEBHOOK SECRET NOT SET - Bypassing signature verification`);
     }
-    */
     
     // Check if database is available
     let webhookEventId = null;
@@ -137,24 +133,30 @@ async function storeWebhookEvent(payload: any) {
  * Process HeyFlow form submission
  */
 async function processHeyFlowSubmission(eventId: string, payload: any) {
+  const requestId = crypto.randomBytes(4).toString('hex');
+  console.log(`\n[${requestId}] === Processing HeyFlow Submission ===`);
+  console.log(`[${requestId}] Event ID: ${eventId}`);
+  
   const client = await pool.connect();
   
   try {
     await client.query('BEGIN');
     
     // Debug: Log the payload structure
-    console.log('Processing HeyFlow submission with payload structure:');
-    console.log('- Has fields array?', Array.isArray(payload.fields));
-    console.log('- Has fields object?', typeof payload.fields === 'object' && !Array.isArray(payload.fields));
-    console.log('- Has data object?', typeof payload.data === 'object');
-    console.log('- Payload keys:', Object.keys(payload));
+    console.log(`[${requestId}] Analyzing payload structure:`);
+    console.log(`[${requestId}] - Has fields array?`, Array.isArray(payload.fields));
+    console.log(`[${requestId}] - Has fields object?`, typeof payload.fields === 'object' && !Array.isArray(payload.fields));
+    console.log(`[${requestId}] - Has data object?`, typeof payload.data === 'object');
+    console.log(`[${requestId}] - Payload keys:`, Object.keys(payload));
     
     // Helper function to get field value by variable name
     const getFieldValue = (variableName: string): any => {
       // If we have a fields array
       if (Array.isArray(payload.fields)) {
         const field = payload.fields.find((f: any) => f.variable === variableName);
-        return field?.values?.[0]?.answer || null;
+        const value = field?.values?.[0]?.answer || null;
+        console.log(`[${requestId}] - Field '${variableName}':`, value ? `"${value}"` : 'null');
+        return value;
       }
       // Otherwise return null
       return null;
@@ -165,17 +167,17 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     
     // Format 1: Direct data object (most common for HeyFlow)
     if (payload.data && typeof payload.data === 'object') {
-      console.log('Using Format 1: Direct data object');
+      console.log(`[${requestId}] Using Format 1: Direct data object`);
       extractedData = payload.data;
     }
     // Format 2: Fields object (current HeyFlow format - July 2025)
     else if (payload.fields && typeof payload.fields === 'object' && !Array.isArray(payload.fields)) {
-      console.log('Using Format 2: Fields object (current format)');
+      console.log(`[${requestId}] Using Format 2: Fields object (current format)`);
       extractedData = payload.fields;
     }
     // Format 3: Fields array (older format)
     else if (Array.isArray(payload.fields)) {
-      console.log('Using Format 3: Fields array (older format)');
+      console.log(`[${requestId}] Using Format 3: Fields array (older format)`);
       
       // Extract each field using the helper function
       extractedData = {
