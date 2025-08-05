@@ -28,9 +28,7 @@ export class Auth0Service {
     this.management = new ManagementClient({
       domain: this.config.domain,
       clientId: this.config.clientId,
-      clientSecret: this.config.clientSecret,
-      audience: `https://${this.config.domain}/api/v2/`,
-      scope: 'read:users update:users create:users delete:users read:roles create:roles update:roles delete:roles'
+      clientSecret: this.config.clientSecret
     });
   }
 
