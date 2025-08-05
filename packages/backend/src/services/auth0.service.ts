@@ -1,4 +1,4 @@
-import { ManagementClient, AuthenticationClient } from 'auth0';
+import { ManagementClient } from 'auth0';
 import { Request } from 'express';
 
 interface Auth0Config {
@@ -29,6 +29,7 @@ export class Auth0Service {
       domain: this.config.domain,
       clientId: this.config.clientId,
       clientSecret: this.config.clientSecret,
+      audience: `https://${this.config.domain}/api/v2/`,
       scope: 'read:users update:users create:users delete:users read:roles create:roles update:roles delete:roles'
     });
   }
@@ -156,7 +157,8 @@ export class Auth0Service {
   }) {
     try {
       // Check if user already exists
-      const existingUsers = await this.management.usersByEmail.getByEmail({ email: patientData.email });
+      const existingUsersResponse = await this.management.usersByEmail.getByEmail({ email: patientData.email });
+      const existingUsers = existingUsersResponse.data || [];
       
       if (existingUsers.length > 0) {
         // Update existing user with patient metadata
