@@ -14,6 +14,10 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ className }) => {
     loginWithRedirect({
       appState: {
         returnTo: window.location.pathname
+      },
+      authorizationParams: {
+        audience: process.env.REACT_APP_AUTH0_AUDIENCE,
+        scope: 'openid profile email offline_access'
       }
     });
   };

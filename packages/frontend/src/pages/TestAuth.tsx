@@ -26,7 +26,11 @@ export const TestAuth: React.FC = () => {
   const handleLogin = () => {
     console.log('Attempting login...');
     loginWithRedirect({
-      appState: { returnTo: '/test-auth' }
+      appState: { returnTo: '/test-auth' },
+      authorizationParams: {
+        audience: process.env.REACT_APP_AUTH0_AUDIENCE,
+        scope: 'openid profile email offline_access'
+      }
     });
   };
 
