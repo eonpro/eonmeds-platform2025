@@ -26,7 +26,7 @@ const createApiClient = (): AxiosInstance => {
 };
 
 export const useApi = (): AxiosInstance => {
-  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const { getAccessTokenSilently, isAuthenticated, logout } = useAuth0();
   const apiClientRef = useRef<AxiosInstance | null>(null);
 
   // Create the client immediately if it doesn't exist
@@ -55,7 +55,7 @@ export const useApi = (): AxiosInstance => {
             
             console.log('Got access token successfully');
             config.headers.Authorization = `Bearer ${token}`;
-          } catch (tokenError) {
+          } catch (tokenError: any) {
             console.error('Could not get access token:', tokenError);
             console.log('Current Auth0 state:', {
               isAuthenticated: isAuthenticated,
@@ -64,8 +64,20 @@ export const useApi = (): AxiosInstance => {
               domain: process.env.REACT_APP_AUTH0_DOMAIN
             });
             
-            // If we can't get a token, the user needs to re-authenticate
-            console.error('❌ Authentication required - please login again');
+            // Check if this is a missing refresh token error
+            if (tokenError.message?.includes('Missing Refresh Token')) {
+              console.error('❌ Session expired - performing complete logout...');
+              // Force a complete logout to clear the session
+              await logout({
+                logoutParams: {
+                  returnTo: window.location.origin,
+                  federated: true
+                }
+              });
+            } else {
+              // If we can't get a token, the user needs to re-authenticate
+              console.error('❌ Authentication required - please login again');
+            }
             // Don't add any authorization header - let the request fail properly
             // This will trigger proper error handling on the backend
           }

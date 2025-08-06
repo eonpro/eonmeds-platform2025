@@ -10520,3 +10520,68 @@ export const handleStripeWebhook = async (req, res) => {
 ---
 
 # BECCA AI Assistant - Project Plan
+
+## Current Issue: Auth0 Refresh Token Missing (December 5, 2024)
+
+### Background and Motivation
+The Becca AI feature is failing with "Missing Refresh Token" error despite:
+- Auth0 "Allow Offline Access" is enabled in API settings
+- Frontend Auth0Provider is correctly configured with useRefreshTokens=true
+- LoginButton has been updated to pass authorization parameters
+- Backend build issues have been resolved
+
+### Key Challenges and Analysis
+
+#### Root Cause Analysis:
+1. **Browser Cache Issue**: The browser is using an old authentication session created before the configuration changes
+2. **Auth0 Session Persistence**: Auth0 maintains server-side sessions that need to be completely cleared
+3. **Frontend Deployment**: Changes have been deployed but users need fresh authentication
+
+#### What We've Already Fixed:
+1. ✅ Enabled "Allow Offline Access" in Auth0 API settings
+2. ✅ Updated LoginButton.tsx to include authorization parameters with offline_access scope
+3. ✅ Fixed backend Auth0 ManagementClient TypeScript errors
+4. ✅ Deployed all changes to Railway
+
+### High-level Task Breakdown
+
+#### Immediate User Actions Required:
+1. **Force Complete Logout**:
+   - Use federated logout URL to clear Auth0 server session
+   - Clear all browser storage (localStorage, sessionStorage, cookies)
+   - Use incognito/private browsing for clean test
+
+2. **Verify Auth0 Dashboard Settings**:
+   - Confirm "Allow Offline Access" is enabled for EONMeds API
+   - Check Application settings for refresh token rotation
+   - Verify grant types include "refresh_token"
+
+3. **Additional Frontend Fixes if Needed**:
+   - Add explicit offline_access to all login calls
+   - Implement logout redirect with federated logout
+   - Add refresh token fallback handling
+
+### Project Status Board
+
+- [x] Enable "Allow Offline Access" in Auth0 API settings
+- [x] Fix LoginButton.tsx authorization parameters
+- [x] Fix TestAuth.tsx authorization parameters  
+- [x] Fix backend Auth0 service TypeScript errors
+- [x] Deploy changes to Railway
+- [ ] User to perform complete logout and re-authentication
+- [ ] Verify Becca AI SOAP notes generation works
+
+### Executor's Feedback or Assistance Requests
+
+**Critical Next Steps for User**:
+1. Navigate to: `https://dev-dvouayl22wlz8zwq.us.auth0.com/v2/logout?client_id=VPA89aq0Y7N05GvX5KqkDm5JLXPknG0L&returnTo=https://intuitive-learning-production.up.railway.app&federated`
+2. Clear browser data completely
+3. Use incognito mode for fresh login
+4. Test Becca AI functionality
+
+### Lessons
+- Auth0 refresh tokens require "Allow Offline Access" to be enabled in API settings
+- LoginWithRedirect must explicitly pass authorization parameters including offline_access scope
+- Browser caching of Auth0 sessions can persist even after configuration changes
+- Federated logout is required to completely clear Auth0 server-side sessions
+- Auth0 ManagementClient v4 SDK has simplified constructor requirements
