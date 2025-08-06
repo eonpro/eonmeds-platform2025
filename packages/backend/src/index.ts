@@ -27,7 +27,24 @@ dotenv.config();
 const PORT = process.env.PORT || 5002;
 
 // CORS must be before all routes
-app.use(cors());
+const corsOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'https://intuitive-learning-production.up.railway.app',
+    'https://eonmeds-platform2025-production.up.railway.app'
+  ];
+
+console.log('🔒 CORS Origins configured:', corsOrigins);
+
+app.use(cors({
+  origin: corsOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['X-Total-Count']
+}));
 
 // Request logging middleware (before body parsing)
 app.use((req, _res, next) => {
