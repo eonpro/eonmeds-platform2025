@@ -23,6 +23,10 @@ export const Auth0ProviderWithNavigate = ({ children }: Auth0ProviderWithNavigat
   }
 
   const onRedirectCallback = (appState?: any) => {
+    console.log('🔍 Auth0 Redirect Callback triggered');
+    console.log('AppState:', appState);
+    console.log('Window location:', window.location.href);
+    console.log('URL params:', window.location.search);
     navigate(appState?.returnTo || '/dashboard');
   };
 

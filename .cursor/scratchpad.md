@@ -10585,3 +10585,53 @@ The Becca AI feature is failing with "Missing Refresh Token" error despite:
 - Browser caching of Auth0 sessions can persist even after configuration changes
 - Federated logout is required to completely clear Auth0 server-side sessions
 - Auth0 ManagementClient v4 SDK has simplified constructor requirements
+- Automatic logout on missing refresh token can cause login loops - avoid this pattern
+
+## New Strategic Analysis (December 5, 2024)
+
+### The Core Problem
+We've been assuming the issue is with browser caching or session persistence, but the pattern suggests something more fundamental:
+
+**Key Observation**: Even with all the "correct" settings, Auth0 is not returning a refresh token during the authentication flow.
+
+### Unexplored Root Causes
+
+#### 1. **Auth0 Application Type Configuration**
+- Question: Is "EONMeds Web App" configured as a "Single Page Application" in Auth0?
+- Issue: SPAs have special requirements for refresh tokens that differ from regular web apps
+- Auth0 may require additional configuration beyond just "Allow Offline Access"
+
+#### 2. **Missing Response Type Parameter**
+- The OAuth2 flow might not be requesting the refresh token
+- Need to check if `response_type` includes `refresh_token`
+- Standard SPA flow uses `response_type=code` but may need additional parameters
+
+#### 3. **Auth0 Tenant Restrictions**
+- Some Auth0 tenants (especially free tier) have limitations
+- Refresh tokens for SPAs might be a paid feature
+- Tenant-level security policies might override application settings
+
+#### 4. **Grant Type Not Authorized**
+- The Machine-to-Machine application might need the `refresh_token` grant type
+- Check if the API is authorized to issue refresh tokens to this client
+
+#### 5. **Auth0 Rules or Actions Interference**
+- Custom Auth0 Rules or Actions might be stripping the refresh token
+- Check for any post-login actions that modify the token response
+
+### New Approach Strategy
+
+#### Option 1: Direct Debugging
+1. Add console logging to see the actual token response from Auth0
+2. Inspect the authorization URL to see what's being requested
+3. Check browser Network tab during login to see OAuth2 flow
+
+#### Option 2: Alternative Implementation
+1. Use Auth0's `getTokenWithPopup()` instead of silent authentication
+2. Implement a backend token proxy that handles refresh tokens
+3. Switch to session-based authentication with backend handling tokens
+
+#### Option 3: Simplified Workaround
+1. Increase access token lifetime to reduce refresh needs
+2. Implement automatic re-login when token expires
+3. Use Auth0's built-in session management without refresh tokens

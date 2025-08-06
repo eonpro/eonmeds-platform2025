@@ -35,6 +35,7 @@ import { IncomeReport } from './pages/IncomeReport';
 import { Packages } from './pages/Packages';
 import { UserProfile } from './components/auth/UserProfile';
 import { TestAuth } from './pages/TestAuth';
+import { DebugAuth } from './components/auth/DebugAuth';
 import './i18n'; // Initialize i18n
 import './App.css';
 
@@ -46,6 +47,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/test-auth" element={<TestAuth />} />
+            <Route path="/debug-auth" element={<DebugAuth />} />
             <Route 
               path="/*" 
               element={
