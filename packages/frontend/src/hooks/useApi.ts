@@ -66,14 +66,9 @@ export const useApi = (): AxiosInstance => {
             
             // Check if this is a missing refresh token error
             if (tokenError.message?.includes('Missing Refresh Token')) {
-              console.error('❌ Session expired - performing complete logout...');
-              // Force a complete logout to clear the session
-              await logout({
-                logoutParams: {
-                  returnTo: window.location.origin,
-                  federated: true
-                }
-              });
+              console.error('❌ Missing refresh token - user needs to log out and log in again');
+              // Don't automatically logout - this causes a loop
+              // Just log the error and let the request fail
             } else {
               // If we can't get a token, the user needs to re-authenticate
               console.error('❌ Authentication required - please login again');

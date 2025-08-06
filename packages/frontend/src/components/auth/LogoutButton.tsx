@@ -11,11 +11,9 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({ className }) => {
   const { t } = useTranslation('common');
 
   const handleLogout = () => {
-    // Force federated logout to clear Auth0 server session
     logout({
       logoutParams: {
-        returnTo: window.location.origin,
-        federated: true // This ensures Auth0 server session is cleared
+        returnTo: window.location.origin
       }
     });
   };
