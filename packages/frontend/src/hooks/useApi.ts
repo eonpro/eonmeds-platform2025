@@ -26,7 +26,7 @@ const createApiClient = (): AxiosInstance => {
 };
 
 export const useApi = (): AxiosInstance => {
-  const { getAccessTokenSilently, isAuthenticated, logout } = useAuth0();
+  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
   const apiClientRef = useRef<AxiosInstance | null>(null);
 
   // Create the client immediately if it doesn't exist
@@ -50,29 +50,14 @@ export const useApi = (): AxiosInstance => {
                 audience: process.env.REACT_APP_AUTH0_AUDIENCE,
                 scope: 'openid profile email offline_access'
               },
-              cacheMode: 'off' // Force fresh token
+              cacheMode: 'off', // Force fresh token
+              detailedResponse: false
             });
             
             console.log('Got access token successfully');
             config.headers.Authorization = `Bearer ${token}`;
-          } catch (tokenError: any) {
+          } catch (tokenError) {
             console.error('Could not get access token:', tokenError);
-            console.log('Current Auth0 state:', {
-              isAuthenticated: isAuthenticated,
-              user: null,
-              audience: process.env.REACT_APP_AUTH0_AUDIENCE,
-              domain: process.env.REACT_APP_AUTH0_DOMAIN
-            });
-            
-            // Check if this is a missing refresh token error
-            if (tokenError.message?.includes('Missing Refresh Token')) {
-              console.error('❌ Missing refresh token - user needs to log out and log in again');
-              // Don't automatically logout - this causes a loop
-              // Just log the error and let the request fail
-            } else {
-              // If we can't get a token, the user needs to re-authenticate
-              console.error('❌ Authentication required - please login again');
-            }
             // Don't add any authorization header - let the request fail properly
             // This will trigger proper error handling on the backend
           }
