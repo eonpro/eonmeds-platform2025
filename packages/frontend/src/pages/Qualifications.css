@@ -296,14 +296,38 @@
 }
 
 /* Tag color variations based on content */
-.tag[data-tag-type="weight"] {
-  background-color: #f97316; /* Orange for weight-related tags */
+.tag[data-tag-type="weightloss"] {
+  background-color: #f97316; /* Orange for weightloss */
 }
 
-.tag[data-tag-type="rep"] {
-  background-color: #3b82f6; /* Blue for rep tags */
+.tag[data-tag-type="webdirect"] {
+  background-color: #3b82f6; /* Blue for webdirect */
+}
+
+.tag[data-tag-type="laurazevallo"] {
+  background-color: #a855f7; /* Purple for Laura Zevallos */
+}
+
+.tag[data-tag-type="anasaavedra"] {
+  background-color: #ec4899; /* Pink for Ana Saavedra */
+}
+
+.tag[data-tag-type="internalrep"] {
+  background-color: #10b981; /* Green for internal rep */
+}
+
+.tag[data-tag-type="trt"] {
+  background-color: #f59e0b; /* Amber for TRT */
+}
+
+.tag[data-tag-type="peptides"] {
+  background-color: #06b6d4; /* Cyan for peptides */
+}
+
+.tag[data-tag-type="hrt"] {
+  background-color: #8b5cf6; /* Violet for HRT */
 }
 
 .tag[data-tag-type="default"] {
-  background-color: #a855f7; /* Purple for other tags */
+  background-color: #6b7280; /* Gray for unknown tags */
 } 

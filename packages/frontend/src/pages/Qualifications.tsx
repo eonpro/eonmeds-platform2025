@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { Patient, PatientListResponse } from '../services/patient.service';
 import { debounce } from '../utils/debounce';
+import { getHashtagType } from '../utils/hashtag-utils';
 import './Qualifications.css';
 
 interface DeleteModalProps {
@@ -281,11 +282,7 @@ export const Qualifications: React.FC = () => {
                           <span 
                             key={index} 
                             className="tag"
-                            data-tag-type={
-                              tag.toLowerCase().includes('weight') ? 'weight' :
-                              tag.toLowerCase().includes('rep') || tag.toLowerCase().includes('laura') || tag.toLowerCase().includes('ana') ? 'rep' :
-                              'default'
-                            }
+                            data-tag-type={getHashtagType(tag)}
                           >
                             #{tag}
                           </span>

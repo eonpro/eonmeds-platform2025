@@ -4,6 +4,7 @@ import { patientService } from '../services/patient.service';
 import { EditPatientModal } from '../components/patients/EditPatientModal';
 import { CreatePatientModal } from '../components/patients/CreatePatientModal';
 import { useApi } from '../hooks/useApi';
+import { getHashtagColor } from '../utils/hashtag-utils';
 import { 
   UserIcon, 
   ChartIcon, 
@@ -735,8 +736,7 @@ export const PatientProfile: React.FC = () => {
                       key={tag}
                       className="header-tag"
                       style={{ 
-                        backgroundColor: tag.includes('weight') ? '#f97316' : 
-                                       tag.includes('rep') ? '#3b82f6' : '#a855f7'
+                        backgroundColor: getHashtagColor(tag)
                       }}
                     >
                       #{tag}
