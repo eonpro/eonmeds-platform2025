@@ -318,7 +318,17 @@ export const Clients: React.FC = () => {
                       {patient.membership_hashtags && patient.membership_hashtags.length > 0 ? (
                         <div className="tag-list">
                           {patient.membership_hashtags.map(tag => (
-                            <span key={tag} className="tag">#{tag}</span>
+                            <span 
+                              key={tag} 
+                              className="tag"
+                              data-tag-type={
+                                tag.toLowerCase().includes('weight') ? 'weight' :
+                                tag.toLowerCase().includes('rep') || tag.toLowerCase().includes('laura') || tag.toLowerCase().includes('ana') ? 'rep' :
+                                'default'
+                              }
+                            >
+                              #{tag}
+                            </span>
                           ))}
                         </div>
                       ) : '-'}

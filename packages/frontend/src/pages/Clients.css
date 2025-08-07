@@ -540,12 +540,24 @@
 }
 
 .tag {
-  background-color: #e5f3ff;
-  color: #0066cc;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
+  color: white;
+}
+
+/* Tag color variations based on content */
+.tag[data-tag-type="weight"] {
+  background-color: #14a97b; /* Green for weight-related tags */
+}
+
+.tag[data-tag-type="rep"] {
+  background-color: #a855f7; /* Purple for rep tags */
+}
+
+.tag[data-tag-type="default"] {
+  background-color: #3b82f6; /* Blue for other tags */
 }
 
 /* Clickable row style */
