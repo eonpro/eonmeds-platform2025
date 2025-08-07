@@ -39,12 +39,13 @@ export const handleHeyFlowWebhook = async (req: Request, res: Response): Promise
     // 1. Verify webhook signature for security
     const webhookSecret = process.env.HEYFLOW_WEBHOOK_SECRET;
     
-    if (webhookSecret) {
+    if (webhookSecret && webhookSecret !== 'SKIP') {
       console.log(`[${requestId}] Webhook secret configured, verifying signature...`);
       const signature = req.headers['x-heyflow-signature'] as string;
       
       if (!signature) {
         console.error(`[${requestId}] Missing signature header`);
+        console.log(`[${requestId}] To skip signature verification, set HEYFLOW_WEBHOOK_SECRET=SKIP`);
         res.status(401).json({ error: 'Missing signature' });
         return;
       }
@@ -59,7 +60,11 @@ export const handleHeyFlowWebhook = async (req: Request, res: Response): Promise
       }
       console.log(`[${requestId}] Signature verified successfully`);
     } else {
-      console.warn(`[${requestId}] ⚠️  WEBHOOK SECRET NOT SET - Bypassing signature verification`);
+      if (webhookSecret === 'SKIP') {
+        console.warn(`[${requestId}] ⚠️  WEBHOOK SIGNATURE VERIFICATION SKIPPED (HEYFLOW_WEBHOOK_SECRET=SKIP)`);
+      } else {
+        console.warn(`[${requestId}] ⚠️  WEBHOOK SECRET NOT SET - Bypassing signature verification`);
+      }
     }
     
     // Check if database is available
