@@ -549,15 +549,15 @@
 
 /* Tag color variations based on content */
 .tag[data-tag-type="weight"] {
-  background-color: #14a97b; /* Green for weight-related tags */
+  background-color: #f97316; /* Orange for weight-related tags */
 }
 
 .tag[data-tag-type="rep"] {
-  background-color: #a855f7; /* Purple for rep tags */
+  background-color: #3b82f6; /* Blue for rep tags */
 }
 
 .tag[data-tag-type="default"] {
-  background-color: #3b82f6; /* Blue for other tags */
+  background-color: #a855f7; /* Purple for other tags */
 }
 
 /* Clickable row style */

@@ -735,8 +735,8 @@ export const PatientProfile: React.FC = () => {
                       key={tag}
                       className="header-tag"
                       style={{ 
-                        backgroundColor: tag.includes('weight') ? getStatusColor(patient.status || 'pending') : 
-                                       tag.includes('rep') ? '#a855f7' : '#3b82f6'
+                        backgroundColor: tag.includes('weight') ? '#f97316' : 
+                                       tag.includes('rep') ? '#3b82f6' : '#a855f7'
                       }}
                     >
                       #{tag}
