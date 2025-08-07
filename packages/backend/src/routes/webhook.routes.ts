@@ -4,8 +4,12 @@ import {
   webhookHealthCheck 
 } from '../controllers/webhook.controller';
 import { pool } from '../config/database';
+import { bypassAuth } from '../middleware/bypass-auth';
 
 const router = Router();
+
+// Apply bypass auth to all webhook routes
+router.use(bypassAuth);
 
 // HeyFlow webhook endpoint
 router.post('/heyflow', handleHeyFlowWebhook);
@@ -17,7 +21,14 @@ router.get('/health', webhookHealthCheck);
 router.get('/test', (_req, res) => {
   res.json({ 
     message: 'Webhook endpoint is working',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    auth: {
+      hasAuthHeader: !!_req.headers.authorization,
+      hasAuthProperty: !!((_req as any).auth),
+      hasUserProperty: !!((_req as any).user),
+      auth0Domain: process.env.AUTH0_DOMAIN || 'NOT_SET',
+      auth0Audience: process.env.AUTH0_AUDIENCE || 'NOT_SET'
+    }
   });
 });
 

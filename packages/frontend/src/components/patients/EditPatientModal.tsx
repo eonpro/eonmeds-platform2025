@@ -15,8 +15,8 @@ interface PatientData {
   first_name: string;
   last_name: string;
   email: string;
-  phone: string;
-  date_of_birth: string;
+  phone?: string;
+  date_of_birth?: string;
   gender?: string;
   height_inches?: number;
   weight_lbs?: number;

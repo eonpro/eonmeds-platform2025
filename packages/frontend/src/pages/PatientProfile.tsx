@@ -735,7 +735,7 @@ export const PatientProfile: React.FC = () => {
                       key={tag}
                       className="header-tag"
                       style={{ 
-                        backgroundColor: tag.includes('weight') ? getStatusColor(patient.status) : 
+                        backgroundColor: tag.includes('weight') ? getStatusColor(patient.status || 'pending') : 
                                        tag.includes('rep') ? '#a855f7' : '#3b82f6'
                       }}
                     >
@@ -864,11 +864,11 @@ export const PatientProfile: React.FC = () => {
                         <div className="info-item">
                           <label>DATE OF BIRTH</label>
                           <p>
-                            {new Date(patient.date_of_birth).toLocaleDateString('en-US', {
+                            {patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString('en-US', {
                               month: 'long',
                               day: 'numeric',
                               year: 'numeric'
-                            })} ({calculateAge(patient.date_of_birth)} y/o)
+                            }) : 'N/A'} ({patient.date_of_birth ? calculateAge(patient.date_of_birth) : 'N/A'} y/o)
                           </p>
                         </div>
                         <div className="info-item">
@@ -934,7 +934,7 @@ export const PatientProfile: React.FC = () => {
                     <div className="additional-info">
                       <div className="info-item">
                         <label>TRACKING #</label>
-                        <p>{patient.tracking_number || 'Not available'}</p>
+                        <p>{'Not available'}</p>
                       </div>
                       <div className="info-item">
                         <label>CLIENT CONSENTS TO DOWNLOAD MEDICATION HISTORY.</label>

@@ -16,8 +16,8 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ className }) => {
         returnTo: window.location.pathname
       },
       authorizationParams: {
-        audience: process.env.REACT_APP_AUTH0_AUDIENCE,
-        scope: 'openid profile email offline_access'
+        scope: 'openid profile email offline_access',
+        audience: process.env.REACT_APP_AUTH0_AUDIENCE
       }
     });
   };

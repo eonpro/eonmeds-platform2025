@@ -101,21 +101,25 @@ export async function ensureSOAPNotesTable() {
       
       await pool.query(`
         CREATE TABLE soap_notes (
-          id SERIAL PRIMARY KEY,
-          patient_id VARCHAR(50) NOT NULL,
-          provider_id INTEGER,
-          chief_complaint TEXT,
-          subjective TEXT,
-          objective TEXT,
-          assessment TEXT,
-          plan TEXT,
-          follow_up TEXT,
-          notes TEXT,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          created_by VARCHAR(255),
-          status VARCHAR(50) DEFAULT 'draft',
-          FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          patient_id VARCHAR(20) NOT NULL REFERENCES patients(patient_id) ON DELETE CASCADE,
+          content TEXT NOT NULL,
+          original_content TEXT,
+          status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+          created_by VARCHAR(255) NOT NULL DEFAULT 'system',
+          approved_by UUID,
+          approved_by_name VARCHAR(255),
+          approved_by_credentials VARCHAR(100),
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          approved_at TIMESTAMP,
+          version INTEGER DEFAULT 1,
+          edit_history JSONB,
+          ai_model VARCHAR(100),
+          ai_response_time_ms INTEGER,
+          prompt_tokens INTEGER,
+          completion_tokens INTEGER,
+          total_tokens INTEGER
         )
       `);
       
@@ -124,7 +128,7 @@ export async function ensureSOAPNotesTable() {
       await pool.query('CREATE INDEX idx_soap_notes_created_at ON soap_notes(created_at)');
       await pool.query('CREATE INDEX idx_soap_notes_status ON soap_notes(status)');
       
-      console.log('✅ Created soap_notes table');
+      console.log('✅ Created soap_notes table with correct schema for BECCA AI');
     }
   } catch (error) {
     console.error('Error ensuring soap_notes table:', error);

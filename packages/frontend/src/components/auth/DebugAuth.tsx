@@ -77,7 +77,7 @@ export const DebugAuth: React.FC = () => {
         audience: process.env.REACT_APP_AUTH0_AUDIENCE,
         scope: 'openid profile email offline_access',
         response_type: 'code',
-        prompt: 'login' // Force fresh login
+        prompt: 'login' as const // Force fresh login
       }
     };
     console.log(authParams);

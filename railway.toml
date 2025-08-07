@@ -1,0 +1,12 @@
+[build]
+builder = "nixpacks"
+buildCommand = "cd packages/backend && npm install && npm run build"
+
+[deploy]
+startCommand = "cd packages/backend && npm start"
+restartPolicyType = "always"
+restartPolicyMaxRetries = 10
+
+[[services]]
+name = "backend"
+root = "packages/backend"

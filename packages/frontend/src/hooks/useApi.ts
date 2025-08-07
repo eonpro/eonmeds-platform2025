@@ -45,14 +45,7 @@ export const useApi = (): AxiosInstance => {
         // Try to get auth token if authenticated
         if (isAuthenticated) {
           try {
-            const token = await getAccessTokenSilently({
-              authorizationParams: {
-                audience: process.env.REACT_APP_AUTH0_AUDIENCE,
-                scope: 'openid profile email offline_access'
-              },
-              cacheMode: 'off', // Force fresh token
-              detailedResponse: false
-            });
+            const token = await getAccessTokenSilently();
             
             console.log('Got access token successfully');
             config.headers.Authorization = `Bearer ${token}`;

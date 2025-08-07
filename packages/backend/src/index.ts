@@ -95,8 +95,9 @@ app.get('/api/v1', (_req, res) => {
 });
 
 // Webhook routes (always available - no auth required)
+// IMPORTANT: This must be before any auth middleware
 app.use('/api/v1/webhooks', webhookRoutes);
-console.log('✅ Webhook routes loaded (always available)');
+console.log('✅ Webhook routes loaded (always available - no auth required)');
 
 // Register all routes (with database check inside each route)
 app.use('/api/v1/auth', authRoutes);
@@ -145,27 +146,7 @@ async function initializeDatabase() {
         // Import pool for direct queries
         const { pool } = await import('./config/database');
         
-        // EMERGENCY FIX: Fix SOAP notes constraint IMMEDIATELY
-        try {
-          await pool.query(`
-            DO $$ 
-            BEGIN
-              -- Only proceed if soap_notes table exists
-              IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'soap_notes') THEN
-                -- Drop the old constraint
-                ALTER TABLE soap_notes DROP CONSTRAINT IF EXISTS soap_notes_patient_id_fkey;
-                -- Change the column type
-                ALTER TABLE soap_notes ALTER COLUMN patient_id TYPE VARCHAR(50) USING patient_id::VARCHAR(50);
-                -- Add the new constraint
-                ALTER TABLE soap_notes ADD CONSTRAINT soap_notes_patient_id_fkey 
-                  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE;
-              END IF;
-            END $$;
-          `);
-          console.log('✅ SOAP notes foreign key fixed!');
-        } catch (fixErr: any) {
-          console.log('ℹ️ SOAP notes fix skipped:', fixErr.message);
-        }
+        // SOAP notes table is now handled by database.ts with correct schema
         
         // Create invoice_payments table if it doesn't exist
         await pool.query(`
@@ -240,75 +221,9 @@ async function initializeDatabase() {
           );
         `);
 
-        // Fix SOAP Notes table - drop old constraint if exists
-        await pool.query(`
-          DO $$ 
-          BEGIN
-            -- Drop the old foreign key constraint if it exists
-            IF EXISTS (
-              SELECT 1 FROM information_schema.table_constraints 
-              WHERE constraint_name = 'soap_notes_patient_id_fkey' 
-              AND table_name = 'soap_notes'
-            ) THEN
-              ALTER TABLE soap_notes DROP CONSTRAINT soap_notes_patient_id_fkey;
-            END IF;
-            
-            -- Alter the column type if needed
-            IF EXISTS (
-              SELECT 1 FROM information_schema.columns 
-              WHERE table_name = 'soap_notes' 
-              AND column_name = 'patient_id'
-              AND data_type = 'uuid'
-            ) THEN
-              ALTER TABLE soap_notes ALTER COLUMN patient_id TYPE VARCHAR(50) USING patient_id::VARCHAR(50);
-            END IF;
-            
-            -- Add the new foreign key constraint
-            IF NOT EXISTS (
-              SELECT 1 FROM information_schema.table_constraints 
-              WHERE constraint_name = 'soap_notes_patient_id_fkey' 
-              AND table_name = 'soap_notes'
-            ) THEN
-              ALTER TABLE soap_notes ADD CONSTRAINT soap_notes_patient_id_fkey 
-              FOREIGN KEY (patient_id) REFERENCES patients(patient_id);
-            END IF;
-          END $$;
-        `);
-
-        // Create SOAP Notes table for BECCA AI
-        await pool.query(`
-          CREATE TABLE IF NOT EXISTS soap_notes (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            patient_id VARCHAR(50) NOT NULL REFERENCES patients(patient_id),
-            content TEXT NOT NULL,
-            original_content TEXT,
-            status VARCHAR(50) NOT NULL DEFAULT 'pending',
-            created_by VARCHAR(255) NOT NULL DEFAULT 'BECCA AI',
-            approved_by UUID,
-            approved_by_name VARCHAR(255),
-            approved_by_credentials VARCHAR(255),
-            created_at TIMESTAMP DEFAULT NOW(),
-            updated_at TIMESTAMP DEFAULT NOW(),
-            approved_at TIMESTAMP,
-            version INTEGER DEFAULT 1,
-            edit_history JSONB DEFAULT '[]',
-            ai_model VARCHAR(50) DEFAULT 'gpt-4',
-            ai_response_time_ms INTEGER,
-            prompt_tokens INTEGER,
-            completion_tokens INTEGER,
-            total_tokens INTEGER,
-            CONSTRAINT valid_status CHECK (status IN ('pending', 'approved', 'rejected'))
-          );
-        `);
-        
-        // Create indexes for SOAP notes
-        await pool.query(`
-          CREATE INDEX IF NOT EXISTS idx_soap_notes_patient_id ON soap_notes(patient_id);
-        `);
-        
-        await pool.query(`
-          CREATE INDEX IF NOT EXISTS idx_soap_notes_status ON soap_notes(status);
-        `);
+        // Call ensureSOAPNotesTable to create the table with correct schema
+        const { ensureSOAPNotesTable } = await import('./config/database');
+        await ensureSOAPNotesTable();
         
         console.log('✅ Database tables verified/created');
       } catch (tableError) {

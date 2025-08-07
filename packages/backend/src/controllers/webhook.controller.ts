@@ -25,6 +25,10 @@ export const verifyHeyFlowSignature = (
  * Handle HeyFlow webhook for patient intake forms
  */
 export const handleHeyFlowWebhook = async (req: Request, res: Response): Promise<void> => {
+  // Remove any authorization header that HeyFlow might be sending
+  delete req.headers.authorization;
+  delete req.headers.Authorization;
+  
   const requestId = crypto.randomBytes(8).toString('hex');
   console.log(`\n=== HeyFlow Webhook Received [${requestId}] ===`);
   console.log('Timestamp:', new Date().toISOString());

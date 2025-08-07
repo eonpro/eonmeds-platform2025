@@ -12,17 +12,8 @@ if (!AUTH0_DOMAIN || !AUTH0_AUDIENCE) {
 }
 
 // Configure the JWT validation middleware
-export const checkJwt = (_req: Request, res: any, next: any) => {
-  const authHeader = _req.headers.authorization;
-  
-  // If no auth header, return 401
-  if (!authHeader) {
-    return res.status(401).json({ error: 'No authorization header provided' });
-  }
-  
-  // Use normal Auth0 validation
-  if (AUTH0_DOMAIN && AUTH0_AUDIENCE) {
-    return jwt({
+export const checkJwt = AUTH0_DOMAIN && AUTH0_AUDIENCE
+  ? jwt({
       // Dynamically provide a signing key based on the kid in the header
       secret: jwksRsa.expressJwtSecret({
         cache: true,
@@ -35,15 +26,14 @@ export const checkJwt = (_req: Request, res: any, next: any) => {
       audience: AUTH0_AUDIENCE,
       issuer: `https://${AUTH0_DOMAIN}/`,
       algorithms: ['RS256']
-    })(_req, res, next);
-  }
-  
-  // If Auth0 is not configured, return 503 Service Unavailable
-  res.status(503).json({
-    error: 'Service Unavailable',
-    message: 'Authentication service is not configured. Please contact system administrator.'
-  });
-};
+    })
+  : (_req: Request, res: any, _next: any) => {
+      res.status(503).json({
+        error: 'Service Unavailable',
+        message: 'Authentication service is not configured. Please contact system administrator.'
+      });
+      return;
+    };
 
 // Middleware to check specific permissions
 export const checkPermission = (permission: string) => {

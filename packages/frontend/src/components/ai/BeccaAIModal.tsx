@@ -11,6 +11,16 @@ interface BeccaAIModalProps {
 }
 
 const BeccaAIModal: React.FC<BeccaAIModalProps> = ({ isOpen, status, patientName, onClose }) => {
+  // Auto-close when ready
+  React.useEffect(() => {
+    if (status === 'ready' && onClose) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, onClose]);
+
   if (!isOpen) return null;
 
   const getStatusMessage = () => {
@@ -27,16 +37,6 @@ const BeccaAIModal: React.FC<BeccaAIModalProps> = ({ isOpen, status, patientName
         return "BeccaAI Assistant";
     }
   };
-
-  // Auto-close when ready
-  React.useEffect(() => {
-    if (status === 'ready' && onClose) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [status, onClose]);
 
   return (
     <div className="becca-modal-overlay">

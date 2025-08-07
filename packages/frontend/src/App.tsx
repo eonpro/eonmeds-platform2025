@@ -3,6 +3,21 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth0ProviderWithNavigate } from './providers/Auth0Provider';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { useState } from 'react';
+import { AppLayout } from './components/layout/AppLayout';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { Home } from './pages/Home';
+import { Dashboard } from './pages/Dashboard';
+import { Clients } from './pages/Clients';
+import { Qualifications } from './pages/Qualifications';
+import { PatientProfile } from './pages/PatientProfile';
+import { IncomeReport } from './pages/IncomeReport';
+import { Packages } from './pages/Packages';
+import { UserProfile } from './components/auth/UserProfile';
+import { TestAuth } from './pages/TestAuth';
+import { DebugAuth } from './components/auth/DebugAuth';
+import { Auth0Callback } from './components/auth/Auth0Callback';
+import './i18n'; // Initialize i18n
+import './App.css';
 
 // Filter out Stripe Elements accessibility warnings in development
 if (process.env.NODE_ENV === 'development') {
@@ -24,21 +39,6 @@ if (process.env.NODE_ENV === 'development') {
   };
 }
 
-import { AppLayout } from './components/layout/AppLayout';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { Home } from './pages/Home';
-import { Dashboard } from './pages/Dashboard';
-import { Clients } from './pages/Clients';
-import { Qualifications } from './pages/Qualifications';
-import { PatientProfile } from './pages/PatientProfile';
-import { IncomeReport } from './pages/IncomeReport';
-import { Packages } from './pages/Packages';
-import { UserProfile } from './components/auth/UserProfile';
-import { TestAuth } from './pages/TestAuth';
-import { DebugAuth } from './components/auth/DebugAuth';
-import './i18n'; // Initialize i18n
-import './App.css';
-
 function App() {
   return (
     <Router>
@@ -46,6 +46,7 @@ function App() {
         <LanguageProvider>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/callback" element={<Auth0Callback />} />
             <Route path="/test-auth" element={<TestAuth />} />
             <Route path="/debug-auth" element={<DebugAuth />} />
             <Route 

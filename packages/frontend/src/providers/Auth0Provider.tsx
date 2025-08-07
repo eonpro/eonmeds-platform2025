@@ -15,18 +15,32 @@ export const Auth0ProviderWithNavigate = ({ children }: Auth0ProviderWithNavigat
   
   // Use the correct redirect URI based on environment
   const redirectUri = process.env.NODE_ENV === 'production' 
-    ? 'https://intuitive-learning-production.up.railway.app/dashboard'
-    : 'http://localhost:3000/dashboard';
+    ? 'https://intuitive-learning-production.up.railway.app/callback'
+    : 'http://localhost:3000/callback';
 
   if (!domain || !clientId || !audience) {
     throw new Error('Auth0 configuration is missing. Please check your environment variables.');
   }
+
+  console.log('🔐 Auth0 Configuration:', {
+    domain,
+    clientId,
+    audience,
+    redirectUri
+  });
 
   const onRedirectCallback = (appState?: any) => {
     console.log('🔍 Auth0 Redirect Callback triggered');
     console.log('AppState:', appState);
     console.log('Window location:', window.location.href);
     console.log('URL params:', window.location.search);
+    
+    // Remove the auth params from the URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete('code');
+    url.searchParams.delete('state');
+    window.history.replaceState({}, document.title, url.pathname);
+    
     navigate(appState?.returnTo || '/dashboard');
   };
 
