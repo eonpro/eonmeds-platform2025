@@ -141,22 +141,35 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
         console.log(`Unhandled event type: ${event.type}`);
     }
 
-    // Store all webhook events for audit
-    await storeWebhookEvent(event);
+    // Store all webhook events for audit - marked as processed
+    await storeWebhookEvent(event, true);
 
     return res.json({ received: true });
   } catch (error) {
     console.error('Error processing webhook:', error);
+    
+    // Store webhook as failed
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    await storeWebhookEvent(event, false, errorMessage);
+    
     return res.status(500).json({ error: 'Webhook handler failed' });
   }
 };
 
 // Store webhook event for audit trail
-async function storeWebhookEvent(event: Stripe.Event) {
+async function storeWebhookEvent(event: Stripe.Event, processed: boolean = true, errorMessage?: string) {
   await pool.query(
-    `INSERT INTO webhook_events (source, event_type, webhook_id, payload, created_at)
-     VALUES ($1, $2, $3, $4, NOW())`,
-    ['stripe', event.type, event.id, JSON.stringify(event)]
+    `INSERT INTO webhook_events (source, event_type, webhook_id, payload, processed, processed_at, error_message, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+    [
+      'stripe', 
+      event.type, 
+      event.id, 
+      JSON.stringify(event),
+      processed,
+      processed ? new Date() : null,
+      errorMessage || null
+    ]
   );
 }
 
@@ -266,7 +279,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
        SET subscription_status = 'canceled',
            membership_hashtags = ARRAY['cancelled'],
            subscription_end_date = NOW()
-       WHERE patient_id = $2`,
+       WHERE patient_id = $1`,
       [patientId]
     );
     
