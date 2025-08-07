@@ -25,8 +25,8 @@
   font-family: 'Poppins', sans-serif;
 }
 
-/* Search Section */
-.search-section {
+/* Controls Section */
+.clients-controls {
   display: flex;
   align-items: center;
   margin-bottom: 30px;
@@ -34,8 +34,11 @@
   max-width: 1400px;
 }
 
-.search-bar {
+/* Search Section */
+.search-section {
   flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 .search-input {
@@ -418,29 +421,17 @@
 
 /* Delete Button */
 .delete-btn {
-  background: transparent;
-  color: var(--color-gray-600);  /* Darker gray for better visibility */
-  border: 1px solid var(--color-gray-200);  /* Add subtle border */
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 16px;
+  padding: 8px;
+  background: none;
+  border: none;
+  color: #dc2626;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 40px;
-  height: 32px;
+  transition: all 0.2s;
+  border-radius: 4px;
 }
 
 .delete-btn:hover {
-  background-color: var(--color-gray-100);
-  color: var(--color-gray-800);  /* Even darker on hover */
-  border-color: var(--color-gray-300);
-}
-
-.delete-btn:active {
-  transform: scale(0.95);
+  background-color: #fee2e2;
 }
 
 /* Delete Confirmation Modal */
@@ -541,7 +532,8 @@
 }
 
 /* Tag styles */
-.tag-list {
+.tag-list,
+.tags-container {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;

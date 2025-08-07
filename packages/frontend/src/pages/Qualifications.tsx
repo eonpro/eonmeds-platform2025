@@ -238,6 +238,7 @@ export const Qualifications: React.FC = () => {
               <th>EMAIL</th>
               <th>PHONE</th>
               <th>STATUS</th>
+              <th>HASHTAGS</th>
               <th>CREATED</th>
               <th>ACTIONS</th>
             </tr>
@@ -245,11 +246,11 @@ export const Qualifications: React.FC = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="loading-cell">Loading patients...</td>
+                <td colSpan={8} className="loading-cell">Loading patients...</td>
               </tr>
             ) : displayedPatients.length === 0 ? (
               <tr>
-                <td colSpan={7} className="empty-cell">
+                <td colSpan={8} className="empty-cell">
                   {searchTerm ? 'No patients found matching your search' : 'No patients yet'}
                 </td>
               </tr>
@@ -272,6 +273,15 @@ export const Qualifications: React.FC = () => {
                     <span className="status-badge qualified">
                       Qualified
                     </span>
+                  </td>
+                  <td className="patient-hashtags">
+                    {patient.membership_hashtags && patient.membership_hashtags.length > 0 ? (
+                      <div className="tags-container">
+                        {patient.membership_hashtags.map((tag, index) => (
+                          <span key={index} className="tag">#{tag}</span>
+                        ))}
+                      </div>
+                    ) : '-'}
                   </td>
                   <td className="patient-created">
                     {formatDate(patient.created_at)}

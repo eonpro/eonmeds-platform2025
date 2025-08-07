@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import { pool } from '../config/database';
 import { getStateAbbreviation } from '../utils/states';
+import { normalizeName } from '../utils/normalize-name';
 
 /**
  * Verify HeyFlow webhook signature
@@ -222,9 +223,12 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     console.log('Extracted data:', JSON.stringify(extractedData, null, 2));
     
     // Map HeyFlow fields to patient data with multiple possible field names
+    const rawFirstName = extractedData.firstname || extractedData.first_name || extractedData.firstName || null;
+    const rawLastName = extractedData.lastname || extractedData.last_name || extractedData.lastName || null;
+    
     const patientData = {
-      first_name: extractedData.firstname || extractedData.first_name || extractedData.firstName || null,
-      last_name: extractedData.lastname || extractedData.last_name || extractedData.lastName || null,
+      first_name: normalizeName(rawFirstName),
+      last_name: normalizeName(rawLastName),
       email: extractedData.email || extractedData.Email || extractedData.email_address || null,
       phone: extractedData['Phone Number'] || extractedData.PhoneNumber || extractedData.phone || extractedData.phone_number || extractedData.telefono || null,
       date_of_birth: extractedData.dob || extractedData.date_of_birth || extractedData.dateOfBirth || extractedData.birthdate || null,

@@ -3,6 +3,7 @@ import { authenticateToken } from '../middleware/auth';
 import { pool } from '../config/database';
 import patientService from '../services/patient.service';
 import { PDFService } from '../services/pdf.service';
+import { normalizeName } from '../utils/normalize-name';
 
 const router = Router();
 
@@ -222,6 +223,10 @@ router.post('/', async (req: Request, res: Response): Promise<Response> => {
   try {
     const patientData = req.body;
     
+    // Normalize names
+    patientData.first_name = normalizeName(patientData.first_name);
+    patientData.last_name = normalizeName(patientData.last_name);
+    
     // Validate required fields
     if (!patientData.first_name || !patientData.last_name || !patientData.email) {
       return res.status(400).json({ error: 'First name, last name, and email are required' });
@@ -288,6 +293,14 @@ router.put('/:id', async (req: Request, res: Response): Promise<Response> => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    
+    // Normalize names if provided
+    if (updateData.first_name) {
+      updateData.first_name = normalizeName(updateData.first_name);
+    }
+    if (updateData.last_name) {
+      updateData.last_name = normalizeName(updateData.last_name);
+    }
     
     // Build dynamic update query
     const updateFields = [];

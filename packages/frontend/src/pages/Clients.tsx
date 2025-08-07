@@ -242,8 +242,8 @@ export const Clients: React.FC = () => {
         <h1>Clients</h1>
       </div>
       
-      <div className="search-section">
-        <div className="search-bar">
+      <div className="clients-controls">
+        <div className="search-section">
           <input
             type="text"
             placeholder="Search for Client"
@@ -264,14 +264,14 @@ export const Clients: React.FC = () => {
               <option key={tag} value={tag}>#{tag}</option>
             ))}
           </select>
+          
+          <button 
+            className="add-new-client-btn"
+            onClick={handleAddNewClient}
+          >
+            Add New Client
+          </button>
         </div>
-        
-        <button 
-          className="add-new-client-btn"
-          onClick={handleAddNewClient}
-        >
-          Add New Client
-        </button>
       </div>
 
       <div className="clients-table-container">
@@ -287,13 +287,14 @@ export const Clients: React.FC = () => {
           <table className="clients-table">
             <thead>
               <tr>
+                <th>Patient ID</th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Date Joined</th>
                 <th>BMI</th>
                 <th>Status</th>
-                <th>Tags</th>
+                <th>Hashtags</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -302,6 +303,7 @@ export const Clients: React.FC = () => {
                 const statusInfo = getPatientStatus(patient);
                 return (
                   <tr key={patient.id} onClick={() => handlePatientClick(patient.id)} className="clickable-row">
+                    <td>{patient.patient_id || '-'}</td>
                     <td>{patient.first_name} {patient.last_name}</td>
                     <td>{patient.email}</td>
                     <td>{formatPhoneNumber(patient.phone)}</td>
@@ -325,8 +327,12 @@ export const Clients: React.FC = () => {
                       <button 
                         className="delete-btn"
                         onClick={() => handleDelete(patient.id, `${patient.first_name} ${patient.last_name}`)}
+                        title="Delete patient"
                       >
-                        Delete
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                          <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4L4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                        </svg>
                       </button>
                     </td>
                   </tr>

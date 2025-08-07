@@ -91,20 +91,24 @@ export class AIService {
       const responseTime = Date.now() - startTime;
       const modelUsed = completion.model || 'gpt-4';
 
-      // Save to database
+      // Save to database and get the saved note
       if (soapNote) {
-        // Get the UUID id for the patient
-        const patientUUID = patientData.id;
-        await this.saveSOAPNote(patientUUID, soapNote, {
+        // Use the patient_id (e.g., P6812) not the UUID
+        const savedNote = await this.saveSOAPNote(patientId, soapNote, {
           model: modelUsed,
           responseTime,
           usage: completion.usage
         });
+        
+        return {
+          success: true,
+          soapNote: savedNote
+        };
       }
 
       return {
         success: true,
-        soapNote
+        soapNote: null
       };
 
     } catch (error) {
@@ -312,11 +316,17 @@ Provider`;
     patientId: string, 
     content: string,
     metadata: any
-  ): Promise<void> {
+  ): Promise<any> {
     const client = await pool.connect();
     
     try {
-      await client.query(`
+      // Debug: Log the values being inserted
+      console.log('Inserting SOAP note with values:');
+      console.log('  patient_id:', patientId, `(length: ${patientId.length})`);
+      console.log('  ai_model:', metadata.model, `(length: ${metadata.model?.length || 0})`);
+      console.log('  content length:', content.length);
+      
+      const result = await client.query(`
         INSERT INTO soap_notes (
           patient_id,
           content,
@@ -327,6 +337,7 @@ Provider`;
           completion_tokens,
           total_tokens
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id, patient_id, content, status, created_at, ai_model, total_tokens
       `, [
         patientId,
         content,
@@ -337,6 +348,8 @@ Provider`;
         metadata.usage?.completion_tokens,
         metadata.usage?.total_tokens
       ]);
+      
+      return result.rows[0];
     } finally {
       client.release();
     }

@@ -278,4 +278,20 @@
 
 .modal-actions .delete-btn:hover {
   background: #c82333;
+}
+
+/* Tag styles */
+.tags-container {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  background-color: #e5f3ff;
+  color: #0066cc;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
 } 
