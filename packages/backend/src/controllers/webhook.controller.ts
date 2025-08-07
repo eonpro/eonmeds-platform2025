@@ -293,11 +293,9 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     // Convert state to abbreviation if needed
     const stateAbbreviation = getStateAbbreviation(patientData.state);
     
-    // Generate patient ID with new format
-    const patientIdResult = await client.query(
-      "SELECT 'P' || LPAD((COALESCE(MAX(SUBSTRING(patient_id FROM 2)::INTEGER), 0) + 1)::TEXT, 4, '0') as patient_id FROM patients WHERE patient_id ~ '^P[0-9]+$'"
-    );
-    const patientId = patientIdResult.rows[0]?.patient_id || 'P0001';
+    // Generate patient ID using database function
+    const patientIdResult = await client.query("SELECT generate_patient_id() as patient_id");
+    const patientId = patientIdResult.rows[0].patient_id;
     
     // Create or update patient record
     const result = await client.query(

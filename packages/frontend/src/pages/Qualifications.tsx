@@ -5,6 +5,35 @@ import { Patient, PatientListResponse } from '../services/patient.service';
 import { debounce } from '../utils/debounce';
 import './Qualifications.css';
 
+interface DeleteModalProps {
+  isOpen: boolean;
+  patientName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({ isOpen, patientName, onConfirm, onCancel }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2>Delete Patient</h2>
+        <p>Are you sure you want to delete <strong>{patientName}</strong>?</p>
+        <p style={{ color: '#dc3545', fontSize: '14px' }}>This action cannot be undone.</p>
+        <div className="modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+          <button className="cancel-btn" onClick={onCancel} style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: '5px', background: 'white', cursor: 'pointer' }}>
+            Cancel
+          </button>
+          <button className="delete-btn" onClick={onConfirm} style={{ padding: '8px 16px', border: 'none', borderRadius: '5px', background: '#dc3545', color: 'white', cursor: 'pointer' }}>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const Qualifications: React.FC = () => {
   const navigate = useNavigate();
   const apiClient = useApi();
@@ -14,6 +43,11 @@ export const Qualifications: React.FC = () => {
   const [selectedTag, setSelectedTag] = useState('');
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; patientId: string; patientName: string }>({
+    isOpen: false,
+    patientId: '',
+    patientName: ''
+  });
 
   // Fetch patients that need qualification (pending_review status)
   const fetchPendingPatients = useCallback(async (search?: string, showLoading = true) => {
@@ -109,6 +143,31 @@ export const Qualifications: React.FC = () => {
       return `(${match[1]}) ${match[2]}-${match[3]}`;
     }
     return phone;
+  };
+
+  const handleDelete = async (patientId: string, patientName: string) => {
+    setDeleteModal({ isOpen: true, patientId, patientName });
+  };
+
+  const confirmDelete = async () => {
+    if (!apiClient) return;
+    
+    try {
+      await apiClient.delete(`/api/v1/patients/${deleteModal.patientId}`);
+      
+      // Remove the patient from the list
+      setPatients(patients.filter(p => p.id !== deleteModal.patientId));
+      
+      // Close modal
+      setDeleteModal({ isOpen: false, patientId: '', patientName: '' });
+    } catch (error) {
+      console.error('Failed to delete patient:', error);
+      alert('Failed to delete patient. Please try again.');
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, patientId: '', patientName: '' });
   };
 
   const handlePatientClick = (patientId: string) => {
@@ -222,7 +281,7 @@ export const Qualifications: React.FC = () => {
                       className="delete-btn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // Delete functionality if needed
+                        handleDelete(patient.id, `${patient.first_name} ${patient.last_name}`);
                       }}
                       title="Delete patient"
                     >
@@ -238,6 +297,12 @@ export const Qualifications: React.FC = () => {
           </tbody>
         </table>
       </div>
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        patientName={deleteModal.patientName}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
     </div>
   );
 }; 
