@@ -294,7 +294,6 @@ export const Clients: React.FC = () => {
                 <th>Phone</th>
                 <th>Date Joined</th>
                 <th>BMI</th>
-                <th>Status</th>
                 <th>Hashtags</th>
                 <th>Actions</th>
               </tr>
@@ -310,11 +309,6 @@ export const Clients: React.FC = () => {
                     <td>{formatPhoneNumber(patient.phone)}</td>
                     <td>{formatDate(patient.created_at)}</td>
                     <td>{patient.bmi || '-'}</td>
-                    <td>
-                      <span className={`status-badge status-${statusInfo.status}`}>
-                        {statusInfo.label}
-                      </span>
-                    </td>
                     <td>
                       {patient.membership_hashtags && patient.membership_hashtags.length > 0 ? (
                         <div className="tag-list">
