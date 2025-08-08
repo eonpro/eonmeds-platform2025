@@ -1,0 +1,11 @@
+{
+  "watch": ["src"],
+  "ext": "ts,json",
+  "ignore": ["src/**/*.spec.ts", "src/**/*.test.ts"],
+  "exec": "ts-node --transpile-only -P tsconfig.loose.json src/index.ts",
+  "env": {
+    "NODE_ENV": "development",
+    "TS_NODE_FILES": true,
+    "TS_NODE_TRANSPILE_ONLY": true
+  }
+} 

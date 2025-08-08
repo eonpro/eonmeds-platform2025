@@ -1,0 +1,331 @@
+.income-report-page {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.export-btn,
+.print-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-btn {
+  background-color: #14a97b;
+  color: white;
+  border: none;
+}
+
+.export-btn:hover {
+  background-color: #0f8a63;
+}
+
+.print-btn {
+  background-color: white;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.print-btn:hover {
+  background-color: #f9fafb;
+}
+
+/* Filters Section */
+.filters-section {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-end;
+}
+
+.date-filters {
+  display: flex;
+  gap: 16px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.filter-group input,
+.filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: white;
+}
+
+/* Income Stats */
+.income-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.stat-card.primary {
+  background-color: #f0fdf7;
+  border-color: #14a97b;
+}
+
+.stat-card.negative {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+.stat-card.warning {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+
+.stat-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.stat-card.primary .stat-value {
+  color: #14a97b;
+}
+
+.stat-card.negative .stat-value {
+  color: #ef4444;
+}
+
+.stat-card.warning .stat-value {
+  color: #f59e0b;
+}
+
+.stat-detail {
+  font-size: 12px;
+  color: #6b7280;
+  display: block;
+  margin-top: 4px;
+}
+
+/* Payments Table Section */
+.payments-table-section {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.payments-table-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 20px 0;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.payments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.payments-table th {
+  text-align: left;
+  padding: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #6b7280;
+  border-bottom: 2px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.payments-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.payments-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.patient-link {
+  color: #14a97b;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.patient-link:hover {
+  text-decoration: underline;
+}
+
+.invoice-number {
+  font-family: 'SF Mono', Monaco, monospace;
+  font-weight: 500;
+  color: #374151;
+}
+
+.amount {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.method-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.method-badge.stripe {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.method-badge.offline {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-transform: capitalize;
+}
+
+.status-badge.paid {
+  background-color: #10b981;
+}
+
+.status-badge.pending {
+  background-color: #f59e0b;
+}
+
+.status-badge.refunded {
+  background-color: #6b7280;
+}
+
+.reference {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.stripe-ref {
+  font-family: 'SF Mono', Monaco, monospace;
+  font-size: 12px;
+}
+
+.offline-ref {
+  font-style: italic;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+/* Print Styles */
+@media print {
+  .income-report-page {
+    padding: 0;
+  }
+  
+  .header-actions,
+  .filters-section {
+    display: none;
+  }
+  
+  .page-header {
+    margin-bottom: 20px;
+  }
+  
+  .income-stats {
+    page-break-after: avoid;
+  }
+  
+  .payments-table-section {
+    border: none;
+    padding: 0;
+  }
+  
+  .payments-table {
+    font-size: 10px;
+  }
+  
+  .payments-table th,
+  .payments-table td {
+    padding: 6px;
+  }
+} 

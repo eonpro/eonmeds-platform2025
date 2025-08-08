@@ -1,0 +1,15 @@
+# Add these lines to your packages/backend/.env file:
+
+# RDS Database Configuration
+DB_HOST=eonmeds-dev-db.cxy4o6eyy4sq.us-west-2.rds.amazonaws.com
+DB_PORT=5432
+DB_NAME=eonmeds
+DB_USER=eonmeds_admin
+DB_PASSWORD=.S:wbEHBnOcnqlyFa9[RxnMC99]I
+DB_SSL=true
+
+# Alternative: Single connection string
+DATABASE_URL=postgresql://eonmeds_admin:.S:wbEHBnOcnqlyFa9[RxnMC99]I@eonmeds-dev-db.cxy4o6eyy4sq.us-west-2.rds.amazonaws.com:5432/eonmeds?ssl=true
+
+# HeyFlow Webhook Secret (temporary for testing)
+HEYFLOW_WEBHOOK_SECRET=test-webhook-secret-2025 

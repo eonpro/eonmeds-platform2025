@@ -1,0 +1,43 @@
+{
+  "title": "Dashboard",
+  "welcome": "Welcome, {{name}}!",
+  "role": "Role: {{role}}",
+  "widgets": {
+    "appointments": {
+      "title": "Upcoming Appointments",
+      "count": "{{count}} appointments"
+    },
+    "prescriptions": {
+      "title": "Prescriptions",
+      "active": "{{count}} Active"
+    },
+    "messages": {
+      "title": "Messages",
+      "unread": "{{count}} Unread"
+    }
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "bookAppointment": "Book Appointment",
+    "viewRecords": "View Records",
+    "messageProvider": "Message Provider"
+  },
+  "recentActivity": {
+    "title": "Recent Activity",
+    "login": "Logged in at {{time}}",
+    "profileSync": "Profile synced with backend",
+    "languagePreference": "Language preference: {{language}}"
+  },
+  "patient": {
+    "title": "Patient Dashboard",
+    "description": "View your appointments, prescriptions, and health records"
+  },
+  "provider": {
+    "title": "Provider Dashboard",
+    "description": "Manage patients, appointments, and medical records"
+  },
+  "admin": {
+    "title": "Administration Dashboard",
+    "description": "Manage users, system settings, and analytics"
+  }
+} 

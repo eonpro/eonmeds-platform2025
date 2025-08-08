@@ -1,0 +1,80 @@
+.language-switcher {
+  display: inline-flex;
+  gap: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #f0f0f0;
+}
+
+.lang-button {
+  padding: 8px 16px;
+  border: none;
+  background-color: transparent;
+  color: #666;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  min-width: 50px;
+}
+
+.lang-button:first-child {
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+.lang-button:last-child {
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.lang-button:hover:not(.active):not(.disabled) {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.lang-button.active {
+  background-color: #007bff;
+  color: white;
+  font-weight: 600;
+}
+
+.lang-button.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Add a subtle animation when switching */
+.lang-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background-color: white;
+  border-radius: 1px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .language-switcher {
+    background-color: #2a2a2a;
+  }
+  
+  .lang-button {
+    color: #ccc;
+  }
+  
+  .lang-button:hover:not(.active):not(.disabled) {
+    background-color: #3a3a3a;
+    color: #fff;
+  }
+  
+  .lang-button.active {
+    background-color: #0066cc;
+  }
+} 

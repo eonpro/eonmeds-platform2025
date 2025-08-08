@@ -1,0 +1,50 @@
+{
+  "app": {
+    "name": "EONMeds",
+    "tagline": "Tu Salud, Nuestra Prioridad"
+  },
+  "nav": {
+    "home": "Inicio",
+    "dashboard": "Panel de Control",
+    "patients": "Pacientes",
+    "profile": "Perfil",
+    "logout": "Cerrar Sesión",
+    "login": "Iniciar Sesión"
+  },
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "submit": "Enviar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "loading": "Cargando...",
+    "refresh": "Actualizar",
+    "search": "Buscar"
+  },
+  "messages": {
+    "welcome": "¡Bienvenido, {{name}}!",
+    "success": "¡Éxito!",
+    "error": "Ocurrió un error",
+    "loading": "Cargando...",
+    "noData": "No hay datos disponibles",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar esto?",
+    "saved": "Cambios guardados exitosamente",
+    "required": "Este campo es obligatorio"
+  },
+  "roles": {
+    "patient": "Paciente",
+    "provider": "Proveedor",
+    "admin": "Administrador",
+    "sales_rep": "Representante de Ventas",
+    "superadmin": "Super Administrador"
+  },
+  "status": {
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "pending": "Pendiente",
+    "completed": "Completado",
+    "cancelled": "Cancelado"
+  }
+} 
