@@ -5,6 +5,7 @@ import { useApi } from '../hooks/useApi';
 import { Patient, PatientListResponse } from '../services/patient.service';
 import { debounce } from '../utils/debounce';
 import { getHashtagType } from '../utils/hashtag-utils';
+import { formatHashtagDisplay } from '../utils/hashtag-display';
 import { AddNewClientModal } from '../components/AddNewClientModal';
 import './Clients.css';
 
@@ -262,7 +263,7 @@ export const Clients: React.FC = () => {
           >
             <option value="">Filter by Hashtag</option>
             {availableTags.map(tag => (
-              <option key={tag} value={tag}>#{tag}</option>
+              <option key={tag} value={tag}>{formatHashtagDisplay(tag)}</option>
             ))}
           </select>
           
@@ -318,7 +319,7 @@ export const Clients: React.FC = () => {
                               className="tag"
                               data-tag-type={getHashtagType(tag)}
                             >
-                              #{tag}
+                              {formatHashtagDisplay(tag)}
                             </span>
                           ))}
                         </div>

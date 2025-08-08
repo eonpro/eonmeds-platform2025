@@ -5,6 +5,7 @@ import { EditPatientModal } from '../components/patients/EditPatientModal';
 import { CreatePatientModal } from '../components/patients/CreatePatientModal';
 import { useApi } from '../hooks/useApi';
 import { getHashtagColor } from '../utils/hashtag-utils';
+import { formatHashtagDisplay } from '../utils/hashtag-display';
 import { 
   UserIcon, 
   ChartIcon, 
@@ -739,7 +740,7 @@ export const PatientProfile: React.FC = () => {
                         backgroundColor: getHashtagColor(tag)
                       }}
                     >
-                      #{tag}
+                      {formatHashtagDisplay(tag)}
                       <button 
                         className="remove-tag-btn"
                         onClick={() => removeHashtag(tag)}
