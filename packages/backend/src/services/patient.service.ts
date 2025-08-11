@@ -1,4 +1,4 @@
-import { pool } from '../config/database';
+import { pool } from "../config/database";
 
 export interface Patient {
   id: string;
@@ -42,10 +42,10 @@ export class PatientService {
     limit: number = 100,
     offset: number = 0,
     search?: string,
-    status?: string
+    status?: string,
   ): Promise<{ patients: PatientListItem[]; total: number }> {
     try {
-      let whereClause = 'WHERE 1=1';
+      let whereClause = "WHERE 1=1";
       const params: any[] = [];
       let paramCount = 0;
 
@@ -82,7 +82,7 @@ export class PatientService {
       const limitParam = paramCount;
       paramCount++;
       const offsetParam = paramCount;
-      
+
       const query = `
         SELECT 
           id,
@@ -99,16 +99,16 @@ export class PatientService {
         ORDER BY created_at DESC
         LIMIT $${limitParam} OFFSET $${offsetParam}
       `;
-      
+
       params.push(limit, offset);
       const result = await pool.query(query, params);
-      
+
       return {
         patients: result.rows,
-        total
+        total,
       };
     } catch (error) {
-      console.error('Error in getPatientList:', error);
+      console.error("Error in getPatientList:", error);
       throw error;
     }
   }
@@ -141,16 +141,16 @@ export class PatientService {
         FROM patients
         WHERE patient_id = $1 OR id::text = $1
       `;
-      
+
       const result = await pool.query(query, [patientId]);
-      
+
       if (result.rows.length === 0) {
         return null;
       }
-      
+
       return result.rows[0];
     } catch (error) {
-      console.error('Error in getPatientById:', error);
+      console.error("Error in getPatientById:", error);
       throw error;
     }
   }
@@ -160,7 +160,7 @@ export class PatientService {
    */
   static async getPatientIntakeData(patientId: string): Promise<any> {
     const client = await pool.connect();
-    
+
     try {
       // Get the original webhook data for complete intake form
       const query = `
@@ -174,30 +174,30 @@ export class PatientService {
         ORDER BY we.created_at DESC
         LIMIT 1
       `;
-      
+
       const result = await client.query(query, [patientId]);
-      
+
       if (result.rows.length === 0) {
         return null;
       }
-      
+
       const webhookData = result.rows[0];
       const fields = webhookData.payload.fields || [];
-      
+
       // Transform fields into readable format
       const intakeData: any = {
         form_type: webhookData.form_type,
         submitted_at: webhookData.created_at,
-        responses: {}
+        responses: {},
       };
-      
+
       // Group fields by category
       fields.forEach((field: any) => {
         if (field.label && field.values?.[0]?.answer) {
           intakeData.responses[field.label] = field.values[0].answer;
         }
       });
-      
+
       return intakeData;
     } finally {
       client.release();
@@ -208,12 +208,12 @@ export class PatientService {
    * Update patient status
    */
   static async updatePatientStatus(
-    patientId: string, 
-    status: string, 
-    reviewedBy?: string
+    patientId: string,
+    status: string,
+    reviewedBy?: string,
   ): Promise<boolean> {
     const client = await pool.connect();
-    
+
     try {
       const query = `
         UPDATE patients 
@@ -224,9 +224,9 @@ export class PatientService {
           updated_at = NOW()
         WHERE patient_id = $1 OR id = $1
       `;
-      
+
       const result = await client.query(query, [patientId, status, reviewedBy]);
-      
+
       return (result.rowCount ?? 0) > 0;
     } finally {
       client.release();
@@ -235,4 +235,4 @@ export class PatientService {
 }
 
 // Default export
-export default PatientService; 
+export default PatientService;

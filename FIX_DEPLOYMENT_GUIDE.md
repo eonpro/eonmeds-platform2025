@@ -3,22 +3,26 @@
 ## Current Issues & Solutions
 
 ### 1. Auth0 "Missing Refresh Token" Error
+
 **Issue**: Users are getting "Missing Refresh Token" errors because the bypass tokens have been removed.
 
 **Solution**: Users need to log out and log back in to get new refresh tokens.
 
 **Steps**:
+
 1. Clear browser local storage (F12 → Application → Local Storage → Clear)
 2. Navigate to: https://intuitive-learning-production.up.railway.app
 3. Click "Login" and authenticate with Auth0
 4. The new session will have proper refresh tokens
 
 ### 2. SOAP Notes 500 Error
+
 **Issue**: SOAP note generation is failing because OpenAI API key is not set.
 
 **Solution**: Add OpenAI API key to Railway environment variables.
 
 **Steps**:
+
 1. Go to Railway Dashboard → Your Project → Backend Service
 2. Click "Variables" tab
 3. Add: `OPENAI_API_KEY = sk-your-openai-api-key`
@@ -27,6 +31,7 @@
 ### 3. Environment Variables Setup
 
 #### Backend Service (Railway)
+
 Add these variables in Railway Backend service:
 
 ```bash
@@ -68,6 +73,7 @@ HEYFLOW_WEBHOOK_SECRET=your_heyflow_secret
 ```
 
 #### Frontend Service (Railway)
+
 Add these as build-time variables:
 
 ```bash
@@ -81,6 +87,7 @@ REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
 ### 4. Deployment Steps
 
 1. **Backend First**:
+
    ```bash
    cd packages/backend
    git add .
@@ -89,6 +96,7 @@ REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
    ```
 
 2. **Frontend Second**:
+
    ```bash
    cd packages/frontend
    git add .
@@ -117,6 +125,7 @@ After deployment, test these features:
 ### 6. Monitoring
 
 Watch the Railway logs for:
+
 - Authentication errors
 - Database connection issues
 - API errors
@@ -127,6 +136,7 @@ Use the comprehensive logging we added to debug any issues.
 ### 7. Rollback Plan
 
 If issues persist:
+
 1. Revert the code changes in Git
 2. Redeploy previous version
 3. Re-add temporary bypass tokens (NOT RECOMMENDED)
@@ -134,8 +144,9 @@ If issues persist:
 ## Next Steps
 
 Once everything is working:
+
 1. Set up proper monitoring (Sentry, LogRocket)
 2. Add health check endpoints
 3. Set up automated testing
 4. Configure backup strategies
-5. Document all integrations 
+5. Document all integrations

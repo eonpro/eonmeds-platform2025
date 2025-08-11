@@ -1,6 +1,6 @@
-import { Response, NextFunction } from 'express';
-import { AuthRequest } from './auth';
-import { query } from '../config/database';
+import { Response, NextFunction } from "express";
+import { AuthRequest } from "./auth";
+import { query } from "../config/database";
 
 // Audit log entry interface
 interface AuditLogEntry {
@@ -27,11 +27,11 @@ export const createAuditLog = async (entry: AuditLogEntry): Promise<void> => {
         entry.resource_id || null,
         entry.details ? JSON.stringify(entry.details) : null,
         entry.ip_address || null,
-        entry.user_agent || null
-      ]
+        entry.user_agent || null,
+      ],
     );
   } catch (error) {
-    console.error('Failed to create audit log:', error);
+    console.error("Failed to create audit log:", error);
     // Don't throw - audit failure shouldn't break the app
   }
 };
@@ -45,13 +45,13 @@ export const audit = (action: string, resourceType: string) => {
     let responseData: any;
 
     // Override json method to capture response
-    (res as any).json = function(data: any) {
+    (res as any).json = function (data: any) {
       responseData = data;
       return originalJson.call(this, data);
     };
 
     // Override end method to log after response
-    (res as any).end = function(...args: any[]) {
+    (res as any).end = function (...args: any[]) {
       // Create audit log entry
       const entry: AuditLogEntry = {
         user_id: req.user?.id,
@@ -64,15 +64,15 @@ export const audit = (action: string, resourceType: string) => {
           query: req.query,
           body: sanitizeBody(req.body),
           status_code: res.statusCode,
-          response_data: sanitizeResponse(responseData)
+          response_data: sanitizeResponse(responseData),
         },
         ip_address: getClientIp(req),
-        user_agent: req.headers['user-agent']
+        user_agent: req.headers["user-agent"],
       };
 
       // Log to database asynchronously without blocking response
-      createAuditLog(entry).catch(error => {
-        console.error('Failed to create audit log:', error);
+      createAuditLog(entry).catch((error) => {
+        console.error("Failed to create audit log:", error);
       });
 
       // Call original end with proper typing
@@ -89,7 +89,7 @@ export const auditAction = async (
   action: string,
   resourceType: string,
   resourceId?: string,
-  details?: any
+  details?: any,
 ): Promise<void> => {
   const entry: AuditLogEntry = {
     user_id: req.user?.id,
@@ -98,7 +98,7 @@ export const auditAction = async (
     resource_id: resourceId,
     details: details,
     ip_address: getClientIp(req),
-    user_agent: req.headers['user-agent']
+    user_agent: req.headers["user-agent"],
   };
 
   await createAuditLog(entry);
@@ -106,51 +106,56 @@ export const auditAction = async (
 
 // Get client IP address
 function getClientIp(req: AuthRequest): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') {
-    return forwarded.split(',')[0].trim();
+  const forwarded = req.headers["x-forwarded-for"];
+  if (typeof forwarded === "string") {
+    return forwarded.split(",")[0].trim();
   }
-  return req.socket.remoteAddress || 'unknown';
+  return req.socket.remoteAddress || "unknown";
 }
 
 // Sanitize request body to remove sensitive data
 function sanitizeBody(body: any): any {
   if (!body) return null;
-  
+
   const sanitized = { ...body };
-  const sensitiveFields = ['password', 'password_confirmation', 'ssn', 'credit_card'];
-  
-  sensitiveFields.forEach(field => {
+  const sensitiveFields = [
+    "password",
+    "password_confirmation",
+    "ssn",
+    "credit_card",
+  ];
+
+  sensitiveFields.forEach((field) => {
     if (sanitized[field]) {
-      sanitized[field] = '[REDACTED]';
+      sanitized[field] = "[REDACTED]";
     }
   });
-  
+
   return sanitized;
 }
 
 // Sanitize response data
 function sanitizeResponse(data: any): any {
   if (!data) return null;
-  
+
   // For large responses, just log summary
   if (Array.isArray(data) && data.length > 10) {
     return { count: data.length, sample: data.slice(0, 3) };
   }
-  
-  if (typeof data === 'object') {
+
+  if (typeof data === "object") {
     const sanitized = { ...data };
-    const sensitiveFields = ['password_hash', 'token', 'refresh_token'];
-    
-    sensitiveFields.forEach(field => {
+    const sensitiveFields = ["password_hash", "token", "refresh_token"];
+
+    sensitiveFields.forEach((field) => {
       if (sanitized[field]) {
-        sanitized[field] = '[REDACTED]';
+        sanitized[field] = "[REDACTED]";
       }
     });
-    
+
     return sanitized;
   }
-  
+
   return data;
 }
 
@@ -158,20 +163,20 @@ function sanitizeResponse(data: any): any {
 export const auditPHIAccess = async (
   req: AuthRequest,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   // Log the access attempt
   await auditAction(
     req,
-    'PHI_ACCESS',
-    'patient_data',
-    req.params.patientId || req.query.patientId as string,
+    "PHI_ACCESS",
+    "patient_data",
+    req.params.patientId || (req.query.patientId as string),
     {
       endpoint: req.path,
       method: req.method,
-      purpose: req.headers['x-access-purpose'] || 'treatment'
-    }
+      purpose: req.headers["x-access-purpose"] || "treatment",
+    },
   );
-  
+
   next();
-}; 
+};

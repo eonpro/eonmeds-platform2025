@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
-import { query } from '../config/database';
-import { auditAction } from '../middleware/audit';
+import { Request, Response } from "express";
+import { query } from "../config/database";
+import { auditAction } from "../middleware/audit";
 
 // Auth0 provides authentication, but we need to sync users with our database
 interface Auth0User {
@@ -8,46 +8,48 @@ interface Auth0User {
   email: string;
   name?: string;
   picture?: string;
-  'https://eonmeds.com/roles'?: string[];
-  'https://eonmeds.com/language'?: string;
+  "https://eonmeds.com/roles"?: string[];
+  "https://eonmeds.com/language"?: string;
 }
 
 // Sync Auth0 user with local database
-export const syncAuth0User = async (req: Request, res: Response): Promise<void> => {
+export const syncAuth0User = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const auth0User = (req as any).auth as Auth0User;
-    
+
     if (!auth0User) {
-      res.status(401).json({ error: 'No Auth0 user found' });
+      res.status(401).json({ error: "No Auth0 user found" });
       return;
     }
 
     // Check if user exists in our database
     const existingUser = await query(
-      'SELECT id, auth0_id FROM users WHERE auth0_id = $1',
-      [auth0User.sub]
+      "SELECT id, auth0_id FROM users WHERE auth0_id = $1",
+      [auth0User.sub],
     );
 
     let userId: string;
 
     if (existingUser.rows.length === 0) {
       // Create new user from Auth0 data
-      const nameParts = (auth0User.name || '').split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-      
+      const nameParts = (auth0User.name || "").split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
       // Get role from Auth0 token
-      const auth0Roles = auth0User['https://eonmeds.com/roles'] || ['patient'];
-      const roleCode = auth0Roles[0] || 'patient';
-      
+      const auth0Roles = auth0User["https://eonmeds.com/roles"] || ["patient"];
+      const roleCode = auth0Roles[0] || "patient";
+
       // Get role ID from database
-      const roleResult = await query(
-        'SELECT id FROM roles WHERE code = $1',
-        [roleCode]
-      );
-      
+      const roleResult = await query("SELECT id FROM roles WHERE code = $1", [
+        roleCode,
+      ]);
+
       if (roleResult.rows.length === 0) {
-        res.status(400).json({ error: 'Invalid role' });
+        res.status(400).json({ error: "Invalid role" });
         return;
       }
 
@@ -64,28 +66,24 @@ export const syncAuth0User = async (req: Request, res: Response): Promise<void> 
           lastName,
           roleResult.rows[0].id,
           true,
-          true // Auth0 handles email verification
-        ]
+          true, // Auth0 handles email verification
+        ],
       );
 
       userId = createUserResult.rows[0].id;
 
       // Log user creation
-      await auditAction(
-        req as any,
-        'USER_CREATED_FROM_AUTH0',
-        'user',
-        userId,
-        { auth0_id: auth0User.sub, email: auth0User.email }
-      );
+      await auditAction(req as any, "USER_CREATED_FROM_AUTH0", "user", userId, {
+        auth0_id: auth0User.sub,
+        email: auth0User.email,
+      });
     } else {
       userId = existingUser.rows[0].id;
-      
+
       // Update last login
-      await query(
-        'UPDATE users SET last_login = NOW() WHERE id = $1',
-        [userId]
-      );
+      await query("UPDATE users SET last_login = NOW() WHERE id = $1", [
+        userId,
+      ]);
     }
 
     // Get full user details
@@ -95,7 +93,7 @@ export const syncAuth0User = async (req: Request, res: Response): Promise<void> 
        FROM users u
        JOIN roles r ON u.role_id = r.id
        WHERE u.id = $1`,
-      [userId]
+      [userId],
     );
 
     const user = userResult.rows[0];
@@ -109,21 +107,24 @@ export const syncAuth0User = async (req: Request, res: Response): Promise<void> 
       role: user.role_name,
       roleCode: user.role_code,
       permissions: user.permissions,
-      language: auth0User['https://eonmeds.com/language'] || 'en'
+      language: auth0User["https://eonmeds.com/language"] || "en",
     });
   } catch (error) {
-    console.error('Sync Auth0 user error:', error);
-    res.status(500).json({ error: 'Failed to sync user data' });
+    console.error("Sync Auth0 user error:", error);
+    res.status(500).json({ error: "Failed to sync user data" });
   }
 };
 
 // Get current user (from Auth0 token)
-export const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
+export const getCurrentUser = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const auth0User = (req as any).auth as Auth0User;
-    
+
     if (!auth0User || !auth0User.sub) {
-      res.status(401).json({ error: 'No authenticated user' });
+      res.status(401).json({ error: "No authenticated user" });
       return;
     }
 
@@ -134,14 +135,14 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
        FROM users u
        JOIN roles r ON u.role_id = r.id
        WHERE u.auth0_id = $1`,
-      [auth0User.sub]
+      [auth0User.sub],
     );
 
     if (userResult.rows.length === 0) {
       // User not synced yet - call sync endpoint
-      res.status(404).json({ 
-        error: 'User not found in database', 
-        message: 'Please call /auth/sync endpoint first' 
+      res.status(404).json({
+        error: "User not found in database",
+        message: "Please call /auth/sync endpoint first",
       });
       return;
     }
@@ -157,22 +158,25 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
       role: user.role_name,
       roleCode: user.role_code,
       permissions: user.permissions,
-      language: auth0User['https://eonmeds.com/language'] || 'en'
+      language: auth0User["https://eonmeds.com/language"] || "en",
     });
   } catch (error) {
-    console.error('Get current user error:', error);
-    res.status(500).json({ error: 'Failed to get user data' });
+    console.error("Get current user error:", error);
+    res.status(500).json({ error: "Failed to get user data" });
   }
 };
 
 // Update user profile
-export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+export const updateProfile = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const auth0User = (req as any).auth as Auth0User;
     const { firstName, lastName, phone } = req.body;
 
     if (!auth0User || !auth0User.sub) {
-      res.status(401).json({ error: 'No authenticated user' });
+      res.status(401).json({ error: "No authenticated user" });
       return;
     }
 
@@ -185,38 +189,34 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
            updated_at = NOW()
        WHERE auth0_id = $4
        RETURNING id, email, first_name, last_name, phone`,
-      [firstName, lastName, phone, auth0User.sub]
+      [firstName, lastName, phone, auth0User.sub],
     );
 
     if (updateResult.rows.length === 0) {
-      res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: "User not found" });
       return;
     }
 
     const user = updateResult.rows[0];
 
     // Log profile update
-    await auditAction(
-      req as any,
-      'USER_PROFILE_UPDATE',
-      'user',
-      user.id,
-      { fields_updated: Object.keys(req.body) }
-    );
+    await auditAction(req as any, "USER_PROFILE_UPDATE", "user", user.id, {
+      fields_updated: Object.keys(req.body),
+    });
 
     res.json({
-      message: 'Profile updated successfully',
+      message: "Profile updated successfully",
       user: {
         id: user.id,
         email: user.email,
         firstName: user.first_name,
         lastName: user.last_name,
-        phone: user.phone
-      }
+        phone: user.phone,
+      },
     });
   } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({ error: 'Failed to update profile' });
+    console.error("Update profile error:", error);
+    res.status(500).json({ error: "Failed to update profile" });
   }
 };
 
@@ -226,4 +226,4 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 // - login (use Auth0 universal login)
 // - logout (handled by Auth0)
 // - refreshToken (Auth0 handles token refresh)
-// - resetPassword (use Auth0 password reset flow) 
+// - resetPassword (use Auth0 password reset flow)

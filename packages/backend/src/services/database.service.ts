@@ -1,6 +1,6 @@
-import { Pool } from 'pg';
-import fs from 'fs';
-import path from 'path';
+import { Pool } from "pg";
+import fs from "fs";
+import path from "path";
 
 export class DatabaseService {
   private pool: Pool;
@@ -14,18 +14,18 @@ export class DatabaseService {
    */
   async initializeDatabase(): Promise<void> {
     try {
-      console.log('🔄 Initializing database schema...');
-      
+      console.log("🔄 Initializing database schema...");
+
       // Read the complete schema file
-      const schemaPath = path.join(__dirname, '../config/complete-schema.sql');
-      const schemaSQL = fs.readFileSync(schemaPath, 'utf-8');
-      
+      const schemaPath = path.join(__dirname, "../config/complete-schema.sql");
+      const schemaSQL = fs.readFileSync(schemaPath, "utf-8");
+
       // Execute the schema
       await this.pool.query(schemaSQL);
-      
-      console.log('✅ Database schema initialized successfully');
+
+      console.log("✅ Database schema initialized successfully");
     } catch (error) {
-      console.error('❌ Failed to initialize database schema:', error);
+      console.error("❌ Failed to initialize database schema:", error);
       throw error;
     }
   }
@@ -38,7 +38,7 @@ export class DatabaseService {
     issues: string[];
   }> {
     const issues: string[] = [];
-    
+
     try {
       // Check if patients table has patient_id column
       const patientIdCheck = await this.pool.query(`
@@ -47,13 +47,15 @@ export class DatabaseService {
         WHERE table_name = 'patients' 
         AND column_name = 'patient_id'
       `);
-      
+
       if (patientIdCheck.rows.length === 0) {
-        issues.push('patients table missing patient_id column');
-      } else if (patientIdCheck.rows[0].data_type !== 'character varying') {
-        issues.push(`patients.patient_id has wrong type: ${patientIdCheck.rows[0].data_type}`);
+        issues.push("patients table missing patient_id column");
+      } else if (patientIdCheck.rows[0].data_type !== "character varying") {
+        issues.push(
+          `patients.patient_id has wrong type: ${patientIdCheck.rows[0].data_type}`,
+        );
       }
-      
+
       // Check SOAP notes foreign key
       const soapNotesFK = await this.pool.query(`
         SELECT 
@@ -71,45 +73,58 @@ export class DatabaseService {
           AND tc.table_name='soap_notes'
           AND kcu.column_name='patient_id'
       `);
-      
+
       if (soapNotesFK.rows.length === 0) {
-        issues.push('soap_notes missing foreign key for patient_id');
+        issues.push("soap_notes missing foreign key for patient_id");
       } else {
         const fk = soapNotesFK.rows[0];
-        if (fk.foreign_table_name !== 'patients' || fk.foreign_column_name !== 'patient_id') {
-          issues.push(`soap_notes.patient_id has wrong foreign key reference: ${fk.foreign_table_name}.${fk.foreign_column_name}`);
+        if (
+          fk.foreign_table_name !== "patients" ||
+          fk.foreign_column_name !== "patient_id"
+        ) {
+          issues.push(
+            `soap_notes.patient_id has wrong foreign key reference: ${fk.foreign_table_name}.${fk.foreign_column_name}`,
+          );
         }
       }
-      
+
       // Check all required tables exist
       const requiredTables = [
-        'patients', 'practitioners', 'soap_notes', 
-        'invoices', 'invoice_items', 'invoice_payments',
-        'service_packages', 'patient_packages', 
-        'appointments', 'audit_logs'
+        "patients",
+        "practitioners",
+        "soap_notes",
+        "invoices",
+        "invoice_items",
+        "invoice_payments",
+        "service_packages",
+        "patient_packages",
+        "appointments",
+        "audit_logs",
       ];
-      
+
       for (const table of requiredTables) {
-        const tableExists = await this.pool.query(`
+        const tableExists = await this.pool.query(
+          `
           SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_name = $1
           )
-        `, [table]);
-        
+        `,
+          [table],
+        );
+
         if (!tableExists.rows[0].exists) {
           issues.push(`Missing required table: ${table}`);
         }
       }
-      
     } catch (error) {
-      console.error('Error verifying database integrity:', error);
+      console.error("Error verifying database integrity:", error);
       issues.push(`Verification error: ${(error as Error).message}`);
     }
-    
+
     return {
       isValid: issues.length === 0,
-      issues
+      issues,
     };
   }
 
@@ -118,10 +133,10 @@ export class DatabaseService {
    */
   async migrateExistingData(): Promise<void> {
     const client = await this.pool.connect();
-    
+
     try {
-      await client.query('BEGIN');
-      
+      await client.query("BEGIN");
+
       // Add patient_id to existing patients if missing
       const hasPatientId = await client.query(`
         SELECT EXISTS (
@@ -130,14 +145,14 @@ export class DatabaseService {
           AND column_name = 'patient_id'
         )
       `);
-      
+
       if (!hasPatientId.rows[0].exists) {
-        console.log('Adding patient_id column to patients table...');
+        console.log("Adding patient_id column to patients table...");
         await client.query(`
           ALTER TABLE patients 
           ADD COLUMN patient_id VARCHAR(20) UNIQUE DEFAULT generate_patient_id()
         `);
-        
+
         // Generate patient IDs for existing records
         await client.query(`
           UPDATE patients 
@@ -145,15 +160,15 @@ export class DatabaseService {
           WHERE patient_id IS NULL
         `);
       }
-      
-      await client.query('COMMIT');
-      console.log('✅ Data migration completed successfully');
+
+      await client.query("COMMIT");
+      console.log("✅ Data migration completed successfully");
     } catch (error) {
-      await client.query('ROLLBACK');
-      console.error('❌ Data migration failed:', error);
+      await client.query("ROLLBACK");
+      console.error("❌ Data migration failed:", error);
       throw error;
     } finally {
       client.release();
     }
   }
-} 
+}

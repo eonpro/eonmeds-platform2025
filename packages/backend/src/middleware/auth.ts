@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import { query } from '../config/database';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import { query } from "../config/database";
 
 // Extend Express Request type
 export interface AuthRequest extends Request {
@@ -30,19 +30,19 @@ export const generateToken = (user: any): string => {
     email: user.email,
     role: user.role_name,
     roleCode: user.role_code,
-    permissions: user.permissions || {}
+    permissions: user.permissions || {},
   };
 
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error('JWT_SECRET is not defined');
+    throw new Error("JWT_SECRET is not defined");
   }
-  
-  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+
+  const expiresIn = process.env.JWT_EXPIRES_IN || "7d";
   const options: jwt.SignOptions = {
-    expiresIn: expiresIn as any // Type assertion to handle the StringValue type
+    expiresIn: expiresIn as any, // Type assertion to handle the StringValue type
   };
-  
+
   return jwt.sign(payload, secret, options);
 };
 
@@ -50,25 +50,28 @@ export const generateToken = (user: any): string => {
 export const generateRefreshToken = (userId: string): string => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error('JWT_SECRET is not defined');
+    throw new Error("JWT_SECRET is not defined");
   }
-  
-  const expiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || '30d';
+
+  const expiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || "30d";
   const options: jwt.SignOptions = {
-    expiresIn: expiresIn as any // Type assertion to handle the StringValue type
+    expiresIn: expiresIn as any, // Type assertion to handle the StringValue type
   };
-  
+
   return jwt.sign({ id: userId }, secret, options);
 };
 
 // Hash password
 export const hashPassword = async (password: string): Promise<string> => {
-  const rounds = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
+  const rounds = parseInt(process.env.BCRYPT_ROUNDS || "10", 10);
   return bcrypt.hash(password, rounds);
 };
 
 // Compare password
-export const comparePassword = async (password: string, hash: string): Promise<boolean> => {
+export const comparePassword = async (
+  password: string,
+  hash: string,
+): Promise<boolean> => {
   return bcrypt.compare(password, hash);
 };
 
@@ -76,17 +79,17 @@ export const comparePassword = async (password: string, hash: string): Promise<b
 export const authenticate = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     // Get token from header
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'No token provided' });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ error: "No token provided" });
       return;
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload;
@@ -97,11 +100,11 @@ export const authenticate = async (
        FROM users u
        JOIN roles r ON u.role_id = r.id
        WHERE u.id = $1`,
-      [decoded.id]
+      [decoded.id],
     );
 
     if (result.rows.length === 0 || !result.rows[0].is_active) {
-      res.status(401).json({ error: 'User not found or inactive' });
+      res.status(401).json({ error: "User not found or inactive" });
       return;
     }
 
@@ -111,18 +114,18 @@ export const authenticate = async (
       email: result.rows[0].email,
       role: result.rows[0].role_name,
       roleCode: result.rows[0].role_code,
-      permissions: result.rows[0].permissions
+      permissions: result.rows[0].permissions,
     };
 
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      res.status(401).json({ error: 'Token expired' });
+      res.status(401).json({ error: "Token expired" });
     } else if (error instanceof jwt.JsonWebTokenError) {
-      res.status(401).json({ error: 'Invalid token' });
+      res.status(401).json({ error: "Invalid token" });
     } else {
-      console.error('Authentication error:', error);
-      res.status(500).json({ error: 'Authentication failed' });
+      console.error("Authentication error:", error);
+      res.status(500).json({ error: "Authentication failed" });
     }
   }
 };
@@ -131,29 +134,31 @@ export const authenticate = async (
 export const authorize = (resource: string, action: string) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      res.status(401).json({ error: 'Not authenticated' });
+      res.status(401).json({ error: "Not authenticated" });
       return;
     }
 
     const userPermissions = req.user.permissions || {};
 
     // Superadmin has all permissions
-    if (userPermissions['*']?.includes('*')) {
+    if (userPermissions["*"]?.includes("*")) {
       return next();
     }
 
     // Check specific permission
-    if (userPermissions[resource]?.includes(action) || 
-        userPermissions[resource]?.includes('*')) {
+    if (
+      userPermissions[resource]?.includes(action) ||
+      userPermissions[resource]?.includes("*")
+    ) {
       return next();
     }
 
     // Check self permission for patients
-    if (resource === 'self' && req.user.roleCode === 'patient') {
+    if (resource === "self" && req.user.roleCode === "patient") {
       return next();
     }
 
-    res.status(403).json({ error: 'Insufficient permissions' });
+    res.status(403).json({ error: "Insufficient permissions" });
   };
 };
 
@@ -161,10 +166,10 @@ export const authorize = (resource: string, action: string) => {
 export const optionalAuth = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return next();
   }
 
@@ -173,39 +178,42 @@ export const optionalAuth = async (
 };
 
 // Export alias for backward compatibility
-export const authenticateToken = authenticate; 
+export const authenticateToken = authenticate;
 
 // Role-based access control middleware
 export const requireRole = (allowedRoles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const userRole = req.user.roleCode || req.user.role;
-    
+
     if (!allowedRoles.includes(userRole)) {
-      return res.status(403).json({ 
-        error: 'Forbidden - Insufficient permissions',
+      return res.status(403).json({
+        error: "Forbidden - Insufficient permissions",
         required: allowedRoles,
-        current: userRole
+        current: userRole,
       });
     }
 
     return next();
   };
-}; 
+};
 
 // Apply role checking middleware to all routes by default
-export function applyRoleMiddleware(router: any, defaultRole: string = 'admin'): void {
+export function applyRoleMiddleware(
+  router: any,
+  defaultRole: string = "admin",
+): void {
   router.use((req: Request, res: Response, next: NextFunction) => {
     // Skip role check for specific routes
-    const publicRoutes = ['/health', '/auth/login', '/auth/register'];
+    const publicRoutes = ["/health", "/auth/login", "/auth/register"];
     if (publicRoutes.includes(req.path)) {
       return next();
     }
-    
+
     // Apply default role requirement
     return requireRole([defaultRole])(req, res, next);
   });
-} 
+}
