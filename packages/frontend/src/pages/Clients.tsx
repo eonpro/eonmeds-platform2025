@@ -7,6 +7,7 @@ import { debounce } from '../utils/debounce';
 import { getHashtagType } from '../utils/hashtag-utils';
 import { formatHashtagDisplay } from '../utils/hashtag-display';
 import { AddNewClientModal } from '../components/AddNewClientModal';
+import { formatPhone } from '../lib/formatPhone';
 import './Clients.css';
 
 // Delete Confirmation Modal Component
@@ -220,18 +221,13 @@ export const Clients: React.FC = () => {
     setDeleteModal({ isOpen: false, patientId: '', patientName: '' });
   };
 
-  const formatPhoneNumber = (phone: string) => {
-    if (!phone) return '-';
-    const cleaned = phone.replace(/\D/g, '');
-    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-    if (match) {
-      return `(${match[1]}) ${match[2]}-${match[3]}`;
-    }
-    return phone;
+  const formatPhoneNumber = (phone: string | undefined) => {
+    const formatted = formatPhone(phone);
+    return formatted || '-';
   };
 
   return (
-    <div className="clients-page">
+    <div className="clients-container">
       {/* New Patient Notification */}
       {newPatientNotification && (
         <div className="new-patient-notification">
@@ -242,6 +238,7 @@ export const Clients: React.FC = () => {
       
       <div className="clients-header">
         <h1>Clients</h1>
+        <p className="subtitle">Manage and view all client information</p>
       </div>
       
       <div className="clients-controls">
@@ -307,7 +304,14 @@ export const Clients: React.FC = () => {
                     <td>{patient.patient_id || '-'}</td>
                     <td>{patient.first_name} {patient.last_name}</td>
                     <td>{patient.email}</td>
-                    <td>{formatPhoneNumber(patient.phone)}</td>
+                    <td>
+                      <span 
+                        className="phone-single-line" 
+                        title={patient.phone || ''}
+                      >
+                        {formatPhoneNumber(patient.phone)}
+                      </span>
+                    </td>
                     <td>{formatDate(patient.created_at)}</td>
                     <td>{patient.bmi || '-'}</td>
                     <td>

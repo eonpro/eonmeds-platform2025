@@ -26,6 +26,12 @@ export function getHashtagType(tag: string): string {
   if (lowerTag === 'hrt' || lowerTag === 'hormone replacement') {
     return 'hrt';
   }
+  if (lowerTag === 'externalenglish' || lowerTag === 'external english') {
+    return 'externalenglish';
+  }
+  if (lowerTag === 'externalspanish' || lowerTag === 'external spanish') {
+    return 'externalspanish';
+  }
   
   // Default for unknown tags
   return 'default';
@@ -43,6 +49,8 @@ export function getHashtagColor(tag: string): string {
     'trt': '#f59e0b',         // Amber
     'peptides': '#06b6d4',    // Cyan
     'hrt': '#8b5cf6',         // Violet
+    'externalenglish': '#0891b2', // Dark Cyan
+    'externalspanish': '#ef4444', // Red
     'default': '#6b7280'      // Gray
   };
   

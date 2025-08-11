@@ -17,6 +17,8 @@ import paymentRoutes from './routes/payment.routes';
 import packageRoutes from './routes/package.routes';
 import aiRoutes from './routes/ai.routes';
 import invoiceRoutes from './routes/invoice.routes';
+import billingRoutes from './routes/billing.routes';
+import billingReportsRoutes from './routes/billing.reports';
 
 // Force redeployment - Auth0 configuration update
 const app = express();
@@ -52,13 +54,25 @@ app.use((req, _res, next) => {
   next();
 });
 
-// IMPORTANT: Stripe webhook endpoint MUST be registered before body parsing middleware
+// IMPORTANT: Stripe webhook endpoints MUST be registered before body parsing middleware
 // This is because Stripe requires the raw body for signature verification
+
+// Existing Stripe webhook endpoint (legacy)
 app.post('/api/v1/payments/webhook/stripe', 
   express.raw({ type: 'application/json' }), 
   (req, res) => {
     // Import and use the webhook handler directly
     const { handleStripeWebhook } = require('./controllers/stripe-webhook.controller');
+    handleStripeWebhook(req, res);
+  }
+);
+
+// New Stripe webhook endpoint with improved handling
+app.post('/api/v1/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  (req, res) => {
+    // Import and use the new webhook handler
+    const { handleStripeWebhook } = require('./routes/stripe.webhook');
     handleStripeWebhook(req, res);
   }
 );
@@ -111,7 +125,26 @@ app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/payments/invoices', invoiceRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/ai', aiRoutes);
+app.use('/api/v1/billing', billingRoutes);
+app.use('/api/v1/billing', billingReportsRoutes);
 console.log('✅ All routes registered (database check happens per route)');
+
+// Generic error handler (must be last)
+app.use((err: any, req: any, res: any, next: any) => {
+  // Log error but don't expose internals
+  console.error('Server error:', err);
+  
+  // Check if response was already sent
+  if (res.headersSent) {
+    return next(err);
+  }
+  
+  // Default error response
+  res.status(err.status || 500).json({
+    ok: false,
+    error: err.message || 'Internal server error'
+  });
+});
 
 // Start server
 app.listen(PORT, async () => {

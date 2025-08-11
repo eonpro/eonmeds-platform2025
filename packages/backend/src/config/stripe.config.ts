@@ -1,6 +1,8 @@
 // Stripe Configuration for EONMeds
 // Uses environment variables to keep API keys secure
 
+import Stripe from 'stripe';
+
 export const stripeConfig = {
   // Stripe API Key - Set in .env file
   apiKey: process.env.STRIPE_SECRET_KEY || '',
@@ -72,6 +74,28 @@ export const stripeConfig = {
   }
 };
 
+// Initialize Stripe client - single source of truth
+let stripeClient: Stripe | null = null;
+
+// Get or create the Stripe client instance
+export const getStripeClient = (): Stripe => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error(
+      'STRIPE_SECRET_KEY environment variable is not set. ' +
+      'Please add STRIPE_SECRET_KEY=sk_test_... to your .env file.'
+    );
+  }
+
+  if (!stripeClient) {
+    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-06-20',
+      typescript: true,
+    });
+  }
+
+  return stripeClient;
+};
+
 // Validate configuration on startup
 export const validateStripeConfig = () => {
   if (!stripeConfig.apiKey) {
@@ -87,4 +111,8 @@ export const validateStripeConfig = () => {
   
   console.log('✅ Stripe configuration loaded successfully');
   return true;
-}; 
+};
+
+// Export configured Stripe client for backward compatibility
+// Note: Prefer using getStripeClient() for lazy initialization
+export const stripe = stripeConfig.apiKey ? getStripeClient() : null; 

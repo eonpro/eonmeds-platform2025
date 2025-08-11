@@ -272,7 +272,10 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     let hashtags = ['weightloss']; // Base tag for all weight loss forms
     let isRepForm = false;
     
-    // Check if this is the Internal Espanol form
+    // Log the form type for debugging
+    console.log(`📝 Form Type/Flow ID: ${formType}`);
+    
+    // Check form type and assign appropriate hashtags
     if (formType === 'Gb2YDWzoMnCcOAH17EYF') {
       // This is the Internal Espanol 2025 form
       isRepForm = true;
@@ -289,6 +292,14 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         console.warn('⚠️  Internal Espanol form submitted without rep name');
         hashtags.push('internalrep'); // Still mark as internal
       }
+    } else if (formType && formType.toLowerCase().includes('external-english')) {
+      // External English form
+      hashtags.push('externalenglish');
+      console.log(`🌐 External English form detected`);
+    } else if (formType && formType.toLowerCase().includes('external-spanish')) {
+      // External Spanish form
+      hashtags.push('externalspanish');
+      console.log(`🌐 External Spanish form detected`);
     } else {
       // Regular direct form
       hashtags.push('webdirect');

@@ -328,6 +328,14 @@
   background-color: #8b5cf6; /* Violet for HRT */
 }
 
+.tag[data-tag-type="externalenglish"] {
+  background-color: #0891b2; /* Dark Cyan for External English */
+}
+
+.tag[data-tag-type="externalspanish"] {
+  background-color: #ef4444; /* Red for External Spanish */
+}
+
 .tag[data-tag-type="default"] {
   background-color: #6b7280; /* Gray for unknown tags */
 } 
