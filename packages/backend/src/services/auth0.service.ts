@@ -17,18 +17,20 @@ export class Auth0Service {
       domain: process.env.AUTH0_DOMAIN!,
       clientId: process.env.AUTH0_CLIENT_ID!,
       clientSecret: process.env.AUTH0_CLIENT_SECRET!,
-      audience: process.env.AUTH0_AUDIENCE!
+      audience: process.env.AUTH0_AUDIENCE!,
     };
 
     if (!this.config.domain || !this.config.clientId || !this.config.clientSecret) {
-      throw new Error('Auth0 configuration is incomplete. Please set all required environment variables.');
+      throw new Error(
+        'Auth0 configuration is incomplete. Please set all required environment variables.'
+      );
     }
 
     // Use client credentials grant
     this.management = new ManagementClient({
       domain: this.config.domain,
       clientId: this.config.clientId,
-      clientSecret: this.config.clientSecret
+      clientSecret: this.config.clientSecret,
     });
   }
 
@@ -58,9 +60,9 @@ export class Auth0Service {
     try {
       const user = await this.management.users.create({
         ...userData,
-        connection: userData.connection || 'Username-Password-Authentication'
+        connection: userData.connection || 'Username-Password-Authentication',
       });
-      
+
       return user;
     } catch (error) {
       console.error('Error creating user in Auth0:', error);
@@ -120,7 +122,7 @@ export class Auth0Service {
       id: auth.sub,
       email: auth.email,
       roles: auth['https://eonmeds.com/roles'] || auth.roles || [],
-      permissions: auth.permissions || []
+      permissions: auth.permissions || [],
     };
   }
 
@@ -130,7 +132,7 @@ export class Auth0Service {
   userHasRole(req: Request, role: string): boolean {
     const user = this.getUserFromRequest(req);
     if (!user) return false;
-    
+
     return user.roles?.includes(role) || false;
   }
 
@@ -140,7 +142,7 @@ export class Auth0Service {
   userHasPermission(req: Request, permission: string): boolean {
     const user = this.getUserFromRequest(req);
     if (!user) return false;
-    
+
     return user.permissions?.includes(permission) || false;
   }
 
@@ -155,16 +157,18 @@ export class Auth0Service {
   }) {
     try {
       // Check if user already exists
-      const existingUsersResponse = await this.management.usersByEmail.getByEmail({ email: patientData.email });
+      const existingUsersResponse = await this.management.usersByEmail.getByEmail({
+        email: patientData.email,
+      });
       const existingUsers = existingUsersResponse.data || [];
-      
+
       if (existingUsers.length > 0) {
         // Update existing user with patient metadata
         const user = existingUsers[0];
         await this.updateUserMetadata(user.user_id!, {
           patient_id: patientData.patientId,
           first_name: patientData.firstName,
-          last_name: patientData.lastName
+          last_name: patientData.lastName,
         });
         return user;
       }
@@ -177,15 +181,15 @@ export class Auth0Service {
         user_metadata: {
           patient_id: patientData.patientId,
           first_name: patientData.firstName,
-          last_name: patientData.lastName
+          last_name: patientData.lastName,
         },
         app_metadata: {
-          role: 'patient'
-        }
+          role: 'patient',
+        },
       });
 
       // TODO: Send password reset email
-      
+
       return user;
     } catch (error) {
       console.error('Error creating patient Auth0 user:', error);
@@ -204,4 +208,4 @@ export class Auth0Service {
     }
     return password;
   }
-} 
+}

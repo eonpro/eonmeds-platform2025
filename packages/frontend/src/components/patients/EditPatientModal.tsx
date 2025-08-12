@@ -34,7 +34,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
   isOpen,
   onClose,
   patient,
-  onSave
+  onSave,
 }) => {
   const [formData, setFormData] = useState<Partial<PatientData>>({});
   const [loading, setLoading] = useState(false);
@@ -48,9 +48,9 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
       let addressData = {
         address_house: patient.address_house || '',
         address_street: patient.address_street || '',
-        apartment_number: patient.apartment_number || ''
+        apartment_number: patient.apartment_number || '',
       };
-      
+
       // If new fields are empty but we have a legacy address, try to parse it
       if (!patient.address_house && !patient.address_street && patient.address) {
         // Try to extract house number and street from legacy address
@@ -60,7 +60,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
           addressData.address_street = addressMatch[2];
         }
       }
-      
+
       setFormData({
         first_name: patient.first_name,
         last_name: patient.last_name,
@@ -77,9 +77,9 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
         city: patient.city,
         state: getStateAbbreviation(patient.state),
         zip: patient.zip,
-        status: patient.status
+        status: patient.status,
       });
-      
+
       // Convert height to feet and inches
       if (patient.height_inches) {
         setHeightFeet(Math.floor(patient.height_inches / 12));
@@ -90,9 +90,9 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -100,12 +100,12 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
     const numValue = parseInt(value) || 0;
     if (type === 'feet') {
       setHeightFeet(numValue);
-      const totalInches = (numValue * 12) + heightInches;
-      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+      const totalInches = numValue * 12 + heightInches;
+      setFormData((prev) => ({ ...prev, height_inches: totalInches }));
     } else {
       setHeightInches(numValue);
-      const totalInches = (heightFeet * 12) + numValue;
-      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+      const totalInches = heightFeet * 12 + numValue;
+      setFormData((prev) => ({ ...prev, height_inches: totalInches }));
     }
   };
 
@@ -113,7 +113,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     try {
       await onSave(formData);
       onClose();
@@ -129,15 +129,15 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Edit Patient Information</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="close-button" onClick={onClose}>
+            ×
+          </button>
         </div>
 
-        {error && (
-          <div className="error-message">{error}</div>
-        )}
+        {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-grid">
@@ -313,7 +313,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 onChange={handleInputChange}
               >
                 <option value="">Select State</option>
-                {US_STATES.map(state => (
+                {US_STATES.map((state) => (
                   <option key={state.abbreviation} value={state.abbreviation}>
                     {state.name}
                   </option>
@@ -360,4 +360,4 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
       </div>
     </div>
   );
-}; 
+};

@@ -5,7 +5,7 @@ import { pool } from '../config/database';
 export const getPatientInvoices = async (req: Request, res: Response): Promise<void> => {
   try {
     const { patientId } = req.params;
-    
+
     const result = await pool.query(
       `SELECT 
         id,
@@ -34,17 +34,17 @@ export const getPatientInvoices = async (req: Request, res: Response): Promise<v
       ORDER BY created_at DESC`,
       [patientId]
     );
-    
+
     // Transform the data to match frontend expectations
-    const invoices = result.rows.map(invoice => ({
+    const invoices = result.rows.map((invoice) => ({
       ...invoice,
       amount: invoice.total_amount, // Frontend expects 'amount'
-      date: invoice.invoice_date
+      date: invoice.invoice_date,
     }));
-    
+
     res.json({
       invoices,
-      total: result.rows.length
+      total: result.rows.length,
     });
   } catch (error) {
     console.error('Error fetching patient invoices:', error);
@@ -55,8 +55,27 @@ export const getPatientInvoices = async (req: Request, res: Response): Promise<v
 // Create a new invoice
 export const createInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { patient_id, amount, description, due_date, status = 'draft', items = [] } = req.body;
+    const { patient_id, amount, total_amount, description, due_date, status = 'draft', items = [] } = req.body;
     
+    // Support both 'amount' and 'total_amount' for backwards compatibility
+    const invoiceAmount = amount || total_amount;
+    
+    // Validate required fields
+    if (!patient_id) {
+      res.status(400).json({ error: 'Patient ID is required' });
+      return;
+    }
+    
+    if (!invoiceAmount || invoiceAmount <= 0) {
+      res.status(400).json({ error: 'Valid invoice amount is required' });
+      return;
+    }
+    
+    if (!due_date) {
+      res.status(400).json({ error: 'Due date is required' });
+      return;
+    }
+
     // Create the invoice
     const result = await pool.query(
       `INSERT INTO invoices (
@@ -73,11 +92,11 @@ export const createInvoice = async (req: Request, res: Response): Promise<void> 
       )
        VALUES (generate_invoice_number(), $1, $2, $2, $3, $4, $5, CURRENT_DATE, NOW(), NOW())
        RETURNING *`,
-      [patient_id, amount, description, due_date, status]
+      [patient_id, invoiceAmount, description, due_date, status]
     );
-    
+
     const invoice = result.rows[0];
-    
+
     // Add line items if provided
     if (items.length > 0) {
       for (const item of items) {
@@ -88,10 +107,11 @@ export const createInvoice = async (req: Request, res: Response): Promise<void> 
         );
       }
     }
-    
+
     res.json({
       success: true,
-      invoice
+      invoice,
+      message: 'Invoice created successfully'
     });
   } catch (error) {
     console.error('Error creating invoice:', error);
@@ -103,20 +123,17 @@ export const createInvoice = async (req: Request, res: Response): Promise<void> 
 export const deleteInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
     const { invoiceId } = req.params;
-    
-    const result = await pool.query(
-      'DELETE FROM invoices WHERE id = $1 RETURNING *',
-      [invoiceId]
-    );
-    
+
+    const result = await pool.query('DELETE FROM invoices WHERE id = $1 RETURNING *', [invoiceId]);
+
     if (result.rowCount === 0) {
       res.status(404).json({ error: 'Invoice not found' });
       return;
     }
-    
+
     res.json({
       success: true,
-      message: 'Invoice deleted successfully'
+      message: 'Invoice deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting invoice:', error);
@@ -129,7 +146,7 @@ export const chargeInvoice = async (req: Request, res: Response): Promise<void> 
   try {
     const { invoiceId } = req.params;
     const { payment_method_id, amount } = req.body;
-    
+
     // Update invoice status to paid
     const result = await pool.query(
       `UPDATE invoices 
@@ -142,15 +159,15 @@ export const chargeInvoice = async (req: Request, res: Response): Promise<void> 
        RETURNING *`,
       [invoiceId, payment_method_id, amount]
     );
-    
+
     if (result.rowCount === 0) {
       res.status(404).json({ error: 'Invoice not found' });
       return;
     }
-    
+
     res.json({
       success: true,
-      invoice: result.rows[0]
+      invoice: result.rows[0],
     });
   } catch (error) {
     console.error('Error charging invoice:', error);
@@ -163,7 +180,7 @@ export const chargeInvoiceManual = async (req: Request, res: Response): Promise<
   try {
     const { invoiceId } = req.params;
     const { amount, notes } = req.body;
-    
+
     const result = await pool.query(
       `UPDATE invoices 
        SET status = 'paid', 
@@ -176,18 +193,18 @@ export const chargeInvoiceManual = async (req: Request, res: Response): Promise<
        RETURNING *`,
       [invoiceId, amount, notes || 'Manual payment']
     );
-    
+
     if (result.rowCount === 0) {
       res.status(404).json({ error: 'Invoice not found' });
       return;
     }
-    
+
     res.json({
       success: true,
-      invoice: result.rows[0]
+      invoice: result.rows[0],
     });
   } catch (error) {
     console.error('Error manually charging invoice:', error);
     res.status(500).json({ error: 'Failed to charge invoice' });
   }
-}; 
+};

@@ -34,10 +34,10 @@ interface PatientInvoicesProps {
   stripeCustomerId?: string;
 }
 
-export const PatientInvoices: React.FC<PatientInvoicesProps> = ({ 
-  patientId, 
+export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
+  patientId,
   patientName,
-  stripeCustomerId 
+  stripeCustomerId,
 }) => {
   const apiClient = useApi();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -49,19 +49,19 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
   const [summaryData, setSummaryData] = useState({
     outstanding: 0,
     uninvoiced: 0,
-    totalPaid: 0
+    totalPaid: 0,
   });
   const [error, setError] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     message: '',
-    onConfirm: () => {}
+    onConfirm: () => {},
   });
   const [alertDialog, setAlertDialog] = useState({
     isOpen: false,
     type: 'info' as 'success' | 'error' | 'warning' | 'info',
     title: '',
-    message: ''
+    message: '',
   });
 
   const loadInvoices = useCallback(async () => {
@@ -84,11 +84,11 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
         isOpen: true,
         type: 'error',
         title: 'Cannot Delete',
-        message: 'Cannot delete paid invoices'
+        message: 'Cannot delete paid invoices',
       });
       return;
     }
-    
+
     setConfirmDialog({
       isOpen: true,
       message: `Are you sure you want to delete invoice ${invoice.invoice_number}? This action cannot be undone.`,
@@ -99,7 +99,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
             isOpen: true,
             type: 'success',
             title: 'Success',
-            message: 'Invoice deleted successfully'
+            message: 'Invoice deleted successfully',
           });
           loadInvoices(); // Reload the list
         } catch (error: any) {
@@ -108,11 +108,11 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
             isOpen: true,
             type: 'error',
             title: 'Error',
-            message: error.response?.data?.error || 'Failed to delete invoice'
+            message: error.response?.data?.error || 'Failed to delete invoice',
           });
         }
         setConfirmDialog({ ...confirmDialog, isOpen: false });
-      }
+      },
     });
   };
 
@@ -124,22 +124,22 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
     const outstanding = invoices
       .filter((inv: Invoice) => inv.status === 'open')
       .reduce((sum: number, inv: Invoice) => sum + inv.amount_due, 0);
-    
+
     const totalPaid = invoices
       .filter((inv: Invoice) => inv.status === 'paid')
       .reduce((sum: number, inv: Invoice) => sum + inv.amount_paid, 0);
-    
+
     setSummaryData({
       outstanding,
       uninvoiced: 0, // This would come from a separate API call for unbilled services
-      totalPaid
+      totalPaid,
     });
   };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
     }).format(amount);
   };
 
@@ -147,7 +147,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   };
 
@@ -161,8 +161,20 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
       <div className="invoice-header">
         <h3>Invoices</h3>
         <button onClick={handleCreateInvoice} className="create-invoice-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 5V19M5 12H19"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           Create Invoice
         </button>
@@ -188,11 +200,14 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
       {loading ? (
         <div className="loading-state">Loading invoices...</div>
       ) : error ? (
-        <div className="error-message" style={{ color: 'red', padding: '20px', textAlign: 'center' }}>
+        <div
+          className="error-message"
+          style={{ color: 'red', padding: '20px', textAlign: 'center' }}
+        >
           <p>{error}</p>
           {error.includes('session has expired') && (
-            <button 
-              onClick={() => window.location.href = '/'}
+            <button
+              onClick={() => (window.location.href = '/')}
               style={{ marginTop: '10px', padding: '10px 20px', cursor: 'pointer' }}
             >
               Go to Login
@@ -201,16 +216,28 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
         </div>
       ) : invoices.length === 0 ? (
         <div className="no-invoices">
-          <svg 
-            width="48" 
-            height="48" 
-            viewBox="0 0 24 24" 
-            fill="none" 
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
             xmlns="http://www.w3.org/2000/svg"
             style={{ margin: '0 auto 16px', opacity: 0.3 }}
           >
-            <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M13 3V9H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path
+              d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M13 3V9H19"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           <p>No Invoices for this client yet</p>
         </div>
@@ -237,7 +264,14 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
                     <td>
                       {formatCurrency(invoice.total_amount)}
                       {invoice.amount_paid > 0 && (
-                        <span style={{ display: 'block', fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                        <span
+                          style={{
+                            display: 'block',
+                            fontSize: '12px',
+                            color: '#6b7280',
+                            marginTop: '4px',
+                          }}
+                        >
                           ({formatCurrency(invoice.amount_paid)} paid)
                         </span>
                       )}
@@ -249,7 +283,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <button 
+                        <button
                           onClick={() => setSelectedInvoice(invoice)}
                           className="action-btn"
                           title="View Invoice"
@@ -258,7 +292,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
                         </button>
                         {invoice.status === 'open' && (
                           <>
-                            <button 
+                            <button
                               onClick={() => {
                                 setSelectedInvoice(invoice);
                                 setShowPaymentModal(true);
@@ -268,7 +302,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
                             >
                               Charge
                             </button>
-                            <button 
+                            <button
                               onClick={() => {
                                 setSelectedInvoice(invoice);
                                 setShowMarkPaidModal(true);
@@ -278,7 +312,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
                             >
                               Mark Paid
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleDeleteInvoice(invoice)}
                               className="delete-invoice-btn"
                               title="Delete Invoice"
@@ -374,4 +408,4 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
       />
     </div>
   );
-}; 
+};

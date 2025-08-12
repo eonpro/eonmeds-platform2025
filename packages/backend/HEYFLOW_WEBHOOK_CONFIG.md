@@ -33,6 +33,7 @@ HEYFLOW_WEBHOOK_SECRET=hf_webhook_secret_2025_eonmeds
 ### 3. Restart Your Backend
 
 After adding the environment variable:
+
 ```bash
 cd packages/backend
 # Stop the server (Ctrl+C) and restart
@@ -48,6 +49,7 @@ npm run dev
 ## Testing with curl
 
 You can also test manually:
+
 ```bash
 cd packages/backend
 HEYFLOW_WEBHOOK_SECRET=your-secret-here node test-webhook.js
@@ -71,10 +73,12 @@ If webhooks aren't working:
 ## Production Setup
 
 For production, replace the ngrok URL with your actual domain:
+
 - `https://api.eonmeds.com/api/v1/webhooks/heyflow`
 
 Remember to:
+
 - Use HTTPS only
 - Keep your webhook secret secure
 - Set up monitoring for failed webhooks
-- Implement retry logic for reliability 
+- Implement retry logic for reliability

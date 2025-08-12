@@ -20,7 +20,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   cancelText = 'Cancel',
   onConfirm,
   onCancel,
-  type = 'info'
+  type = 'info',
 }) => {
   if (!isOpen) return null;
 
@@ -34,31 +34,27 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
   return (
     <div className="confirm-dialog-overlay" onClick={handleCancel}>
-      <div className="confirm-dialog-content" onClick={e => e.stopPropagation()}>
+      <div className="confirm-dialog-content" onClick={(e) => e.stopPropagation()}>
         <div className="confirm-dialog-header">
           <h3>{title}</h3>
-          <button className="close-btn" onClick={handleCancel}>×</button>
+          <button className="close-btn" onClick={handleCancel}>
+            ×
+          </button>
         </div>
-        
+
         <div className="confirm-dialog-body">
           <p>{message}</p>
         </div>
-        
+
         <div className="confirm-dialog-actions">
-          <button 
-            className="cancel-btn"
-            onClick={handleCancel}
-          >
+          <button className="cancel-btn" onClick={handleCancel}>
             {cancelText}
           </button>
-          <button 
-            className={`confirm-btn ${type}`}
-            onClick={handleConfirm}
-          >
+          <button className={`confirm-btn ${type}`} onClick={handleConfirm}>
             {confirmText}
           </button>
         </div>
       </div>
     </div>
   );
-}; 
+};

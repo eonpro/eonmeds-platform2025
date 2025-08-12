@@ -64,17 +64,17 @@
   .language-switcher {
     background-color: #2a2a2a;
   }
-  
+
   .lang-button {
     color: #ccc;
   }
-  
+
   .lang-button:hover:not(.active):not(.disabled) {
     background-color: #3a3a3a;
     color: #fff;
   }
-  
+
   .lang-button.active {
     background-color: #0066cc;
   }
-} 
+}

@@ -31,7 +31,7 @@ export const IncomeReport: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0]
+    endDate: new Date().toISOString().split('T')[0],
   });
   const [filterMethod, setFilterMethod] = useState('all');
 
@@ -46,10 +46,10 @@ export const IncomeReport: React.FC = () => {
         params: {
           start_date: dateRange.startDate,
           end_date: dateRange.endDate,
-          payment_method: filterMethod
-        }
+          payment_method: filterMethod,
+        },
       });
-      
+
       setPayments(response.data.payments || []);
       setStats(response.data.stats || null);
     } catch (error) {
@@ -62,7 +62,7 @@ export const IncomeReport: React.FC = () => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
     }).format(amount);
   };
 
@@ -70,25 +70,25 @@ export const IncomeReport: React.FC = () => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   };
 
   const exportToCSV = () => {
     const headers = ['Date', 'Patient', 'Invoice #', 'Amount', 'Method', 'Status', 'Reference'];
-    const rows = payments.map(payment => [
+    const rows = payments.map((payment) => [
       formatDate(payment.payment_date),
       payment.patient_name,
       payment.invoice_number,
       payment.amount.toFixed(2),
       payment.payment_method,
       payment.status,
-      payment.stripe_payment_id || payment.offline_reference || ''
+      payment.stripe_payment_id || payment.offline_reference || '',
     ]);
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -136,13 +136,10 @@ export const IncomeReport: React.FC = () => {
             />
           </div>
         </div>
-        
+
         <div className="filter-group">
           <label>Payment Method</label>
-          <select
-            value={filterMethod}
-            onChange={(e) => setFilterMethod(e.target.value)}
-          >
+          <select value={filterMethod} onChange={(e) => setFilterMethod(e.target.value)}>
             <option value="all">All Payments</option>
             <option value="stripe">Stripe Payments</option>
             <option value="offline">Offline Payments</option>
@@ -161,22 +158,22 @@ export const IncomeReport: React.FC = () => {
                 <p className="stat-value">{formatCurrency(stats.total_revenue)}</p>
                 <span className="stat-detail">{stats.payment_count} payments</span>
               </div>
-              
+
               <div className="stat-card">
                 <h3>Stripe Payments</h3>
                 <p className="stat-value">{formatCurrency(stats.stripe_payments)}</p>
               </div>
-              
+
               <div className="stat-card">
                 <h3>Offline Payments</h3>
                 <p className="stat-value">{formatCurrency(stats.offline_payments)}</p>
               </div>
-              
+
               <div className="stat-card negative">
                 <h3>Refunds</h3>
                 <p className="stat-value">{formatCurrency(stats.refunds)}</p>
               </div>
-              
+
               <div className="stat-card warning">
                 <h3>Pending</h3>
                 <p className="stat-value">{formatCurrency(stats.pending_payments)}</p>
@@ -186,7 +183,7 @@ export const IncomeReport: React.FC = () => {
 
           <div className="payments-table-section">
             <h2>Payment Details</h2>
-            
+
             {payments.length === 0 ? (
               <div className="empty-state">
                 <p>No payments found for the selected period.</p>
@@ -218,13 +215,12 @@ export const IncomeReport: React.FC = () => {
                         <td className="amount">{formatCurrency(payment.amount)}</td>
                         <td>
                           <span className={`method-badge ${payment.payment_method}`}>
-                            {payment.payment_method === 'stripe' ? '💳' : '💵'} {payment.payment_method}
+                            {payment.payment_method === 'stripe' ? '💳' : '💵'}{' '}
+                            {payment.payment_method}
                           </span>
                         </td>
                         <td>
-                          <span className={`status-badge ${payment.status}`}>
-                            {payment.status}
-                          </span>
+                          <span className={`status-badge ${payment.status}`}>{payment.status}</span>
                         </td>
                         <td className="reference">
                           {payment.stripe_payment_id ? (
@@ -248,4 +244,4 @@ export const IncomeReport: React.FC = () => {
       )}
     </div>
   );
-}; 
+};

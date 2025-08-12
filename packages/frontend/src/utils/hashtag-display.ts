@@ -4,10 +4,10 @@
  */
 export function formatHashtagDisplay(tag: string): string {
   if (!tag) return '';
-  
+
   // Remove any leading # symbols
   const cleanTag = tag.replace(/^#+/, '');
-  
+
   // Return with single #
   return `#${cleanTag}`;
 }

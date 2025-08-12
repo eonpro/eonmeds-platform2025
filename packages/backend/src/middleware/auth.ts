@@ -30,19 +30,19 @@ export const generateToken = (user: any): string => {
     email: user.email,
     role: user.role_name,
     roleCode: user.role_code,
-    permissions: user.permissions || {}
+    permissions: user.permissions || {},
   };
 
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error('JWT_SECRET is not defined');
   }
-  
+
   const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
   const options: jwt.SignOptions = {
-    expiresIn: expiresIn as any // Type assertion to handle the StringValue type
+    expiresIn: expiresIn as any, // Type assertion to handle the StringValue type
   };
-  
+
   return jwt.sign(payload, secret, options);
 };
 
@@ -52,12 +52,12 @@ export const generateRefreshToken = (userId: string): string => {
   if (!secret) {
     throw new Error('JWT_SECRET is not defined');
   }
-  
+
   const expiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || '30d';
   const options: jwt.SignOptions = {
-    expiresIn: expiresIn as any // Type assertion to handle the StringValue type
+    expiresIn: expiresIn as any, // Type assertion to handle the StringValue type
   };
-  
+
   return jwt.sign({ id: userId }, secret, options);
 };
 
@@ -111,7 +111,7 @@ export const authenticate = async (
       email: result.rows[0].email,
       role: result.rows[0].role_name,
       roleCode: result.rows[0].role_code,
-      permissions: result.rows[0].permissions
+      permissions: result.rows[0].permissions,
     };
 
     next();
@@ -143,8 +143,7 @@ export const authorize = (resource: string, action: string) => {
     }
 
     // Check specific permission
-    if (userPermissions[resource]?.includes(action) || 
-        userPermissions[resource]?.includes('*')) {
+    if (userPermissions[resource]?.includes(action) || userPermissions[resource]?.includes('*')) {
       return next();
     }
 
@@ -173,7 +172,7 @@ export const optionalAuth = async (
 };
 
 // Export alias for backward compatibility
-export const authenticateToken = authenticate; 
+export const authenticateToken = authenticate;
 
 // Role-based access control middleware
 export const requireRole = (allowedRoles: string[]) => {
@@ -183,18 +182,18 @@ export const requireRole = (allowedRoles: string[]) => {
     }
 
     const userRole = req.user.roleCode || req.user.role;
-    
+
     if (!allowedRoles.includes(userRole)) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Forbidden - Insufficient permissions',
         required: allowedRoles,
-        current: userRole
+        current: userRole,
       });
     }
 
     return next();
   };
-}; 
+};
 
 // Apply role checking middleware to all routes by default
 export function applyRoleMiddleware(router: any, defaultRole: string = 'admin'): void {
@@ -204,8 +203,8 @@ export function applyRoleMiddleware(router: any, defaultRole: string = 'admin'):
     if (publicRoutes.includes(req.path)) {
       return next();
     }
-    
+
     // Apply default role requirement
     return requireRole([defaultRole])(req, res, next);
   });
-} 
+}

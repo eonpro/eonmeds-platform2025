@@ -6,9 +6,9 @@ const pool = new Pool({
   port: 5432,
   database: 'eonmeds',
   user: 'eonmeds_admin',
-  password: '398Xakf$57',  // New password directly
+  password: '398Xakf$57', // New password directly
   ssl: {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   },
   connectionTimeoutMillis: 10000,
 });
@@ -25,17 +25,16 @@ async function testConnection() {
     console.log('📡 Attempting to connect...');
     const client = await pool.connect();
     console.log('✅ Successfully connected to RDS!');
-    
+
     const result = await client.query('SELECT NOW() as current_time');
     console.log(`⏰ Server time: ${result.rows[0].current_time}`);
-    
+
     client.release();
     console.log('\n✅ Connection successful with new password!');
-    
   } catch (error) {
     console.error('\n❌ Connection failed!');
     console.error('Error:', error.message);
-    
+
     if (error.message.includes('password authentication failed')) {
       console.error('\n🔐 The password might not have been updated in RDS yet.');
       console.error('   It can take a few minutes for password changes to take effect.');
@@ -46,4 +45,4 @@ async function testConnection() {
   }
 }
 
-testConnection(); 
+testConnection();

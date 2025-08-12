@@ -47,7 +47,8 @@
 }
 
 @keyframes floatAnimation {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -125,13 +126,13 @@
     width: 200px;
     height: 200px;
   }
-  
+
   .becca-logo {
     width: 160px;
   }
-  
+
   .becca-status {
     font-size: 18px;
     padding: 0 20px;
   }
-} 
+}

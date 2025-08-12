@@ -1,7 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { Auth0ContextInterface } from '@auth0/auth0-react';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://eonmeds-platform2025-production.up.railway.app/api/v1';
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL ||
+  'https://eonmeds-platform2025-production.up.railway.app/api/v1';
 
 class AuthService {
   private axiosInstance: AxiosInstance;
@@ -41,11 +43,11 @@ class AuthService {
           // Token might be expired, try to refresh
           if (this.auth0?.isAuthenticated) {
             try {
-              await this.auth0.getAccessTokenSilently({ 
+              await this.auth0.getAccessTokenSilently({
                 cacheMode: 'off',
                 authorizationParams: {
-                  prompt: 'none'
-                }
+                  prompt: 'none',
+                },
               });
               // Retry the original request
               return this.axiosInstance.request(error.config);
@@ -75,18 +77,26 @@ class AuthService {
     return response.data;
   }
 
-  async updateProfile(data: { firstName?: string; lastName?: string; phone?: string; language?: string }) {
+  async updateProfile(data: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    language?: string;
+  }) {
     const response = await this.axiosInstance.patch('/auth/profile', data);
     return response.data;
   }
 
   // Method that accepts token directly for use in contexts
-  async updateProfileWithToken(token: string, data: { firstName?: string; lastName?: string; phone?: string; language?: string }) {
+  async updateProfileWithToken(
+    token: string,
+    data: { firstName?: string; lastName?: string; phone?: string; language?: string }
+  ) {
     const response = await axios.patch(`${API_BASE_URL}/auth/profile`, data, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
     });
     return response.data;
   }
@@ -126,4 +136,4 @@ class AuthService {
 
 const authService = new AuthService();
 export { authService };
-export default authService; 
+export default authService;

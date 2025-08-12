@@ -2,7 +2,7 @@
 
 /**
  * Complete Stripe Sync Tool
- * 
+ *
  * This script will:
  * 1. Fetch all Stripe customers and their payment history
  * 2. Match them to existing patients by email or phone
@@ -21,14 +21,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Initialize database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 // Helper function to generate patient ID
 function generatePatientId() {
   const prefix = 'P';
   const timestamp = Date.now().toString().slice(-5);
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  const random = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, '0');
   return `${prefix}${timestamp}${random}`;
 }
 
@@ -55,7 +57,7 @@ function extractName(customer) {
     }
     return { firstName: customer.name, lastName: '' };
   }
-  
+
   // Try to extract from email
   if (customer.email) {
     const localPart = customer.email.split('@')[0];
@@ -63,12 +65,12 @@ function extractName(customer) {
     if (nameParts.length >= 2) {
       return {
         firstName: nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1),
-        lastName: nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1)
+        lastName: nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1),
       };
     }
     return { firstName: localPart, lastName: '' };
   }
-  
+
   return { firstName: 'Stripe', lastName: 'Customer' };
 }
 
@@ -89,11 +91,14 @@ async function findOrCreatePatient(customer) {
     if (customer.phone) {
       const normalizedPhone = normalizePhone(customer.phone);
       if (normalizedPhone) {
-        const phoneResult = await pool.query(`
+        const phoneResult = await pool.query(
+          `
           SELECT * FROM patients 
           WHERE REPLACE(REPLACE(REPLACE(REPLACE(phone, '-', ''), '(', ''), ')', ''), ' ', '') = $1
-        `, [normalizedPhone]);
-        
+        `,
+          [normalizedPhone]
+        );
+
         if (phoneResult.rows.length > 0) {
           return { patient: phoneResult.rows[0], isNew: false };
         }
@@ -103,28 +108,30 @@ async function findOrCreatePatient(customer) {
     // Create new patient
     const { firstName, lastName } = extractName(customer);
     const patientId = generatePatientId();
-    
-    const insertResult = await pool.query(`
+
+    const insertResult = await pool.query(
+      `
       INSERT INTO patients (
         patient_id, first_name, last_name, email, phone,
         status, membership_hashtags, stripe_customer_id,
         created_at, updated_at
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
       RETURNING *
-    `, [
-      patientId,
-      firstName,
-      lastName,
-      customer.email || null,
-      customer.phone || null,
-      'client', // Since they're in Stripe, they're a client
-      ['#fromstripe'], // Tag to identify Stripe-imported patients
-      customer.id
-    ]);
+    `,
+      [
+        patientId,
+        firstName,
+        lastName,
+        customer.email || null,
+        customer.phone || null,
+        'client', // Since they're in Stripe, they're a client
+        ['#fromstripe'], // Tag to identify Stripe-imported patients
+        customer.id,
+      ]
+    );
 
     console.log(`   🆕 Created new patient: ${firstName} ${lastName} (${patientId})`);
     return { patient: insertResult.rows[0], isNew: true };
-
   } catch (error) {
     console.error('Error finding/creating patient:', error);
     return { patient: null, isNew: false };
@@ -133,22 +140,30 @@ async function findOrCreatePatient(customer) {
 
 async function updatePatientStripeInfo(patientId, stripeCustomerId) {
   try {
-    await pool.query(`
+    await pool.query(
+      `
       UPDATE patients 
       SET stripe_customer_id = $2,
           updated_at = NOW()
       WHERE patient_id = $1 AND stripe_customer_id IS NULL
-    `, [patientId, stripeCustomerId]);
+    `,
+      [patientId, stripeCustomerId]
+    );
   } catch (error) {
     console.error(`Error updating Stripe info for patient ${patientId}:`, error);
   }
 }
 
-async function updatePatientSubscriptionStatus(patientId, hasActiveSubscription, subscriptionDetails = null) {
+async function updatePatientSubscriptionStatus(
+  patientId,
+  hasActiveSubscription,
+  subscriptionDetails = null
+) {
   try {
     if (hasActiveSubscription) {
       // Add #activemember hashtag
-      await pool.query(`
+      await pool.query(
+        `
         UPDATE patients 
         SET membership_hashtags = 
           CASE 
@@ -159,17 +174,22 @@ async function updatePatientSubscriptionStatus(patientId, hasActiveSubscription,
           status = 'client',
           updated_at = NOW()
         WHERE patient_id = $1
-      `, [patientId]);
-      
+      `,
+        [patientId]
+      );
+
       console.log(`   ✅ Added #activemember hashtag`);
     } else {
       // Remove #activemember if no active subscription
-      await pool.query(`
+      await pool.query(
+        `
         UPDATE patients 
         SET membership_hashtags = array_remove(membership_hashtags, '#activemember'),
             updated_at = NOW()
         WHERE patient_id = $1 AND '#activemember' = ANY(membership_hashtags)
-      `, [patientId]);
+      `,
+        [patientId]
+      );
     }
   } catch (error) {
     console.error(`Error updating subscription status for patient ${patientId}:`, error);
@@ -188,13 +208,13 @@ async function syncStripeData() {
 
     while (hasMore) {
       const params = {
-        limit: 100
+        limit: 100,
       };
-      
+
       if (startingAfter) {
         params.starting_after = startingAfter;
       }
-      
+
       const batch = await stripe.customers.list(params);
 
       customers.push(...batch.data);
@@ -212,7 +232,7 @@ async function syncStripeData() {
       createdNew: 0,
       withPayments: 0,
       withActiveSubscriptions: 0,
-      errors: 0
+      errors: 0,
     };
 
     // Process each customer
@@ -222,7 +242,7 @@ async function syncStripeData() {
 
         // Find or create patient
         const { patient, isNew } = await findOrCreatePatient(customer);
-        
+
         if (!patient) {
           console.log('   ❌ Error processing customer');
           stats.errors++;
@@ -233,8 +253,10 @@ async function syncStripeData() {
           stats.createdNew++;
         } else {
           stats.matchedExisting++;
-          console.log(`   ✅ Matched existing patient: ${patient.first_name} ${patient.last_name} (${patient.patient_id})`);
-          
+          console.log(
+            `   ✅ Matched existing patient: ${patient.first_name} ${patient.last_name} (${patient.patient_id})`
+          );
+
           // Update Stripe customer ID if missing
           if (!patient.stripe_customer_id) {
             await updatePatientStripeInfo(patient.patient_id, customer.id);
@@ -244,17 +266,17 @@ async function syncStripeData() {
         // Check payment history
         const charges = await stripe.charges.list({
           customer: customer.id,
-          limit: 100
+          limit: 100,
         });
 
-        const successfulCharges = charges.data.filter(charge => 
-          charge.status === 'succeeded' && charge.paid
+        const successfulCharges = charges.data.filter(
+          (charge) => charge.status === 'succeeded' && charge.paid
         );
 
         if (successfulCharges.length > 0) {
           stats.withPayments++;
           console.log(`   💳 Has ${successfulCharges.length} successful payment(s)`);
-          
+
           // Calculate total paid
           const totalPaid = successfulCharges.reduce((sum, charge) => sum + charge.amount, 0) / 100;
           console.log(`   💰 Total paid: $${totalPaid.toFixed(2)}`);
@@ -263,36 +285,39 @@ async function syncStripeData() {
         // Check subscriptions
         const subscriptions = await stripe.subscriptions.list({
           customer: customer.id,
-          limit: 10
+          limit: 10,
         });
 
-        const activeSubscriptions = subscriptions.data.filter(sub => 
-          sub.status === 'active' || sub.status === 'trialing'
+        const activeSubscriptions = subscriptions.data.filter(
+          (sub) => sub.status === 'active' || sub.status === 'trialing'
         );
 
         if (activeSubscriptions.length > 0) {
           stats.withActiveSubscriptions++;
           console.log(`   📅 Has ${activeSubscriptions.length} active subscription(s)`);
-          
+
           // Show subscription details
-          activeSubscriptions.forEach(sub => {
-            const amount = sub.items.data.reduce((sum, item) => 
-              sum + (item.price.unit_amount * item.quantity), 0
-            ) / 100;
-            console.log(`      - ${sub.items.data[0].price.product}: $${amount}/${sub.items.data[0].price.recurring.interval}`);
+          activeSubscriptions.forEach((sub) => {
+            const amount =
+              sub.items.data.reduce(
+                (sum, item) => sum + item.price.unit_amount * item.quantity,
+                0
+              ) / 100;
+            console.log(
+              `      - ${sub.items.data[0].price.product}: $${amount}/${sub.items.data[0].price.recurring.interval}`
+            );
           });
         }
 
         // Update subscription status
         await updatePatientSubscriptionStatus(
-          patient.patient_id, 
+          patient.patient_id,
           activeSubscriptions.length > 0,
           activeSubscriptions[0] || null
         );
 
         // Small delay to avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 50));
-
+        await new Promise((resolve) => setTimeout(resolve, 50));
       } catch (error) {
         console.error(`   ❌ Error processing customer ${customer.id}:`, error.message);
         stats.errors++;
@@ -309,7 +334,6 @@ async function syncStripeData() {
     console.log(`Active subscriptions:       ${stats.withActiveSubscriptions}`);
     console.log(`Errors:                     ${stats.errors}`);
     console.log('=====================================\n');
-
   } catch (error) {
     console.error('❌ Fatal error during sync:', error);
   } finally {
@@ -336,7 +360,7 @@ syncStripeData()
     console.log('✅ Sync completed successfully!');
     process.exit(0);
   })
-  .catch(error => {
+  .catch((error) => {
     console.error('❌ Sync failed:', error);
     process.exit(1);
-  }); 
+  });

@@ -33,10 +33,14 @@
   },
   "scripts": {
     "start": "serve -s build -l ${PORT:-3000}",
+    "start:prod": "serve -s build -l $PORT",
     "dev": "react-scripts start",
-    "build": "CI=false DISABLE_ESLINT_PLUGIN=true TSC_COMPILE_ON_ERROR=true react-scripts build",
+    "build": "REACT_APP_BUILD_TIME=$(date -u +\"%Y-%m-%dT%H:%M:%SZ\") CI=false DISABLE_ESLINT_PLUGIN=true TSC_COMPILE_ON_ERROR=true react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
   },
   "eslintConfig": {
     "extends": [
@@ -75,7 +79,8 @@
     ]
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.20"
+    "@types/lodash": "^4.17.20",
+    "prettier": "^3.6.2"
   },
   "engines": {
     "node": ">=20.0.0"

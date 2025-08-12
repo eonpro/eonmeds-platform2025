@@ -3,17 +3,15 @@ require('dotenv').config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' 
-    ? { rejectUnauthorized: false }
-    : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 async function checkRecentWebhooks() {
   const client = await pool.connect();
-  
+
   try {
     console.log('Checking recent webhook events...\n');
-    
+
     // Get recent webhook events
     const result = await client.query(`
       SELECT 
@@ -32,9 +30,9 @@ async function checkRecentWebhooks() {
       ORDER BY created_at DESC
       LIMIT 10
     `);
-    
+
     console.log(`Found ${result.rows.length} recent HeyFlow submissions:\n`);
-    
+
     for (const event of result.rows) {
       console.log('='.repeat(50));
       console.log(`Event ID: ${event.event_id}`);
@@ -46,25 +44,24 @@ async function checkRecentWebhooks() {
       if (event.error_message) {
         console.log(`Error: ${event.error_message}`);
       }
-      
+
       // Check if this is an external english form
       if (event.flow_id && event.flow_id.includes('external-english')) {
         console.log('⚠️  This is an External English form!');
       }
-      
+
       // Show first few fields
       if (event.fields) {
         console.log('\nFirst few fields:');
         const fields = event.fields;
         const fieldKeys = Object.keys(fields).slice(0, 5);
-        fieldKeys.forEach(key => {
+        fieldKeys.forEach((key) => {
           console.log(`  ${key}: ${JSON.stringify(fields[key])}`);
         });
       }
     }
-    
+
     console.log('\n' + '='.repeat(50));
-    
   } catch (error) {
     console.error('Error checking webhooks:', error);
   } finally {

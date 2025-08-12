@@ -37,11 +37,11 @@ export const useAuth = () => {
   };
 
   const hasAnyRole = (roleList: string[]): boolean => {
-    return roleList.some(role => hasRole(role));
+    return roleList.some((role) => hasRole(role));
   };
 
   const hasAllPermissions = (permissionList: string[]): boolean => {
-    return permissionList.every(permission => hasPermission(permission));
+    return permissionList.every((permission) => hasPermission(permission));
   };
 
   const isProvider = (): boolean => {
@@ -68,6 +68,6 @@ export const useAuth = () => {
     isProvider,
     isAdmin,
     isSuperAdmin,
-    authService
+    authService,
   };
-}; 
+};

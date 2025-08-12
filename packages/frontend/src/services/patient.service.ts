@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 // Patient service for API calls
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app';
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app';
 
 export interface Patient {
   id: string;
@@ -20,7 +21,7 @@ export interface Patient {
   bmi?: number;
   membership_hashtags?: string[];
   membership_status?: string;
-  
+
   // Address fields
   address?: string; // Legacy full address
   address_house?: string;
@@ -29,10 +30,10 @@ export interface Patient {
   city?: string;
   state?: string;
   zip?: string;
-  
+
   // Additional info
   additional_info?: string;
-  
+
   // Payment integration
   stripe_customer_id?: string;
 }
@@ -69,8 +70,8 @@ class PatientService {
       const response = await axios.get(`${API_BASE_URL}/api/v1/patients`, {
         params,
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
       return response.data;
     } catch (error) {
@@ -83,8 +84,8 @@ class PatientService {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/v1/patients/${id}`, {
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
       return response.data;
     } catch (error) {
@@ -100,12 +101,10 @@ class PatientService {
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
-      
-      const response = await axios.post(
-        `${API_BASE_URL}/api/v1/patients`,
-        patientData,
-        { headers }
-      );
+
+      const response = await axios.post(`${API_BASE_URL}/api/v1/patients`, patientData, {
+        headers,
+      });
       return response.data;
     } catch (error) {
       console.error('Error creating patient:', error);
@@ -120,9 +119,9 @@ class PatientService {
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
-      
+
       const response = await axios.get(`${API_BASE_URL}/api/v1/patients/${id}/intake`, {
-        headers
+        headers,
       });
       return response.data;
     } catch (error) {
@@ -138,7 +137,7 @@ class PatientService {
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
-      
+
       const response = await axios.patch(
         `${API_BASE_URL}/api/v1/patients/${id}/status`,
         { status },
@@ -158,12 +157,10 @@ class PatientService {
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
-      
-      const response = await axios.put(
-        `${API_BASE_URL}/api/v1/patients/${id}`,
-        patientData,
-        { headers }
-      );
+
+      const response = await axios.put(`${API_BASE_URL}/api/v1/patients/${id}`, patientData, {
+        headers,
+      });
       return response.data;
     } catch (error) {
       console.error('Error updating patient:', error);
@@ -172,4 +169,4 @@ class PatientService {
   }
 }
 
-export const patientService = new PatientService(); 
+export const patientService = new PatientService();

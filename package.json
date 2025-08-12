@@ -9,7 +9,9 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "jest",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src --ext .ts --fix",
+    "format": "prettier --write .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "db:migrate": "node dist/config/migrate.js",
     "db:seed": "node dist/config/seed.js"
   },

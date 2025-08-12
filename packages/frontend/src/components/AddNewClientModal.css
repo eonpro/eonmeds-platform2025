@@ -88,7 +88,7 @@
   cursor: pointer;
 }
 
-.checkbox-group input[type="checkbox"] {
+.checkbox-group input[type='checkbox'] {
   width: auto;
   margin-right: 8px;
   cursor: pointer;
@@ -139,4 +139,4 @@
 .save-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-} 
+}

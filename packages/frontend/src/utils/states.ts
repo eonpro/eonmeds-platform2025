@@ -51,29 +51,25 @@ export const US_STATES = [
   { abbreviation: 'WV', name: 'West Virginia' },
   { abbreviation: 'WI', name: 'Wisconsin' },
   { abbreviation: 'WY', name: 'Wyoming' },
-  { abbreviation: 'DC', name: 'District of Columbia' }
+  { abbreviation: 'DC', name: 'District of Columbia' },
 ];
 
 export function getStateAbbreviation(stateName: string | null | undefined): string {
   if (!stateName) return '';
-  
+
   // If already an abbreviation, return it
   if (stateName.length === 2) return stateName.toUpperCase();
-  
+
   // Find matching state
-  const state = US_STATES.find(s => 
-    s.name.toLowerCase() === stateName.toLowerCase()
-  );
-  
+  const state = US_STATES.find((s) => s.name.toLowerCase() === stateName.toLowerCase());
+
   return state?.abbreviation || stateName;
 }
 
 export function getStateName(abbreviation: string | null | undefined): string {
   if (!abbreviation) return '';
-  
-  const state = US_STATES.find(s => 
-    s.abbreviation === abbreviation.toUpperCase()
-  );
-  
+
+  const state = US_STATES.find((s) => s.abbreviation === abbreviation.toUpperCase());
+
   return state?.name || abbreviation;
-} 
+}

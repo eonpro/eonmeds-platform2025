@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { 
-  getPatientInvoices, 
-  createInvoice, 
-  deleteInvoice, 
-  chargeInvoice, 
-  chargeInvoiceManual 
+import {
+  getPatientInvoices,
+  createInvoice,
+  deleteInvoice,
+  chargeInvoice,
+  chargeInvoiceManual,
 } from '../controllers/invoice.controller';
 
 const router = Router();
@@ -24,4 +24,4 @@ router.post('/:invoiceId/charge', chargeInvoice);
 // Manually mark invoice as paid
 router.post('/:invoiceId/charge-manual', chargeInvoiceManual);
 
-export default router; 
+export default router;

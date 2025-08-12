@@ -20,7 +20,9 @@
   max-width: 520px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   animation: modalSlideIn 0.3s ease-out;
 }
 
@@ -31,7 +33,9 @@
   max-width: 520px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   animation: modalSlideIn 0.3s ease-out;
 }
 
@@ -282,7 +286,7 @@
   margin-bottom: 12px;
 }
 
-.method-option input[type="radio"] {
+.method-option input[type='radio'] {
   margin-right: 8px;
   width: 18px;
   height: 18px;
@@ -314,7 +318,7 @@
   margin-bottom: 0;
 }
 
-.saved-card-option input[type="radio"] {
+.saved-card-option input[type='radio'] {
   margin-right: 8px;
 }
 
@@ -395,13 +399,13 @@
     max-width: 100%;
     margin: 10px;
   }
-  
+
   .invoice-header {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .amount-badge {
     align-self: flex-start;
   }
-} 
+}

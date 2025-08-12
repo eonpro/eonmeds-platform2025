@@ -19,9 +19,7 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <Logo height={40} className="mr-3" />
-              <span className="text-xl font-semibold text-gray-900 hidden sm:block">
-                EONMeds
-              </span>
+              <span className="text-xl font-semibold text-gray-900 hidden sm:block">EONMeds</span>
             </Link>
           </div>
 
@@ -29,32 +27,30 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center space-x-4">
             {isAuthenticated && (
               <>
-                <Link 
-                  to="/dashboard" 
+                <Link
+                  to="/dashboard"
                   className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   {t('navigation.dashboard')}
                 </Link>
-                <Link 
-                  to="/profile" 
+                <Link
+                  to="/profile"
                   className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   {t('navigation.profile')}
                 </Link>
               </>
             )}
-            
+
             {/* Language Switcher */}
             <LanguageSwitcher />
-            
+
             {/* Auth Buttons */}
             {!isLoading && (
               <>
                 {isAuthenticated ? (
                   <div className="flex items-center space-x-3">
-                    <span className="text-sm text-gray-600">
-                      {user?.name || user?.email}
-                    </span>
+                    <span className="text-sm text-gray-600">{user?.name || user?.email}</span>
                     <LogoutButton />
                   </div>
                 ) : (
@@ -67,4 +63,4 @@ export const Navbar: React.FC = () => {
       </div>
     </nav>
   );
-}; 
+};

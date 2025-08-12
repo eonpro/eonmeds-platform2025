@@ -7,12 +7,12 @@ async function runMigrations() {
   // Create a connection pool
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   });
 
   try {
     console.log('Connecting to database...');
-    
+
     // Test connection
     await pool.query('SELECT NOW()');
     console.log('✅ Connected to database');
@@ -20,7 +20,7 @@ async function runMigrations() {
     // Read and run the service packages SQL
     const sqlPath = path.join(__dirname, 'src/config/service-packages-schema.sql');
     const sql = fs.readFileSync(sqlPath, 'utf8');
-    
+
     console.log('Running service packages migration...');
     await pool.query(sql);
     console.log('✅ Service packages table created and populated!');
@@ -35,7 +35,6 @@ async function runMigrations() {
     }
 
     console.log('\n🎉 All migrations completed successfully!');
-    
   } catch (error) {
     console.error('❌ Error running migrations:', error);
   } finally {
@@ -43,4 +42,4 @@ async function runMigrations() {
   }
 }
 
-runMigrations(); 
+runMigrations();

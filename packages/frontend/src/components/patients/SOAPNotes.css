@@ -262,14 +262,14 @@
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .generate-soap-btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .soap-note-header {
     flex-direction: column;
     gap: 12px;
   }
-} 
+}

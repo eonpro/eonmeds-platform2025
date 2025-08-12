@@ -31,15 +31,18 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [beccaStatus, setBeccaStatus] = useState<'idle' | 'analyzing' | 'creating' | 'ready'>('idle');
+  const [beccaStatus, setBeccaStatus] = useState<'idle' | 'analyzing' | 'creating' | 'ready'>(
+    'idle'
+  );
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     noteId: '',
-    onConfirm: () => {}
+    onConfirm: () => {},
   });
-  
+
   // Check if user can delete SOAP notes
-  const canDelete = user?.role === 'admin' || user?.role === 'doctor' || user?.role === 'superadmin';
+  const canDelete =
+    user?.role === 'admin' || user?.role === 'doctor' || user?.role === 'superadmin';
 
   // Fetch existing SOAP notes
   const fetchSOAPNotes = async () => {
@@ -65,25 +68,25 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
     setGenerating(true);
     setError(null);
     setBeccaStatus('analyzing');
-    
+
     try {
       // Simulate analyzing phase
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       setBeccaStatus('creating');
-      
+
       const response = await api.post(`/api/v1/ai/generate-soap/${patientId}`);
-      
+
       if (response.data.success) {
         setBeccaStatus('ready');
         // Wait 2 seconds before refreshing to show the success state
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         // Refresh the list to show the new note
         await fetchSOAPNotes();
         // Notify parent component about new SOAP note
         const today = new Date().toLocaleDateString('en-US', {
           month: '2-digit',
           day: '2-digit',
-          year: 'numeric'
+          year: 'numeric',
         });
         if (onSOAPCreated) {
           onSOAPCreated(today);
@@ -95,9 +98,11 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
     } catch (err: any) {
       console.error('Error generating SOAP note:', err);
       setBeccaStatus('idle');
-      
+
       if (err.response?.status === 503) {
-        setError('BECCA AI is not configured. Please contact your administrator to set up the AI service.');
+        setError(
+          'BECCA AI is not configured. Please contact your administrator to set up the AI service.'
+        );
       } else {
         setError(err.response?.data?.error || 'Failed to generate SOAP note');
       }
@@ -122,7 +127,7 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
           setError(err.response?.data?.error || 'Failed to delete SOAP note');
         }
         setConfirmDialog({ ...confirmDialog, isOpen: false });
-      }
+      },
     });
   };
 
@@ -133,7 +138,7 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -159,21 +164,17 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
 
   return (
     <>
-      <BeccaAIModal 
+      <BeccaAIModal
         isOpen={generating}
         status={beccaStatus}
         patientName={patientName}
         onClose={() => setBeccaStatus('idle')}
       />
-      
+
       <div className="soap-notes-container">
         <div className="soap-header">
           <h2>SOAP Notes</h2>
-          <button 
-            className="generate-soap-btn"
-            onClick={handleGenerateSOAP}
-            disabled={generating}
-          >
+          <button className="generate-soap-btn" onClick={handleGenerateSOAP} disabled={generating}>
             <div className="generate-btn-content">
               <span className="generate-btn-text">
                 {generating ? 'Generating new SOAP with' : 'Generate a new SOAP with'}
@@ -185,21 +186,22 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
                   autoplay
                 />
               </div>
-              <span className="becca-text">Becca.<span className="ai-text">AI</span></span>
+              <span className="becca-text">
+                Becca.<span className="ai-text">AI</span>
+              </span>
             </div>
           </button>
         </div>
 
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
+        {error && <div className="error-message">{error}</div>}
 
         {soapNotes.length === 0 ? (
           <div className="empty-state">
             <h3>No SOAP Notes Yet</h3>
-            <p>Click "Generate SOAP Note with BECCA AI" to create the first SOAP note from the patient's intake form.</p>
+            <p>
+              Click "Generate SOAP Note with BECCA AI" to create the first SOAP note from the
+              patient's intake form.
+            </p>
           </div>
         ) : (
           <div className="soap-notes-list">
@@ -207,37 +209,37 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
               <div key={note.id} className="soap-note-card">
                 <div className="soap-note-header">
                   <div className="note-meta">
-                    <span className="created-date">
-                      Created: {formatDate(note.created_at)}
-                    </span>
-                    {note.version > 1 && (
-                      <span className="version">v{note.version}</span>
-                    )}
+                    <span className="created-date">Created: {formatDate(note.created_at)}</span>
+                    {note.version > 1 && <span className="version">v{note.version}</span>}
                   </div>
                   <div className="note-actions">
                     {getStatusBadge(note)}
                     {canDelete && note.status !== 'approved' && (
-                      <button 
+                      <button
                         className="delete-note-btn"
                         onClick={() => handleDeleteNote(note.id)}
                         title="Delete SOAP Note"
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path
+                            d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334z"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                       </button>
                     )}
                   </div>
                 </div>
-                
+
                 <div className="soap-note-content">
                   <pre>{note.content}</pre>
                 </div>
 
                 {note.approved_at && (
-                  <div className="approval-info">
-                    Approved on {formatDate(note.approved_at)}
-                  </div>
+                  <div className="approval-info">Approved on {formatDate(note.approved_at)}</div>
                 )}
               </div>
             ))}
@@ -258,4 +260,4 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
       />
     </>
   );
-}; 
+};

@@ -3,23 +3,29 @@
 ## Required Variables
 
 ### Core Stripe Configuration
+
 - **`STRIPE_SECRET_KEY`** (Required)
-  - Your Stripe API secret key
-  - Format: `sk_test_xxx` (test mode) or `sk_live_xxx` (production)
-  - Get from: Stripe Dashboard > Developers > API keys
+  - Your Stripe API secret key.
+  - Format: `sk_test_xxx` (for test mode) or `sk_live_xxx` (for production).
+  - **Security Note:** This key should never be committed to your repository or shared publicly. Store it in a `.env` file or a secure secrets manager. For more information, see [Stripe's key safety guide](https://stripe.com/docs/keys#safe-keys).
+  - Get from: Stripe Dashboard → Developers → API keys
 
 - **`STRIPE_WEBHOOK_SECRET`** (Required for webhooks)
-  - Endpoint secret for webhook signature verification
+  - Secret used to verify Stripe webhook signatures.
+  - Format: `whsec_xxx`
+  - Get from: Stripe Dashboard → Developers → Webhooks → Your endpoint → Signing secret
   - Format: `whsec_xxx`
   - Get from: Stripe Dashboard > Developers > Webhooks > Your endpoint > Signing secret
 
 ### Default Pricing
+
 - **`STRIPE_PRICE_ID_DEFAULT`** (Recommended)
   - Default subscription price ID
   - Format: `price_xxx`
   - Used when no specific price is specified
 
 ### Application Configuration
+
 - **`APP_BASE_URL`** (Recommended)
   - Your frontend application URL
   - Format: `https://your-domain.com`
@@ -28,25 +34,35 @@
 ## Optional Variables
 
 ### Product IDs (if using specific products)
+
 - `STRIPE_PRODUCT_WEIGHT_LOSS_MONTHLY`
 - `STRIPE_PRODUCT_WEIGHT_LOSS_QUARTERLY`
 - `STRIPE_PRODUCT_TESTOSTERONE_MONTHLY`
 - `STRIPE_PRODUCT_TESTOSTERONE_QUARTERLY`
 
 ### Price IDs (if using specific pricing)
+
 - `STRIPE_PRICE_WEIGHT_LOSS_MONTHLY`
 - `STRIPE_PRICE_WEIGHT_LOSS_QUARTERLY`
 - `STRIPE_PRICE_TESTOSTERONE_MONTHLY`
 - `STRIPE_PRICE_TESTOSTERONE_QUARTERLY`
 
 ### Additional Configuration
+
 - `STRIPE_TRIAL_DAYS` - Trial period length (default: 0)
 - `INVOICE_DUE_DAYS` - Days until invoice due (default: 30)
-- `TAX_ENABLED` - Enable automatic tax calculation (default: false)
+
+### Phase 2 Features
+
+- **`TAX_ENABLED`** - Enable automatic tax calculation (default: false)
+  - When `true`, enables Stripe's automatic tax calculation
+  - Requires customer address information
+  - See "Stripe Tax Configuration" section below
 
 ## Setup Instructions
 
 1. Copy `env.example` to `.env`:
+
    ```bash
    cp env.example .env
    ```
@@ -58,8 +74,13 @@
 
 3. Set up webhook endpoint:
    - Go to Developers > Webhooks
-   - Add endpoint: `https://your-backend-url/api/v1/payments/webhook/stripe`
-   - Select events to listen to (at minimum: customer.*, subscription.*, invoice.*, payment_intent.*)
+   - Add endpoint: `https://your-backend-url/api/v1/stripe/webhook` (Phase 2 endpoint)
+   - Alternative legacy endpoint: `https://your-backend-url/api/v1/payments/webhook/stripe`
+   - Select events to listen to:
+     - **Subscriptions**: customer.subscription.created, customer.subscription.updated, customer.subscription.deleted
+     - **Invoices**: invoice.created, invoice.finalized, invoice.paid, invoice.payment_failed, invoice.voided, invoice.marked_uncollectible
+     - **Payments**: payment_intent.succeeded, payment_intent.payment_failed, payment_intent.processing
+     - **Charges**: charge.succeeded, charge.refunded
    - Copy the signing secret to `STRIPE_WEBHOOK_SECRET`
 
 4. Create products and prices in Stripe:
@@ -87,6 +108,7 @@ If you want to automatically calculate and collect taxes:
    - Configure your tax registrations
 
 2. **Set the environment variable**:
+
    ```
    TAX_ENABLED=true
    ```
@@ -112,6 +134,7 @@ If you want to automatically calculate and collect taxes:
    - **postal_code**: Required for accurate tax rates
 
 ### Important Notes on Tax:
+
 - Tax calculation requires accurate customer addresses
 - Without proper address, tax calculation will fail
 - Test in Stripe's test mode first
@@ -124,6 +147,7 @@ All write operations (POST requests) support idempotency to prevent duplicate ch
 ### How to Use Idempotency Keys
 
 1. **Client-provided**: Include an `Idempotency-Key` header in your request:
+
    ```bash
    curl -X POST http://localhost:5002/api/v1/billing/invoice/create-and-pay \
      -H "Authorization: Bearer YOUR_TOKEN" \
@@ -137,6 +161,7 @@ All write operations (POST requests) support idempotency to prevent duplicate ch
 ### Supported Endpoints
 
 The following endpoints support idempotency:
+
 - `POST /api/v1/billing/invoice/create-and-pay`
 - `POST /api/v1/billing/subscription/create`
 - `POST /api/v1/billing/refund`
@@ -153,10 +178,12 @@ The following endpoints support idempotency:
 ## Verification
 
 The Stripe configuration is validated on startup. Check console logs for:
+
 - ✅ Stripe configuration loaded successfully
 - ⚠️ Warning messages if keys are missing
 
 To test your configuration:
+
 ```bash
 cd packages/backend
 npm run dev

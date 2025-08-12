@@ -13,7 +13,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const availableLanguages = [
   { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'es', name: 'Spanish', nativeName: 'Español' }
+  { code: 'es', name: 'Spanish', nativeName: 'Español' },
 ];
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -40,14 +40,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const value: LanguageContextType = {
     currentLanguage: i18n.language,
     changeLanguage,
-    availableLanguages
+    availableLanguages,
   };
 
-  return (
-    <LanguageContext.Provider value={value}>
-      {children}
-    </LanguageContext.Provider>
-  );
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };
 
 // Custom hook to use language context
@@ -57,4 +53,4 @@ export const useLanguage = () => {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
-}; 
+};

@@ -4,14 +4,23 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "nodemon",
-    "build": "tsc",
+    "dev": "nodemon src/index.ts",
+    "build": "tsc -p tsconfig.json",
     "build:full": "tsc",
     "test": "jest",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint . --fix",
+    "format": "prettier --write .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "migrate": "ts-node src/scripts/run-migrations.ts",
+    "migrate:stripe": "ts-node src/db/migrations/run-migration.ts",
     "backfill-payments": "ts-node --transpile-only -P tsconfig.loose.json src/scripts/backfill-stripe-payments.ts",
-    "sync-stripe": "node sync-stripe-customers.js"
+    "sync-stripe": "node sync-stripe-customers.js",
+    "stripe:login": "stripe login",
+    "stripe:listen": "stripe listen --forward-to localhost:3000/api/v1/stripe/webhook",
+    "stripe:check": "ts-node src/tools/stripeSelfCheck.ts"
+  },
+  "engines": {
+    "node": ">=18 <=22"
   },
   "keywords": [],
   "author": "",

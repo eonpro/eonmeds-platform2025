@@ -4,9 +4,11 @@ import { stripeConfig } from '../config/stripe.config';
 import { pool } from '../config/database';
 
 // Initialize Stripe with configuration
-const stripe = stripeConfig.apiKey ? new Stripe(stripeConfig.apiKey, {
-  apiVersion: '2024-06-20' as Stripe.LatestApiVersion
-}) : null;
+const stripe = stripeConfig.apiKey
+  ? new Stripe(stripeConfig.apiKey, {
+      apiVersion: '2024-06-20' as Stripe.LatestApiVersion,
+    })
+  : null;
 
 export const handleStripeWebhook = async (req: Request, res: Response): Promise<Response> => {
   // Check if Stripe is configured
@@ -14,26 +16,26 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
     console.warn('⚠️  Stripe not configured - skipping webhook processing');
     return res.status(200).json({ received: true, warning: 'Stripe not configured' });
   }
-  
+
   const sig = req.headers['stripe-signature'] as string;
   if (!sig) {
     console.error('Webhook Error: No stripe-signature header value was provided.');
-    return res.status(400).json({ error: 'Webhook Error: No stripe-signature header value was provided.' });
+    return res
+      .status(400)
+      .json({ error: 'Webhook Error: No stripe-signature header value was provided.' });
   }
   let event: Stripe.Event;
 
   // If no webhook secret is configured, skip signature verification (development only!)
   if (!stripeConfig.webhookSecret) {
-    console.warn('⚠️  Webhook signature verification skipped - no STRIPE_WEBHOOK_SECRET configured');
+    console.warn(
+      '⚠️  Webhook signature verification skipped - no STRIPE_WEBHOOK_SECRET configured'
+    );
     event = req.body as Stripe.Event;
   } else {
     try {
       // Verify webhook signature
-      event = stripe.webhooks.constructEvent(
-        req.body,
-        sig,
-        stripeConfig.webhookSecret
-      );
+      event = stripe.webhooks.constructEvent(req.body, sig, stripeConfig.webhookSecret);
     } catch (err: any) {
       console.error('Webhook signature verification failed:', err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -49,7 +51,7 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
       case 'customer.created':
         await handleCustomerCreated(event.data.object as Stripe.Customer);
         break;
-      
+
       case 'customer.updated':
         await handleCustomerUpdated(event.data.object as Stripe.Customer);
         break;
@@ -58,11 +60,11 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
       case 'customer.subscription.created':
         await handleSubscriptionCreated(event.data.object as Stripe.Subscription);
         break;
-      
+
       case 'customer.subscription.updated':
         await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
         break;
-      
+
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
         break;
@@ -71,15 +73,15 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
       case 'invoice.created':
         await handleInvoiceCreated(event.data.object as Stripe.Invoice);
         break;
-      
+
       case 'invoice.finalized':
         await handleInvoiceFinalized(event.data.object as Stripe.Invoice);
         break;
-      
+
       case 'invoice.paid':
         await handleInvoicePaid(event.data.object as Stripe.Invoice);
         break;
-      
+
       case 'invoice.payment_failed':
         await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
         break;
@@ -88,17 +90,17 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log(`💳 Payment succeeded: ${paymentIntent.id}`);
-        
+
         // Check if this is related to an invoice
         if ('invoice' in paymentIntent && paymentIntent.invoice) {
           // Invoice payments are handled by invoice.payment_succeeded
           break;
         }
-        
+
         // For one-time payments, create an invoice record
         if (paymentIntent.metadata?.invoice_id) {
           let chargeId: string | undefined;
-          
+
           if (paymentIntent.latest_charge && stripe) {
             try {
               const charge = await stripe.charges.retrieve(paymentIntent.latest_charge as string);
@@ -107,7 +109,7 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
               console.error('Error retrieving charge:', error);
             }
           }
-            
+
           await pool.query(
             `UPDATE invoices 
              SET status = 'paid',
@@ -115,15 +117,11 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
                  stripe_charge_id = $2,
                  payment_date = NOW()
              WHERE id = $3`,
-            [
-              paymentIntent.id,
-              chargeId || null,
-              paymentIntent.metadata.invoice_id
-            ]
+            [paymentIntent.id, chargeId || null, paymentIntent.metadata.invoice_id]
           );
         }
         break;
-      
+
       case 'payment_intent.payment_failed':
         await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
         break;
@@ -147,28 +145,32 @@ export const handleStripeWebhook = async (req: Request, res: Response): Promise<
     return res.json({ received: true });
   } catch (error) {
     console.error('Error processing webhook:', error);
-    
+
     // Store webhook as failed
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     await storeWebhookEvent(event, false, errorMessage);
-    
+
     return res.status(500).json({ error: 'Webhook handler failed' });
   }
 };
 
 // Store webhook event for audit trail
-async function storeWebhookEvent(event: Stripe.Event, processed: boolean = true, errorMessage?: string) {
+async function storeWebhookEvent(
+  event: Stripe.Event,
+  processed: boolean = true,
+  errorMessage?: string
+) {
   await pool.query(
     `INSERT INTO webhook_events (source, event_type, webhook_id, payload, processed, processed_at, error_message, created_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
     [
-      'stripe', 
-      event.type, 
-      event.id, 
+      'stripe',
+      event.type,
+      event.id,
       JSON.stringify(event),
       processed,
       processed ? new Date() : null,
-      errorMessage || null
+      errorMessage || null,
     ]
   );
 }
@@ -177,10 +179,10 @@ async function storeWebhookEvent(event: Stripe.Event, processed: boolean = true,
 async function handleCustomerCreated(customer: Stripe.Customer) {
   const patientId = customer.metadata.patient_id;
   if (patientId) {
-    await pool.query(
-      'UPDATE patients SET stripe_customer_id = $1 WHERE patient_id = $2',
-      [customer.id, patientId]
-    );
+    await pool.query('UPDATE patients SET stripe_customer_id = $1 WHERE patient_id = $2', [
+      customer.id,
+      patientId,
+    ]);
     console.log(`✅ Linked Stripe customer ${customer.id} to patient ${patientId}`);
   }
 }
@@ -194,16 +196,15 @@ async function handleCustomerUpdated(customer: Stripe.Customer) {
 // Subscription created - update patient status
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string;
-  
+
   // Get patient by stripe customer ID
-  const result = await pool.query(
-    'SELECT patient_id FROM patients WHERE stripe_customer_id = $1',
-    [customerId]
-  );
-  
+  const result = await pool.query('SELECT patient_id FROM patients WHERE stripe_customer_id = $1', [
+    customerId,
+  ]);
+
   if (result.rows.length > 0) {
     const patientId = result.rows[0].patient_id;
-    
+
     // Update patient with subscription info
     await pool.query(
       `UPDATE patients 
@@ -212,14 +213,9 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
            subscription_start_date = $3,
            membership_hashtags = array_append(membership_hashtags, 'activemember')
        WHERE patient_id = $4`,
-      [
-        subscription.status,
-        subscription.id,
-        new Date(subscription.created * 1000),
-        patientId
-      ]
+      [subscription.status, subscription.id, new Date(subscription.created * 1000), patientId]
     );
-    
+
     console.log(`✅ Created subscription for patient ${patientId}`);
   }
 }
@@ -227,15 +223,14 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 // Subscription updated - handle status changes
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string;
-  
-  const result = await pool.query(
-    'SELECT patient_id FROM patients WHERE stripe_customer_id = $1',
-    [customerId]
-  );
-  
+
+  const result = await pool.query('SELECT patient_id FROM patients WHERE stripe_customer_id = $1', [
+    customerId,
+  ]);
+
   if (result.rows.length > 0) {
     const patientId = result.rows[0].patient_id;
-    
+
     // Update hashtags based on status
     let hashtags: string[] = [];
     switch (subscription.status) {
@@ -249,7 +244,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
         hashtags = ['cancelled'];
         break;
     }
-    
+
     await pool.query(
       `UPDATE patients 
        SET subscription_status = $1,
@@ -257,7 +252,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
        WHERE patient_id = $3`,
       [subscription.status, hashtags, patientId]
     );
-    
+
     console.log(`✅ Updated subscription status for patient ${patientId}: ${subscription.status}`);
   }
 }
@@ -265,15 +260,14 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 // Subscription deleted - update patient
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string;
-  
-  const result = await pool.query(
-    'SELECT patient_id FROM patients WHERE stripe_customer_id = $1',
-    [customerId]
-  );
-  
+
+  const result = await pool.query('SELECT patient_id FROM patients WHERE stripe_customer_id = $1', [
+    customerId,
+  ]);
+
   if (result.rows.length > 0) {
     const patientId = result.rows[0].patient_id;
-    
+
     await pool.query(
       `UPDATE patients 
        SET subscription_status = 'canceled',
@@ -282,7 +276,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
        WHERE patient_id = $1`,
       [patientId]
     );
-    
+
     console.log(`✅ Cancelled subscription for patient ${patientId}`);
   }
 }
@@ -290,7 +284,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 // Invoice created - store in database
 async function handleInvoiceCreated(invoice: Stripe.Invoice) {
   const invoiceNumber = await generateInvoiceNumber();
-  
+
   await pool.query(
     `INSERT INTO invoices (
       invoice_number, stripe_invoice_id, patient_id, stripe_customer_id,
@@ -312,10 +306,10 @@ async function handleInvoiceCreated(invoice: Stripe.Invoice) {
       invoice.total / 100,
       invoice.currency.toUpperCase(),
       invoice.description || 'Medical services',
-      JSON.stringify(invoice.metadata || {})
+      JSON.stringify(invoice.metadata || {}),
     ]
   );
-  
+
   console.log(`✅ Created invoice ${invoiceNumber} (Stripe: ${invoice.id})`);
 }
 
@@ -343,13 +337,13 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
       invoice.amount_paid / 100,
       new Date(invoice.status_transitions.paid_at! * 1000),
       'card', // Default to card payment
-      invoice.id
+      invoice.id,
     ]
   );
-  
+
   // Record payment in payment history
   const paymentIntentId = (invoice as any).payment_intent as string | undefined;
-  
+
   if (paymentIntentId) {
     await pool.query(
       `INSERT INTO invoice_payments (
@@ -358,17 +352,10 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
       ) 
       SELECT id, $1, $2, $3, $4, $5
       FROM invoices WHERE stripe_invoice_id = $6`,
-      [
-        invoice.amount_paid / 100,
-        'card',
-        new Date(),
-        paymentIntentId,
-        'succeeded',
-        invoice.id
-      ]
+      [invoice.amount_paid / 100, 'card', new Date(), paymentIntentId, 'succeeded', invoice.id]
     );
   }
-  
+
   console.log(`✅ Invoice paid: ${invoice.id} - Amount: $${invoice.amount_paid / 100}`);
 }
 
@@ -378,9 +365,9 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     'UPDATE invoices SET status = $1, updated_at = NOW() WHERE stripe_invoice_id = $2',
     ['overdue', invoice.id]
   );
-  
+
   console.log(`❌ Invoice payment failed: ${invoice.id}`);
-  
+
   // TODO: Send notification to patient
   // TODO: Update patient hashtag to 'paymentissue'
 }
@@ -393,42 +380,43 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
 // External payment events
 export async function handleChargeSucceeded(charge: Stripe.Charge) {
   console.log(`💰 External charge succeeded: ${charge.id} - Amount: $${charge.amount / 100}`);
-  
+
   // Skip if this charge was already processed through payment_intent
   if (charge.payment_intent) {
     console.log('Charge is part of payment_intent, skipping to avoid duplicate processing');
     return;
   }
-  
+
   try {
     // Extract customer information
-    const customerEmail = charge.billing_details?.email || 
-                         (charge.customer ? await getCustomerEmail(charge.customer as string) : null);
-    
+    const customerEmail =
+      charge.billing_details?.email ||
+      (charge.customer ? await getCustomerEmail(charge.customer as string) : null);
+
     if (!customerEmail) {
       console.error('Cannot process charge without customer email');
       return;
     }
-    
+
     // Find or create patient
     let patient = await findPatientByEmail(customerEmail);
-    
+
     if (!patient && charge.customer) {
       // Try to find by Stripe customer ID
       patient = await findPatientByStripeCustomerId(charge.customer as string);
     }
-    
+
     if (!patient) {
       // Create new patient from charge data
       patient = await createPatientFromCharge(charge);
     }
-    
+
     // Create invoice for this external payment
     await createInvoiceFromExternalPayment(charge, patient);
-    
+
     // Update patient status to subscriptions
     await updatePatientStatusToSubscriptions(patient.patient_id);
-    
+
     console.log(`✅ Processed external payment for patient ${patient.patient_id}`);
   } catch (error) {
     console.error('Error processing external charge:', error);
@@ -436,42 +424,45 @@ export async function handleChargeSucceeded(charge: Stripe.Charge) {
 }
 
 export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-  console.log(`🛒 Checkout session completed: ${session.id} - Amount: $${(session.amount_total || 0) / 100}`);
-  
+  console.log(
+    `🛒 Checkout session completed: ${session.id} - Amount: $${(session.amount_total || 0) / 100}`
+  );
+
   try {
     // Extract customer information
-    const customerEmail = session.customer_email || 
-                         (session.customer ? await getCustomerEmail(session.customer as string) : null);
-    
+    const customerEmail =
+      session.customer_email ||
+      (session.customer ? await getCustomerEmail(session.customer as string) : null);
+
     if (!customerEmail) {
       console.error('Cannot process checkout session without customer email');
       return;
     }
-    
+
     // Find or create patient
     let patient = await findPatientByEmail(customerEmail);
-    
+
     if (!patient && session.customer) {
       // Try to find by Stripe customer ID
       patient = await findPatientByStripeCustomerId(session.customer as string);
     }
-    
+
     if (!patient) {
       // Create new patient from checkout session
       patient = await createPatientFromCheckoutSession(session);
     }
-    
+
     // Create invoice for this checkout session
     await createInvoiceFromCheckoutSession(session, patient);
-    
+
     // Update patient status to subscriptions
     await updatePatientStatusToSubscriptions(patient.patient_id);
-    
+
     // If this created a subscription, it will be handled by subscription events
     if (session.mode === 'subscription') {
       console.log('Checkout created subscription, will be handled by subscription events');
     }
-    
+
     console.log(`✅ Processed checkout session for patient ${patient.patient_id}`);
   } catch (error) {
     console.error('Error processing checkout session:', error);
@@ -482,13 +473,13 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
 async function generateInvoiceNumber(): Promise<string> {
   const result = await pool.query('SELECT generate_invoice_number() as number');
   return result.rows[0].number;
-} 
+}
 
 // Helper functions for external payment processing
 
 async function getCustomerEmail(customerId: string): Promise<string | null> {
   if (!stripe) return null;
-  
+
   try {
     const customer = await stripe.customers.retrieve(customerId);
     return (customer as Stripe.Customer).email;
@@ -499,18 +490,14 @@ async function getCustomerEmail(customerId: string): Promise<string | null> {
 }
 
 async function findPatientByEmail(email: string) {
-  const result = await pool.query(
-    'SELECT * FROM patients WHERE LOWER(email) = LOWER($1)',
-    [email]
-  );
+  const result = await pool.query('SELECT * FROM patients WHERE LOWER(email) = LOWER($1)', [email]);
   return result.rows[0] || null;
 }
 
 async function findPatientByStripeCustomerId(customerId: string) {
-  const result = await pool.query(
-    'SELECT * FROM patients WHERE stripe_customer_id = $1',
-    [customerId]
-  );
+  const result = await pool.query('SELECT * FROM patients WHERE stripe_customer_id = $1', [
+    customerId,
+  ]);
   return result.rows[0] || null;
 }
 
@@ -522,12 +509,12 @@ async function generatePatientId(): Promise<string> {
 async function createPatientFromCharge(charge: Stripe.Charge) {
   const billing = charge.billing_details;
   const patientId = await generatePatientId();
-  
+
   // Parse name into first and last
   const nameParts = (billing?.name || 'Unknown').split(' ');
   const firstName = nameParts[0] || 'Unknown';
   const lastName = nameParts.slice(1).join(' ') || 'Patient';
-  
+
   const result = await pool.query(
     `INSERT INTO patients (
       patient_id, first_name, last_name, email, phone,
@@ -544,23 +531,23 @@ async function createPatientFromCharge(charge: Stripe.Charge) {
       typeof charge.customer === 'string' ? charge.customer : null,
       'subscriptions', // Direct to subscriptions since they paid
       'external_stripe',
-      ['activemember'] // Add active member hashtag
+      ['activemember'], // Add active member hashtag
     ]
   );
-  
+
   console.log(`✅ Created new patient ${patientId} from external charge`);
   return result.rows[0];
 }
 
 async function createPatientFromCheckoutSession(session: Stripe.Checkout.Session) {
   const patientId = await generatePatientId();
-  
+
   // Try to get customer details
   const customerDetails = session.customer_details;
   const nameParts = (customerDetails?.name || 'Unknown').split(' ');
   const firstName = nameParts[0] || 'Unknown';
   const lastName = nameParts.slice(1).join(' ') || 'Patient';
-  
+
   const result = await pool.query(
     `INSERT INTO patients (
       patient_id, first_name, last_name, email, phone,
@@ -577,17 +564,17 @@ async function createPatientFromCheckoutSession(session: Stripe.Checkout.Session
       typeof session.customer === 'string' ? session.customer : null,
       'subscriptions',
       'external_checkout',
-      ['activemember']
+      ['activemember'],
     ]
   );
-  
+
   console.log(`✅ Created new patient ${patientId} from checkout session`);
   return result.rows[0];
 }
 
 async function createInvoiceFromExternalPayment(charge: Stripe.Charge, patient: any) {
   const invoiceNumber = await generateInvoiceNumber();
-  
+
   await pool.query(
     `INSERT INTO invoices (
       invoice_number, patient_id, stripe_charge_id, stripe_customer_id,
@@ -610,17 +597,17 @@ async function createInvoiceFromExternalPayment(charge: Stripe.Charge, patient: 
         ...charge.metadata,
         external_payment: true,
         capture_source: 'webhook',
-        payment_method: charge.payment_method
-      })
+        payment_method: charge.payment_method,
+      }),
     ]
   );
-  
+
   console.log(`✅ Created invoice ${invoiceNumber} from external charge ${charge.id}`);
 }
 
 async function createInvoiceFromCheckoutSession(session: Stripe.Checkout.Session, patient: any) {
   const invoiceNumber = await generateInvoiceNumber();
-  
+
   await pool.query(
     `INSERT INTO invoices (
       invoice_number, patient_id, stripe_session_id, stripe_customer_id,
@@ -642,11 +629,11 @@ async function createInvoiceFromCheckoutSession(session: Stripe.Checkout.Session
         mode: session.mode,
         external_payment: true,
         capture_source: 'checkout',
-        payment_status: session.payment_status
-      })
+        payment_status: session.payment_status,
+      }),
     ]
   );
-  
+
   console.log(`✅ Created invoice ${invoiceNumber} from checkout session ${session.id}`);
 }
 
@@ -663,10 +650,10 @@ async function updatePatientStatusToSubscriptions(patientId: string) {
      RETURNING *`,
     [patientId]
   );
-  
+
   if (result.rows.length > 0) {
     console.log(`✅ Updated patient ${patientId} from qualified to subscriptions`);
   } else {
     console.log(`ℹ️ Patient ${patientId} already has subscriptions status or doesn't exist`);
   }
-} 
+}

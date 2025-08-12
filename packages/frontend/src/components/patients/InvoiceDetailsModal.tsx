@@ -10,12 +10,12 @@ interface InvoiceDetailsModalProps {
 export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
   invoice,
   onClose,
-  onCharge
+  onCharge,
 }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
     }).format(amount);
   };
 
@@ -23,39 +23,46 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'paid': return '#10b981';
-      case 'open': return '#f59e0b';
-      case 'overdue': return '#ef4444';
-      case 'draft': return '#6b7280';
-      default: return '#6b7280';
+      case 'paid':
+        return '#10b981';
+      case 'open':
+        return '#f59e0b';
+      case 'overdue':
+        return '#ef4444';
+      case 'draft':
+        return '#6b7280';
+      default:
+        return '#6b7280';
     }
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="invoice-details-modal" onClick={e => e.stopPropagation()}>
+      <div className="invoice-details-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Invoice Details</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="close-btn" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <div className="invoice-header-info">
           <div className="invoice-number-section">
             <h3>Invoice #{invoice.invoice_number}</h3>
-            <span 
+            <span
               className="status-badge"
               style={{ backgroundColor: getStatusColor(invoice.status) }}
             >
               {invoice.status}
             </span>
           </div>
-          
+
           <div className="invoice-dates">
             <div className="date-item">
               <label>Invoice Date</label>
@@ -133,4 +140,4 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
       </div>
     </div>
   );
-}; 
+};

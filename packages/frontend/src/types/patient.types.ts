@@ -10,7 +10,7 @@ export interface Patient {
   height_inches?: number;
   weight_lbs?: number;
   bmi?: number;
-  
+
   // Address fields
   address?: string; // Legacy full address
   address_house?: string;
@@ -19,20 +19,20 @@ export interface Patient {
   city?: string;
   state?: string;
   zip?: string;
-  
+
   // Status and metadata
   status?: string;
   membership_status?: string;
   membership_hashtags?: string[];
   created_at: string;
   updated_at: string;
-  
+
   // Additional info
   additional_info?: string;
-  
+
   // Payment integration
   stripe_customer_id?: string;
-  
+
   // HeyFlow integration
   heyflow_submission_id?: string;
   form_type?: string;
@@ -48,4 +48,4 @@ export interface PatientListResponse {
   total: number;
   limit: number;
   offset: number;
-} 
+}

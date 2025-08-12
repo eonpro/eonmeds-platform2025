@@ -12,23 +12,23 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
-  res.json({ 
+  res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
 // Basic route
 app.get('/', (_req, res) => {
-  res.json({ 
+  res.json({
     message: 'EONMeds Backend API - Minimal Version',
     version: '1.0.0',
-    status: 'running'
+    status: 'running',
   });
 });
 
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
-}); 
+});

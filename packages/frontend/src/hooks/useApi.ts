@@ -2,15 +2,16 @@ import { useAuth0 } from '@auth0/auth0-react';
 import axios, { AxiosInstance } from 'axios';
 import { useEffect, useRef } from 'react';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app';
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app';
 
 // Create a single axios instance outside the hook
 const createApiClient = (): AxiosInstance => {
   const client = axios.create({
     baseURL: API_BASE_URL,
     headers: {
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   });
 
   // Add response interceptor for debugging
@@ -46,7 +47,7 @@ export const useApi = (): AxiosInstance => {
         if (isAuthenticated) {
           try {
             const token = await getAccessTokenSilently();
-            
+
             console.log('Got access token successfully');
             config.headers.Authorization = `Bearer ${token}`;
           } catch (tokenError) {
@@ -71,4 +72,4 @@ export const useApi = (): AxiosInstance => {
 
   // Always return the axios instance
   return apiClientRef.current!;
-}; 
+};

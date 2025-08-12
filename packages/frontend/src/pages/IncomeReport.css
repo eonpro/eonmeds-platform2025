@@ -301,31 +301,31 @@
   .income-report-page {
     padding: 0;
   }
-  
+
   .header-actions,
   .filters-section {
     display: none;
   }
-  
+
   .page-header {
     margin-bottom: 20px;
   }
-  
+
   .income-stats {
     page-break-after: avoid;
   }
-  
+
   .payments-table-section {
     border: none;
     padding: 0;
   }
-  
+
   .payments-table {
     font-size: 10px;
   }
-  
+
   .payments-table th,
   .payments-table td {
     padding: 6px;
   }
-} 
+}

@@ -3,15 +3,15 @@ require('dotenv').config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 async function createBeccaTables() {
   const client = await pool.connect();
-  
+
   try {
     console.log('Creating BECCA AI tables...');
-    
+
     // Check if soap_notes table exists
     const tableCheck = await client.query(`
       SELECT EXISTS (
@@ -19,12 +19,12 @@ async function createBeccaTables() {
         WHERE table_name = 'soap_notes'
       );
     `);
-    
+
     if (tableCheck.rows[0].exists) {
       console.log('✅ soap_notes table already exists');
     } else {
       console.log('Creating soap_notes table...');
-      
+
       // Create SOAP Notes table
       await client.query(`
         CREATE TABLE IF NOT EXISTS soap_notes (
@@ -64,15 +64,19 @@ async function createBeccaTables() {
           CONSTRAINT valid_status CHECK (status IN ('pending', 'approved', 'rejected'))
         )
       `);
-      
+
       // Create indexes
-      await client.query('CREATE INDEX IF NOT EXISTS idx_soap_notes_patient_id ON soap_notes(patient_id)');
+      await client.query(
+        'CREATE INDEX IF NOT EXISTS idx_soap_notes_patient_id ON soap_notes(patient_id)'
+      );
       await client.query('CREATE INDEX IF NOT EXISTS idx_soap_notes_status ON soap_notes(status)');
-      await client.query('CREATE INDEX IF NOT EXISTS idx_soap_notes_created_at ON soap_notes(created_at)');
-      
+      await client.query(
+        'CREATE INDEX IF NOT EXISTS idx_soap_notes_created_at ON soap_notes(created_at)'
+      );
+
       console.log('✅ soap_notes table created successfully');
     }
-    
+
     // Create or update the trigger function
     await client.query(`
       CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -83,21 +87,20 @@ async function createBeccaTables() {
       END;
       $$ language 'plpgsql'
     `);
-    
+
     // Create trigger
     await client.query(`
       DROP TRIGGER IF EXISTS update_soap_notes_updated_at ON soap_notes
     `);
-    
+
     await client.query(`
       CREATE TRIGGER update_soap_notes_updated_at 
       BEFORE UPDATE ON soap_notes 
       FOR EACH ROW 
       EXECUTE FUNCTION update_updated_at_column()
     `);
-    
+
     console.log('✅ BECCA AI tables setup complete!');
-    
   } catch (error) {
     console.error('Error creating BECCA tables:', error);
     throw error;
@@ -108,4 +111,4 @@ async function createBeccaTables() {
 }
 
 // Run the script
-createBeccaTables().catch(console.error); 
+createBeccaTables().catch(console.error);

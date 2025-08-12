@@ -2,7 +2,7 @@
 
 /**
  * Update Existing Patients Based on Stripe Data
- * 
+ *
  * This script will:
  * 1. Check all existing patients who have an email
  * 2. Look them up in Stripe
@@ -20,7 +20,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Initialize database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 async function updatePatientFromStripe(patient) {
@@ -28,7 +28,7 @@ async function updatePatientFromStripe(patient) {
     // Search for customer in Stripe by email
     const customers = await stripe.customers.list({
       email: patient.email,
-      limit: 1
+      limit: 1,
     });
 
     if (customers.data.length === 0) {
@@ -37,15 +37,15 @@ async function updatePatientFromStripe(patient) {
 
     const customer = customers.data[0];
     let updates = [];
-    
+
     // Check for successful payments
     const charges = await stripe.charges.list({
       customer: customer.id,
-      limit: 10
+      limit: 10,
     });
 
-    const hasSuccessfulPayment = charges.data.some(charge => 
-      charge.status === 'succeeded' && charge.paid
+    const hasSuccessfulPayment = charges.data.some(
+      (charge) => charge.status === 'succeeded' && charge.paid
     );
 
     // Update status to client if they have payments and aren't already
@@ -70,16 +70,17 @@ async function updatePatientFromStripe(patient) {
     const subscriptions = await stripe.subscriptions.list({
       customer: customer.id,
       status: 'active',
-      limit: 10
+      limit: 10,
     });
 
     if (subscriptions.data.length > 0) {
       // Add #activemember hashtag if not present
-      const hasActiveTag = patient.membership_hashtags && 
-                          patient.membership_hashtags.includes('#activemember');
-      
+      const hasActiveTag =
+        patient.membership_hashtags && patient.membership_hashtags.includes('#activemember');
+
       if (!hasActiveTag) {
-        await pool.query(`
+        await pool.query(
+          `
           UPDATE patients 
           SET membership_hashtags = 
             CASE 
@@ -88,18 +89,19 @@ async function updatePatientFromStripe(patient) {
             END,
             updated_at = NOW()
           WHERE patient_id = $1
-        `, [patient.patient_id]);
+        `,
+          [patient.patient_id]
+        );
         updates.push('added #activemember');
       }
     }
 
-    return { 
-      updated: updates.length > 0, 
+    return {
+      updated: updates.length > 0,
       updates: updates,
       hasPayments: hasSuccessfulPayment,
-      hasSubscription: subscriptions.data.length > 0
+      hasSubscription: subscriptions.data.length > 0,
     };
-
   } catch (error) {
     console.error(`Error processing patient ${patient.patient_id}:`, error.message);
     return { updated: false, error: error.message };
@@ -127,32 +129,36 @@ async function syncExistingPatients() {
       updated: 0,
       withPayments: 0,
       withSubscriptions: 0,
-      errors: 0
+      errors: 0,
     };
 
     // Process each patient
     for (const patient of patients) {
-      process.stdout.write(`\r⏳ Processing: ${stats.checked + 1}/${stats.total} - ${patient.email}...                    `);
-      
+      process.stdout.write(
+        `\r⏳ Processing: ${stats.checked + 1}/${stats.total} - ${patient.email}...                    `
+      );
+
       const result = await updatePatientFromStripe(patient);
       stats.checked++;
-      
+
       if (result.updated) {
         stats.updated++;
-        console.log(`\n✅ Updated ${patient.first_name} ${patient.last_name} (${patient.patient_id}): ${result.updates.join(', ')}`);
+        console.log(
+          `\n✅ Updated ${patient.first_name} ${patient.last_name} (${patient.patient_id}): ${result.updates.join(', ')}`
+        );
       }
-      
+
       if (result.hasPayments) stats.withPayments++;
       if (result.hasSubscription) stats.withSubscriptions++;
       if (result.error) stats.errors++;
-      
+
       // Small delay to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
     // Clear the progress line
     console.log('\r                                                                          ');
-    
+
     // Final summary
     console.log('\n📊 UPDATE SUMMARY');
     console.log('=====================================');
@@ -162,7 +168,6 @@ async function syncExistingPatients() {
     console.log(`Active subscriptions:       ${stats.withSubscriptions}`);
     console.log(`Errors:                     ${stats.errors}`);
     console.log('=====================================\n');
-
   } catch (error) {
     console.error('❌ Fatal error:', error);
   } finally {
@@ -189,7 +194,7 @@ syncExistingPatients()
     console.log('✅ Update completed successfully!');
     process.exit(0);
   })
-  .catch(error => {
+  .catch((error) => {
     console.error('❌ Update failed:', error);
     process.exit(1);
-  }); 
+  });

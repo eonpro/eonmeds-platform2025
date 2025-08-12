@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
+import { BuildStamp } from '../common/BuildStamp';
 import './AppLayout.css';
 
 interface AppLayoutProps {
@@ -11,13 +12,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div className="app-layout">
-      <Sidebar 
-        isCollapsed={isSidebarCollapsed} 
-        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+      <Sidebar
+        isCollapsed={isSidebarCollapsed}
+        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
       <div className={`app-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         {children}
       </div>
+      <BuildStamp />
     </div>
   );
-}; 
+};

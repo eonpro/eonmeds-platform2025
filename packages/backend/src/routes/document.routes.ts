@@ -8,4 +8,4 @@ router.get('/', authenticateToken, async (_req: Request, res: Response): Promise
   return res.json({ message: 'Document routes not implemented yet' });
 });
 
-export default router; 
+export default router;

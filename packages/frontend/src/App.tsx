@@ -28,7 +28,10 @@ if (process.env.NODE_ENV === 'development') {
       return;
     }
     // Filter out form field warnings from Stripe Elements
-    if (args[0]?.includes?.('form field element') && args[0]?.includes?.('should have an id or name')) {
+    if (
+      args[0]?.includes?.('form field element') &&
+      args[0]?.includes?.('should have an id or name')
+    ) {
       return;
     }
     // Filter out label association warnings that are likely from Stripe
@@ -49,8 +52,8 @@ function App() {
             <Route path="/callback" element={<Auth0Callback />} />
             <Route path="/test-auth" element={<TestAuth />} />
             <Route path="/debug-auth" element={<DebugAuth />} />
-            <Route 
-              path="/*" 
+            <Route
+              path="/*"
               element={
                 <ProtectedRoute>
                   <AppLayout>
@@ -61,34 +64,34 @@ function App() {
                       <Route path="/clients/:id" element={<PatientProfile />} />
                       <Route path="/patients/:id" element={<PatientProfile />} />
                       <Route path="/profile" element={<UserProfile />} />
-                      <Route 
-                        path="/income-report" 
+                      <Route
+                        path="/income-report"
                         element={
                           <ProtectedRoute requiredRoles={['admin']}>
                             <IncomeReport />
                           </ProtectedRoute>
                         }
                       />
-                      <Route 
-                        path="/packages" 
+                      <Route
+                        path="/packages"
                         element={
                           <ProtectedRoute requiredRoles={['admin']}>
                             <Packages />
                           </ProtectedRoute>
                         }
                       />
-                      <Route 
-                        path="/patients" 
+                      <Route
+                        path="/patients"
                         element={
                           <ProtectedRoute requiredPermissions={['patients:read']}>
                             <div>Patients Page - Coming Soon</div>
                           </ProtectedRoute>
-                        } 
+                        }
                       />
                     </Routes>
                   </AppLayout>
                 </ProtectedRoute>
-              } 
+              }
             />
           </Routes>
         </LanguageProvider>

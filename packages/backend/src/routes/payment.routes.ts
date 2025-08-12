@@ -1,6 +1,15 @@
 import { Router, Request, Response } from 'express';
-import { createPaymentIntent, chargeInvoice, getPaymentMethods, detachPaymentMethod } from '../controllers/payment.controller';
-import { handleStripeWebhook, handleChargeSucceeded, handleCheckoutSessionCompleted } from '../controllers/stripe-webhook.controller';
+import {
+  createPaymentIntent,
+  chargeInvoice,
+  getPaymentMethods,
+  detachPaymentMethod,
+} from '../controllers/payment.controller';
+import {
+  handleStripeWebhook,
+  handleChargeSucceeded,
+  handleCheckoutSessionCompleted,
+} from '../controllers/stripe-webhook.controller';
 import express from 'express';
 
 const router = Router();
@@ -13,31 +22,28 @@ router.delete('/payment-methods/:paymentMethodId', detachPaymentMethod);
 
 // Stripe webhook - MUST be before any body parsing middleware
 // The raw body is required for signature verification
-router.post('/webhook/stripe', 
-  express.raw({ type: 'application/json' }), 
-  handleStripeWebhook
-);
+router.post('/webhook/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // TEST ONLY: Webhook test endpoint that bypasses signature verification
 if (process.env.NODE_ENV !== 'production') {
   router.post('/webhook/stripe/test', async (req: Request, res: Response) => {
     console.log('📨 TEST: Stripe webhook received:', req.body.type);
-    
+
     try {
       // Process based on event type
       switch (req.body.type) {
         case 'charge.succeeded':
           await handleChargeSucceeded(req.body.data.object);
           break;
-          
+
         case 'checkout.session.completed':
           await handleCheckoutSessionCompleted(req.body.data.object);
           break;
-          
+
         default:
           console.log('Unhandled test event type:', req.body.type);
       }
-      
+
       res.json({ received: true, test: true });
     } catch (error) {
       console.error('Test webhook error:', error);
@@ -46,4 +52,4 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-export default router; 
+export default router;

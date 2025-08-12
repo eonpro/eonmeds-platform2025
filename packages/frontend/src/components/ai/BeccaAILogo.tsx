@@ -11,4 +11,4 @@ const BeccaAILogo: React.FC<{ className?: string }> = ({ className }) => {
   );
 };
 
-export default BeccaAILogo; 
+export default BeccaAILogo;

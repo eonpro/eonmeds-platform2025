@@ -1,9 +1,5 @@
 import { Router } from 'express';
-import { 
-  syncAuth0User,
-  getCurrentUser,
-  updateProfile
-} from '../controllers/auth.controller';
+import { syncAuth0User, getCurrentUser, updateProfile } from '../controllers/auth.controller';
 import { checkJwt } from '../middleware/auth0';
 
 const router = Router();
@@ -31,8 +27,8 @@ router.get('/config', (_req, res) => {
     clientId: process.env.AUTH0_CLIENT_ID,
     audience: process.env.AUTH0_AUDIENCE,
     redirectUri: process.env.AUTH0_REDIRECT_URI || 'http://localhost:3001/callback',
-    logoutUri: process.env.AUTH0_LOGOUT_URI || 'http://localhost:3001'
+    logoutUri: process.env.AUTH0_LOGOUT_URI || 'http://localhost:3001',
   });
 });
 
-export default router; 
+export default router;

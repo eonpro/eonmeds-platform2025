@@ -31,12 +31,14 @@ const PORT = process.env.PORT || 3002;
 const dbService = new DatabaseService(pool);
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  })
+);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -48,7 +50,7 @@ app.get('/health', (_req: Request, res: Response) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0'
+    version: process.env.npm_package_version || '1.0.0',
   });
 });
 
@@ -77,7 +79,7 @@ app.use(errorHandler);
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
     error: 'Not Found',
-    message: 'The requested resource was not found'
+    message: 'The requested resource was not found',
   });
 });
 
@@ -85,30 +87,30 @@ app.use((_req: Request, res: Response) => {
 async function initializeApp() {
   try {
     console.log('🚀 Starting EONMeds Backend...');
-    
+
     // Test database connection
     const isConnected = await testDatabaseConnection();
     if (!isConnected) {
       throw new Error('Failed to connect to database');
     }
-    
+
     console.log('✅ Database connected successfully');
-    
+
     // Initialize database schema
     await dbService.initializeDatabase();
-    
+
     // Verify database integrity
     const { isValid, issues } = await dbService.verifyDatabaseIntegrity();
     if (!isValid) {
       console.error('❌ Database integrity issues found:', issues);
       throw new Error('Database integrity check failed');
     }
-    
+
     console.log('✅ Database integrity verified');
-    
+
     // Migrate existing data if needed
     await dbService.migrateExistingData();
-    
+
     // Start server
     app.listen(PORT, () => {
       console.log(`
@@ -120,7 +122,6 @@ async function initializeApp() {
 📊 Database: ✓ Connected and verified
       `);
     });
-    
   } catch (error) {
     console.error('❌ Failed to initialize application:', error);
     process.exit(1);
@@ -139,4 +140,4 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Start the application
-initializeApp(); 
+initializeApp();

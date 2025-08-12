@@ -50,8 +50,9 @@ psql "YOUR_RAILWAY_DATABASE_URL" < railway-invoice-setup.sql
 ### Troubleshooting:
 
 If you get any errors:
+
 1. Check if the tables already exist
 2. Make sure the `patients` table exists (required for foreign key)
 3. Make sure the `service_packages` table exists (for package references)
 
-The app should work immediately after running this SQL! 
+The app should work immediately after running this SQL!

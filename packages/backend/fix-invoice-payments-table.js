@@ -3,7 +3,7 @@ require('dotenv').config();
 
 async function createInvoicePaymentsTable() {
   const connectionString = process.env.DATABASE_URL;
-  
+
   if (!connectionString) {
     console.error('DATABASE_URL not found in environment variables');
     process.exit(1);
@@ -11,13 +11,13 @@ async function createInvoicePaymentsTable() {
 
   const client = new Client({
     connectionString,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   });
 
   try {
     console.log('Connecting to database...');
     await client.connect();
-    
+
     // Create invoice_payments table
     console.log('Creating invoice_payments table if not exists...');
     await client.query(`
@@ -35,23 +35,23 @@ async function createInvoicePaymentsTable() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    
+
     // Create indexes
     console.log('Creating indexes...');
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_invoice_payments_invoice_id ON invoice_payments(invoice_id);
     `);
-    
+
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_invoice_payments_stripe_charge_id ON invoice_payments(stripe_charge_id);
     `);
-    
+
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_invoice_payments_status ON invoice_payments(status);
     `);
-    
+
     console.log('✅ invoice_payments table created successfully!');
-    
+
     // Verify the table exists
     const result = await client.query(`
       SELECT column_name, data_type 
@@ -59,12 +59,11 @@ async function createInvoicePaymentsTable() {
       WHERE table_name = 'invoice_payments'
       ORDER BY ordinal_position;
     `);
-    
+
     console.log('\nTable columns:');
-    result.rows.forEach(row => {
+    result.rows.forEach((row) => {
       console.log(`  - ${row.column_name}: ${row.data_type}`);
     });
-    
   } catch (err) {
     console.error('Error creating table:', err);
     process.exit(1);
@@ -75,4 +74,4 @@ async function createInvoicePaymentsTable() {
 }
 
 // Run the script
-createInvoicePaymentsTable(); 
+createInvoicePaymentsTable();

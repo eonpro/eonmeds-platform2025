@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { pool } from '../config/database';
 import { getStripeClient } from '../config/stripe.config';
+import { mirrorExternalPaymentToInvoice } from '../lib/mirrorExternalPayment';
 
 /**
  * Stripe webhook handler - Hardened version
@@ -20,11 +21,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 
   try {
     const stripe = getStripeClient();
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      webhookSecret
-    );
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -34,7 +31,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
   res.status(200).json({ received: true });
 
   // Process event asynchronously
-  processWebhookEvent(event).catch(err => {
+  processWebhookEvent(event).catch((err) => {
     console.error('Error processing webhook event:', err);
   });
 }
@@ -44,7 +41,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
  */
 async function processWebhookEvent(event: Stripe.Event): Promise<void> {
   const client = await pool.connect();
-  
+
   try {
     // Begin transaction
     await client.query('BEGIN');
@@ -73,10 +70,9 @@ async function processWebhookEvent(event: Stripe.Event): Promise<void> {
     await handleEvent(client, event);
 
     // Mark event as processed
-    await client.query(
-      'INSERT INTO processed_events (event_id, processed_at) VALUES ($1, NOW())',
-      [event.id]
-    );
+    await client.query('INSERT INTO processed_events (event_id, processed_at) VALUES ($1, NOW())', [
+      event.id,
+    ]);
 
     await client.query('COMMIT');
     console.log(`Successfully processed ${event.type} event: ${event.id}`);
@@ -102,13 +98,13 @@ function sanitizeEventPayload(event: Stripe.Event): any {
       object: {
         id: (event.data.object as any).id,
         object: (event.data.object as any).object,
-      }
-    }
+      },
+    },
   };
 
   // Add specific fields based on event type
   const obj = event.data.object as any;
-  
+
   switch (event.type) {
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
@@ -122,8 +118,8 @@ function sanitizeEventPayload(event: Stripe.Event): any {
         default_payment_method: obj.default_payment_method,
         items: obj.items?.data?.map((item: any) => ({
           id: item.id,
-          price: { id: item.price.id }
-        }))
+          price: { id: item.price.id },
+        })),
       };
       break;
 
@@ -141,7 +137,7 @@ function sanitizeEventPayload(event: Stripe.Event): any {
         amount_paid: obj.amount_paid,
         amount_due: obj.amount_due,
         hosted_invoice_url: obj.hosted_invoice_url,
-        invoice_pdf: obj.invoice_pdf
+        invoice_pdf: obj.invoice_pdf,
       };
       break;
 
@@ -153,18 +149,20 @@ function sanitizeEventPayload(event: Stripe.Event): any {
         status: obj.status,
         amount: obj.amount,
         customer: obj.customer,
-        invoice: obj.invoice
+        invoice: obj.invoice,
       };
       break;
 
     case 'charge.refunded':
+    case 'charge.succeeded':
       sanitized.data.object = {
         ...sanitized.data.object,
         amount: obj.amount,
         amount_refunded: obj.amount_refunded,
         customer: obj.customer,
         invoice: obj.invoice,
-        payment_intent: obj.payment_intent
+        payment_intent: obj.payment_intent,
+        metadata: obj.metadata,
       };
       break;
   }
@@ -182,7 +180,7 @@ async function handleEvent(client: any, event: Stripe.Event): Promise<void> {
     case 'customer.subscription.updated':
       await handleSubscriptionUpdate(client, event.data.object as Stripe.Subscription);
       break;
-    
+
     case 'customer.subscription.deleted':
       await handleSubscriptionDeleted(client, event.data.object as Stripe.Subscription);
       break;
@@ -199,12 +197,21 @@ async function handleEvent(client: any, event: Stripe.Event): Promise<void> {
 
     // Payment intent events
     case 'payment_intent.succeeded':
+      await handlePaymentIntentUpdate(client, event.data.object as Stripe.PaymentIntent);
+      // Also handle mirroring for external payments
+      await handlePaymentIntentMirroring(event.data.object as Stripe.PaymentIntent);
+      break;
+
     case 'payment_intent.payment_failed':
     case 'payment_intent.processing':
       await handlePaymentIntentUpdate(client, event.data.object as Stripe.PaymentIntent);
       break;
 
     // Charge events
+    case 'charge.succeeded':
+      await handleChargeSucceeded(event.data.object as Stripe.Charge);
+      break;
+
     case 'charge.refunded':
       await handleChargeRefunded(client, event.data.object as Stripe.Charge);
       break;
@@ -217,7 +224,10 @@ async function handleEvent(client: any, event: Stripe.Event): Promise<void> {
 /**
  * Handle subscription create/update
  */
-async function handleSubscriptionUpdate(client: any, subscription: Stripe.Subscription): Promise<void> {
+async function handleSubscriptionUpdate(
+  client: any,
+  subscription: Stripe.Subscription
+): Promise<void> {
   // Check if subscriptions table exists
   const tableExists = await checkTableExists(client, 'subscriptions');
   if (!tableExists) return;
@@ -245,9 +255,9 @@ async function handleSubscriptionUpdate(client: any, subscription: Stripe.Subscr
       subscription.status,
       new Date(subscription.current_period_end * 1000),
       subscription.cancel_at_period_end,
-      typeof subscription.default_payment_method === 'string' 
-        ? subscription.default_payment_method 
-        : subscription.default_payment_method?.id || null
+      typeof subscription.default_payment_method === 'string'
+        ? subscription.default_payment_method
+        : subscription.default_payment_method?.id || null,
     ]
   );
 }
@@ -255,7 +265,10 @@ async function handleSubscriptionUpdate(client: any, subscription: Stripe.Subscr
 /**
  * Handle subscription deletion
  */
-async function handleSubscriptionDeleted(client: any, subscription: Stripe.Subscription): Promise<void> {
+async function handleSubscriptionDeleted(
+  client: any,
+  subscription: Stripe.Subscription
+): Promise<void> {
   const tableExists = await checkTableExists(client, 'subscriptions');
   if (!tableExists) return;
 
@@ -301,7 +314,7 @@ async function handleInvoiceUpdate(client: any, invoice: Stripe.Invoice): Promis
       invoice.amount_due,
       invoice.amount_paid,
       invoice.hosted_invoice_url,
-      invoice.invoice_pdf
+      invoice.invoice_pdf,
     ]
   );
 
@@ -317,7 +330,10 @@ async function handleInvoiceUpdate(client: any, invoice: Stripe.Invoice): Promis
 /**
  * Handle payment intent updates
  */
-async function handlePaymentIntentUpdate(client: any, paymentIntent: Stripe.PaymentIntent): Promise<void> {
+async function handlePaymentIntentUpdate(
+  client: any,
+  paymentIntent: Stripe.PaymentIntent
+): Promise<void> {
   // Update related invoice if exists
   if (paymentIntent.invoice) {
     const tableExists = await checkTableExists(client, 'invoices');
@@ -364,4 +380,86 @@ async function checkTableExists(client: any, tableName: string): Promise<boolean
     [tableName]
   );
   return result.rows[0].exists;
+}
+
+/**
+ * Handle payment intent mirroring for external payments
+ */
+async function handlePaymentIntentMirroring(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+  try {
+    const stripe = getStripeClient();
+
+    // Check if payment intent has charges
+    if (!paymentIntent.charges || paymentIntent.charges.data.length === 0) {
+      return;
+    }
+
+    // Get the first charge
+    const charge = paymentIntent.charges.data[0];
+
+    // Skip if it's a platform-originated charge
+    if (charge.metadata?.platform === 'EONPRO') {
+      console.log(`Skipping platform charge ${charge.id}`);
+      return;
+    }
+
+    // If charge has invoice, check if it's platform-originated
+    if (charge.invoice) {
+      try {
+        const invoiceId = typeof charge.invoice === 'string' ? charge.invoice : charge.invoice.id;
+        const invoice = await stripe.invoices.retrieve(invoiceId);
+
+        if (invoice.metadata?.platform === 'EONPRO') {
+          console.log(`Skipping charge ${charge.id} with platform invoice`);
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking invoice:', error);
+      }
+    }
+
+    // Mirror the external payment
+    const result = await mirrorExternalPaymentToInvoice({ charge });
+    console.log(`Mirror result for charge ${charge.id}:`, result);
+  } catch (error) {
+    console.error('Error in handlePaymentIntentMirroring:', error);
+    // Don't throw - we don't want to fail the webhook
+  }
+}
+
+/**
+ * Handle charge.succeeded event
+ */
+async function handleChargeSucceeded(charge: Stripe.Charge): Promise<void> {
+  try {
+    const stripe = getStripeClient();
+
+    // Skip if it's a platform-originated charge
+    if (charge.metadata?.platform === 'EONPRO') {
+      console.log(`Skipping platform charge ${charge.id}`);
+      return;
+    }
+
+    // If charge has invoice, check if it's platform-originated
+    if (charge.invoice) {
+      try {
+        const invoiceId = typeof charge.invoice === 'string' ? charge.invoice : charge.invoice.id;
+        const invoice = await stripe.invoices.retrieve(invoiceId);
+
+        if (invoice.metadata?.platform === 'EONPRO') {
+          console.log(`Skipping charge ${charge.id} with platform invoice`);
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking invoice:', error);
+      }
+    }
+
+    // Mirror the external payment
+    const result = await mirrorExternalPaymentToInvoice({ charge });
+    console.log(`Mirror result for charge ${charge.id}:`, result);
+  } catch (error) {
+    console.error('Error in handleChargeSucceeded:', error);
+    // Don't throw - we don't want to fail the webhook
+  }
 }

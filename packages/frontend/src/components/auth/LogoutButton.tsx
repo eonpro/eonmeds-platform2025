@@ -13,17 +13,14 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({ className }) => {
   const handleLogout = () => {
     logout({
       logoutParams: {
-        returnTo: window.location.origin
-      }
+        returnTo: window.location.origin,
+      },
     });
   };
 
   return (
-    <button
-      className={className || 'btn btn-secondary'}
-      onClick={handleLogout}
-    >
+    <button className={className || 'btn btn-secondary'} onClick={handleLogout}>
       {t('nav.logout')}
     </button>
   );
-}; 
+};

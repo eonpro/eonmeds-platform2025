@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { pool } from '../config/database';
 import Stripe from 'stripe';
 
-const stripe = process.env.STRIPE_SECRET_KEY 
+const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-06-30.basil' })
   : null;
 
@@ -15,15 +15,15 @@ export const createPaymentIntent = async (req: Request, res: Response): Promise<
     }
 
     const { amount, patientId } = req.body;
-    
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount * 100, // Convert to cents
       currency: 'usd',
-      metadata: { patientId }
+      metadata: { patientId },
     });
 
     res.json({
-      clientSecret: paymentIntent.client_secret
+      clientSecret: paymentIntent.client_secret,
     });
   } catch (error) {
     console.error('Error creating payment intent:', error);
@@ -35,7 +35,7 @@ export const createPaymentIntent = async (req: Request, res: Response): Promise<
 export const chargeInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
     const { invoiceId, amount } = req.body;
-    
+
     // Update invoice status
     await pool.query(
       `UPDATE invoices 
@@ -46,7 +46,7 @@ export const chargeInvoice = async (req: Request, res: Response): Promise<void> 
        WHERE id = $1`,
       [invoiceId, amount]
     );
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error charging invoice:', error);
@@ -73,4 +73,4 @@ export const detachPaymentMethod = async (_req: Request, res: Response): Promise
     console.error('Error detaching payment method:', error);
     res.status(500).json({ error: 'Failed to detach payment method' });
   }
-}; 
+};

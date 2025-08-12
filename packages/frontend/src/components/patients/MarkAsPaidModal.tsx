@@ -11,7 +11,7 @@ interface MarkAsPaidModalProps {
 export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
   invoice,
   onClose,
-  onSuccess
+  onSuccess,
 }) => {
   const apiClient = useApi();
   const [processing, setProcessing] = useState(false);
@@ -22,16 +22,16 @@ export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
 
   const handleMarkAsPaid = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setProcessing(true);
-      
+
       const response = await apiClient.post('/api/v1/payments/mark-paid', {
         invoice_id: invoice.id,
         payment_date: paymentDate,
         payment_method: paymentMethod,
         reference: reference,
-        notes: notes
+        notes: notes,
       });
 
       if (response.data.success) {
@@ -51,16 +51,18 @@ export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
     }).format(amount);
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="mark-paid-modal" onClick={e => e.stopPropagation()}>
+      <div className="mark-paid-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Mark Invoice as Paid</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="close-btn" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <form onSubmit={handleMarkAsPaid}>
@@ -125,25 +127,16 @@ export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
           <div className="warning-message">
             <span className="warning-icon">⚠️</span>
             <p>
-              This will mark the invoice as paid without processing a charge. 
-              Use this only for payments received outside the platform.
+              This will mark the invoice as paid without processing a charge. Use this only for
+              payments received outside the platform.
             </p>
           </div>
 
           <div className="modal-actions">
-            <button 
-              type="button" 
-              className="cancel-btn" 
-              onClick={onClose}
-              disabled={processing}
-            >
+            <button type="button" className="cancel-btn" onClick={onClose} disabled={processing}>
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="confirm-btn" 
-              disabled={processing}
-            >
+            <button type="submit" className="confirm-btn" disabled={processing}>
               {processing ? 'Processing...' : 'Mark as Paid'}
             </button>
           </div>
@@ -151,4 +144,4 @@ export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
       </div>
     </div>
   );
-}; 
+};

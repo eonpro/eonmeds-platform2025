@@ -20,14 +20,15 @@ export const Dashboard: React.FC = () => {
     const loadDashboardData = async () => {
       try {
         const claims = await getIdTokenClaims();
-        
+
         // Check for roles in different possible locations
-        const roles = claims?.['https://eonmeds.com/roles'] || 
-                     claims?.roles || 
-                     user?.['https://eonmeds.com/roles'] ||
-                     user?.roles ||
-                     [];
-                     
+        const roles =
+          claims?.['https://eonmeds.com/roles'] ||
+          claims?.roles ||
+          user?.['https://eonmeds.com/roles'] ||
+          user?.roles ||
+          [];
+
         // For now, let's assume superadmin if no roles found (for testing)
         const userRole = roles.length > 0 ? roles[0] : 'superadmin';
 
@@ -36,7 +37,7 @@ export const Dashboard: React.FC = () => {
           userRole,
           totalPatients: userRole !== 'patient' ? 150 : undefined,
           pendingAppointments: userRole !== 'patient' ? 12 : 2,
-          todayAppointments: userRole !== 'patient' ? 8 : 1
+          todayAppointments: userRole !== 'patient' ? 8 : 1,
         };
 
         setDashboardData(mockData);
@@ -55,7 +56,10 @@ export const Dashboard: React.FC = () => {
   }
 
   // For admin/superadmin, show the Clients component directly
-  if (dashboardData && (dashboardData.userRole === 'admin' || dashboardData.userRole === 'superadmin')) {
+  if (
+    dashboardData &&
+    (dashboardData.userRole === 'admin' || dashboardData.userRole === 'superadmin')
+  ) {
     return <Clients />;
   }
 
@@ -116,7 +120,9 @@ export const Dashboard: React.FC = () => {
             <div className="dashboard-grid">
               <div className="dashboard-card">
                 <h3>{t('widgets.appointments.title')}</h3>
-                <p className="metric">{t('widgets.appointments.count', { count: dashboardData.pendingAppointments })}</p>
+                <p className="metric">
+                  {t('widgets.appointments.count', { count: dashboardData.pendingAppointments })}
+                </p>
               </div>
               <div className="dashboard-card">
                 <h3>{t('widgets.prescriptions.title')}</h3>
@@ -137,4 +143,4 @@ export const Dashboard: React.FC = () => {
       )}
     </div>
   );
-}; 
+};

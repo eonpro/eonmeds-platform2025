@@ -51,9 +51,9 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
     try {
       await apiClient.post(`/api/v1/payments/patients/${patientId}/cards`, {
         payment_method_id: paymentMethodId,
-        set_as_default: cards.length === 0 // Set as default if it's the first card
+        set_as_default: cards.length === 0, // Set as default if it's the first card
       });
-      
+
       setShowAddCard(false);
       await loadCards();
     } catch (err: any) {
@@ -95,10 +95,7 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
     <div className="patient-cards-container">
       <div className="cards-header">
         <h3>Saved Payment Methods</h3>
-        <button 
-          className="add-card-btn"
-          onClick={() => setShowAddCard(!showAddCard)}
-        >
+        <button className="add-card-btn" onClick={() => setShowAddCard(!showAddCard)}>
           + Add Card
         </button>
       </div>
@@ -107,7 +104,7 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
         <div className="add-card-form">
           <h4>Add New Card</h4>
           {error && <div className="error-message">{error}</div>}
-          
+
           <StripePaymentForm
             onPaymentMethodCreated={handleAddCard}
             onCancel={() => {
@@ -128,7 +125,7 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
             <p className="text-muted">Add a card to enable quick payments</p>
           </div>
         ) : (
-          cards.map(card => (
+          cards.map((card) => (
             <div key={card.id} className="card-item">
               <div className="card-details">
                 <CardIcon className="card-icon" />
@@ -140,9 +137,7 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
                     Expires {card.exp_month}/{card.exp_year}
                   </div>
                 </div>
-                {card.is_default && (
-                  <span className="default-badge">Default</span>
-                )}
+                {card.is_default && <span className="default-badge">Default</span>}
               </div>
               <button
                 className="delete-card-btn"
@@ -157,4 +152,4 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
       </div>
     </div>
   );
-}; 
+};

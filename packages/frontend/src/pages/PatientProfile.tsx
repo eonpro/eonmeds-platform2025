@@ -6,19 +6,19 @@ import { CreatePatientModal } from '../components/patients/CreatePatientModal';
 import { useApi } from '../hooks/useApi';
 import { getHashtagColor } from '../utils/hashtag-utils';
 import { formatHashtagDisplay } from '../utils/hashtag-display';
-import { 
-  UserIcon, 
-  ChartIcon, 
-  InvoiceIcon, 
-  DocumentIcon, 
-  FormIcon, 
+import {
+  UserIcon,
+  ChartIcon,
+  InvoiceIcon,
+  DocumentIcon,
+  FormIcon,
   PrescriptionIcon,
   PinIcon,
   EditIcon,
   MoreOptionsIcon,
   CloseIcon,
   MapIcon,
-  CardIcon
+  CardIcon,
 } from '../components/common/Icons';
 import './PatientProfile.css';
 import { PatientInvoices } from '../components/patients/PatientInvoices';
@@ -42,7 +42,7 @@ interface PatientDetails {
   membership_hashtags?: string[];
   created_at: string;
   updated_at?: string;
-  
+
   // Address fields
   address?: string; // Legacy full address
   address_house?: string;
@@ -51,13 +51,13 @@ interface PatientDetails {
   city?: string;
   state?: string;
   zip?: string;
-  
+
   // Additional info
   additional_info?: string;
-  
+
   // Payment integration
   stripe_customer_id?: string;
-  
+
   // HeyFlow integration
   heyflow_submission_id?: string;
   form_type?: string;
@@ -95,7 +95,7 @@ export const PatientProfile: React.FC = () => {
   const [intakeFormData, setIntakeFormData] = useState<IntakeFormData | null>(null);
   const [intakeLoading, setIntakeLoading] = useState(false);
   const intakeLoadedRef = useRef(false);
-  
+
   // Search functionality
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<PatientDetails[]>([]);
@@ -104,7 +104,7 @@ export const PatientProfile: React.FC = () => {
 
   const loadPatient = async () => {
     if (!id) return;
-    
+
     try {
       setLoading(true);
       const data = await patientService.getPatientById(id);
@@ -123,11 +123,11 @@ export const PatientProfile: React.FC = () => {
 
   const loadIntakeData = useCallback(async () => {
     if (!id) return;
-    
+
     try {
       setIntakeLoading(true);
       const response = await apiClient.get(`/api/v1/patients/${id}/webhook-data`);
-      
+
       if (response.data) {
         setIntakeFormData(response.data);
       }
@@ -192,14 +192,14 @@ export const PatientProfile: React.FC = () => {
 
   // Add intake form as a pinned note when component loads
   useEffect(() => {
-    if (patient && !timelineNotes.some(note => note.id === 'intake-form')) {
+    if (patient && !timelineNotes.some((note) => note.id === 'intake-form')) {
       const intakeNote: TimelineNote = {
         id: 'intake-form',
         content: `Intake Form - ${patient.patient_id}\nSubmitted on ${new Date(patient.created_at).toLocaleDateString()}`,
         createdAt: new Date(patient.created_at),
-        isPinned: true
+        isPinned: true,
       };
-      setTimelineNotes(prev => [intakeNote, ...prev]);
+      setTimelineNotes((prev) => [intakeNote, ...prev]);
     }
   }, [patient]);
 
@@ -214,9 +214,9 @@ export const PatientProfile: React.FC = () => {
 
       setSearchLoading(true);
       try {
-        const response = await patientService.getPatients({ 
-          search: searchQuery, 
-          limit: 10 
+        const response = await patientService.getPatients({
+          search: searchQuery,
+          limit: 10,
         });
         setSearchResults(response.patients as PatientDetails[]);
         setShowSearchDropdown(true);
@@ -252,18 +252,18 @@ export const PatientProfile: React.FC = () => {
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
-        { 
+        {
           method: 'GET',
-          headers: { 
-            'Accept': 'application/pdf'
-          }
+          headers: {
+            Accept: 'application/pdf',
+          },
         }
       );
-      
+
       if (!response.ok) {
         throw new Error('Failed to download PDF');
       }
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -300,7 +300,7 @@ export const PatientProfile: React.FC = () => {
 
   const formatAddress = () => {
     if (!patient) return { addressLine1: '', addressLine2: '', fullAddress: '' };
-    
+
     // Check if we have the new structured address fields
     if ((patient.address_house || patient.address_street) && patient.city && patient.state) {
       // New format with separate fields
@@ -310,43 +310,43 @@ export const PatientProfile: React.FC = () => {
       } else if (patient.address_street) {
         addressLine1 = patient.address_street;
       }
-      
+
       // Add apartment number if it exists
       if (patient.apartment_number) {
         addressLine1 += `, Apt ${patient.apartment_number}`;
       }
-      
+
       const parts = [];
       if (patient.city) parts.push(patient.city);
       if (patient.state) parts.push(patient.state);
       if (patient.zip) parts.push(patient.zip);
       const addressLine2 = parts.join(', ');
-      
-      return { 
-        addressLine1, 
-        addressLine2, 
-        fullAddress: addressLine2 ? `${addressLine1}, ${addressLine2}` : addressLine1 
+
+      return {
+        addressLine1,
+        addressLine2,
+        fullAddress: addressLine2 ? `${addressLine1}, ${addressLine2}` : addressLine1,
       };
     } else if (patient.address && patient.city && patient.state) {
       // Legacy format - address already contains house and street
       let addressLine1 = patient.address;
-      
+
       // Add apartment number if it exists and not already in address
       if (patient.apartment_number && !addressLine1.toLowerCase().includes('apt')) {
         addressLine1 += `, Apt ${patient.apartment_number}`;
       }
-      
+
       // Only show city, state, zip on second line if they're not already in the address
       const addressLower = addressLine1.toLowerCase();
       const cityInAddress = patient.city && addressLower.includes(patient.city.toLowerCase());
       const stateInAddress = patient.state && addressLower.includes(patient.state.toLowerCase());
-      
+
       if (cityInAddress || stateInAddress) {
         // Address already contains city/state, don't duplicate
-        return { 
-          addressLine1, 
-          addressLine2: '', 
-          fullAddress: addressLine1 
+        return {
+          addressLine1,
+          addressLine2: '',
+          fullAddress: addressLine1,
         };
       } else {
         // Address doesn't contain city/state, show them separately
@@ -355,26 +355,26 @@ export const PatientProfile: React.FC = () => {
         if (patient.state) parts.push(patient.state);
         if (patient.zip) parts.push(patient.zip);
         const addressLine2 = parts.join(', ');
-        
-        return { 
-          addressLine1, 
-          addressLine2, 
-          fullAddress: `${addressLine1}, ${addressLine2}` 
+
+        return {
+          addressLine1,
+          addressLine2,
+          fullAddress: `${addressLine1}, ${addressLine2}`,
         };
       }
     } else if (patient.address) {
       // Only address field available
       let addressLine1 = patient.address;
-      
+
       // Add apartment number if it exists and not already in address
       if (patient.apartment_number && !addressLine1.toLowerCase().includes('apt')) {
         addressLine1 += `, Apt ${patient.apartment_number}`;
       }
-      
-      return { 
-        addressLine1, 
-        addressLine2: '', 
-        fullAddress: addressLine1 
+
+      return {
+        addressLine1,
+        addressLine2: '',
+        fullAddress: addressLine1,
       };
     } else {
       // No address data
@@ -384,12 +384,12 @@ export const PatientProfile: React.FC = () => {
 
   const handleSavePatient = async (updatedData: Partial<PatientDetails>) => {
     if (!patient) return;
-    
+
     try {
       const updatedPatient = await patientService.updatePatient(patient.id, updatedData);
       setPatient({
         ...patient,
-        ...updatedPatient
+        ...updatedPatient,
       });
       setIsEditModalOpen(false);
     } catch (err) {
@@ -400,14 +400,14 @@ export const PatientProfile: React.FC = () => {
 
   const addTimelineNote = () => {
     if (!newNote.trim()) return;
-    
+
     const note: TimelineNote = {
       id: Date.now().toString(),
       content: newNote,
       createdAt: new Date(),
-      isPinned: false
+      isPinned: false,
     };
-    
+
     const updatedNotes = [note, ...timelineNotes];
     setTimelineNotes(updatedNotes);
     localStorage.setItem(`patient-notes-${id}`, JSON.stringify(updatedNotes));
@@ -415,7 +415,7 @@ export const PatientProfile: React.FC = () => {
   };
 
   const togglePinNote = (noteId: string) => {
-    const updatedNotes = timelineNotes.map(note => 
+    const updatedNotes = timelineNotes.map((note) =>
       note.id === noteId ? { ...note, isPinned: !note.isPinned } : note
     );
     // Sort to put pinned notes first
@@ -427,28 +427,28 @@ export const PatientProfile: React.FC = () => {
   const deleteNote = (noteId: string) => {
     // Don't allow deleting the intake form note
     if (noteId === 'intake-form') return;
-    
-    const updatedNotes = timelineNotes.filter(note => note.id !== noteId);
+
+    const updatedNotes = timelineNotes.filter((note) => note.id !== noteId);
     setTimelineNotes(updatedNotes);
     localStorage.setItem(`patient-notes-${id}`, JSON.stringify(updatedNotes));
   };
 
   const addHashtag = async () => {
     if (!newHashtag.trim() || !patient) return;
-    
+
     const tag = newHashtag.startsWith('#') ? newHashtag.substring(1) : newHashtag;
     if (!hashtags.includes(tag)) {
       const updatedTags = [...hashtags, tag];
       setHashtags(updatedTags);
-      
+
       // Save to backend
       try {
         const updatedPatient = await patientService.updatePatient(patient.id, {
-          membership_hashtags: updatedTags
+          membership_hashtags: updatedTags,
         });
         setPatient({
           ...patient,
-          membership_hashtags: updatedTags
+          membership_hashtags: updatedTags,
         });
       } catch (err) {
         console.error('Error updating hashtags:', err);
@@ -462,18 +462,18 @@ export const PatientProfile: React.FC = () => {
 
   const removeHashtag = async (tag: string) => {
     if (!patient) return;
-    
-    const updatedTags = hashtags.filter(t => t !== tag);
+
+    const updatedTags = hashtags.filter((t) => t !== tag);
     setHashtags(updatedTags);
-    
+
     // Update backend
     try {
       const updatedPatient = await patientService.updatePatient(patient.id, {
-        membership_hashtags: updatedTags
+        membership_hashtags: updatedTags,
       });
       setPatient({
         ...patient,
-        membership_hashtags: updatedTags
+        membership_hashtags: updatedTags,
       });
     } catch (err) {
       console.error('Error removing hashtag:', err);
@@ -484,13 +484,13 @@ export const PatientProfile: React.FC = () => {
 
   const handleStatusChange = async (newStatus: string) => {
     if (!patient) return;
-    
+
     try {
       setPatientStatus(newStatus);
       const updatedPatient = await patientService.updatePatient(patient.id, { status: newStatus });
       setPatient({
         ...patient,
-        ...updatedPatient
+        ...updatedPatient,
       });
     } catch (err) {
       console.error('Error updating status:', err);
@@ -515,14 +515,14 @@ export const PatientProfile: React.FC = () => {
 
   const handleSaveAdditionalInfo = async () => {
     if (!patient) return;
-    
+
     try {
       const updatedPatient = await patientService.updatePatient(patient.id, {
-        additional_info: additionalInfo
+        additional_info: additionalInfo,
       });
       setPatient({
         ...patient,
-        additional_info: additionalInfo
+        additional_info: additionalInfo,
       });
     } catch (err) {
       console.error('Error updating additional info:', err);
@@ -597,64 +597,65 @@ export const PatientProfile: React.FC = () => {
             <h3>Timeline</h3>
             <button className="add-note-btn">+</button>
           </div>
-          
+
           <div className="timeline-content">
             {/* All Timeline Notes - sorted by date, newest first */}
             <div className="timeline-notes">
               {/* First show SOAP notes (newest first) */}
               {timelineNotes
-                .filter(note => note.id.startsWith('soap-'))
+                .filter((note) => note.id.startsWith('soap-'))
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                .map(note => (
-                <div key={note.id} className={`timeline-note soap-note-timeline`}>
-                  <div className="note-header">
-                    <span className="note-date">
-                      {new Date(note.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="soap-note-content">
-                    <div className="soap-note-info">
-                      <p className="soap-note-title">SOAP Note Attached</p>
-                      <button 
-                        className="view-soap-note-btn"
-                        onClick={() => setActiveTab('soap')}
-                      >
-                        View SOAP Note
-                      </button>
+                .map((note) => (
+                  <div key={note.id} className={`timeline-note soap-note-timeline`}>
+                    <div className="note-header">
+                      <span className="note-date">
+                        {new Date(note.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
-                  </div>
-                </div>
-              ))}
-              
-              {/* Then show intake form */}
-              {timelineNotes.filter(note => note.id === 'intake-form').map(note => (
-                <div key={note.id} className="timeline-note intake-form-note">
-                  <div className="intake-form-note-content">
-                    <div className="intake-form-info">
-                      <p className="note-title">{patient.patient_id} - Intake Form</p>
-                      <p className="note-subtitle">Weight Loss Program</p>
-                      <div className="form-action-buttons">
-                        <button 
-                          className="view-form-btn"
-                          onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
-                        >
-                          View Form
-                        </button>
-                        <button 
-                          className="download-form-btn"
-                          onClick={downloadPDF}
-                        >
-                          Download
+                    <div className="soap-note-content">
+                      <div className="soap-note-info">
+                        <p className="soap-note-title">SOAP Note Attached</p>
+                        <button className="view-soap-note-btn" onClick={() => setActiveTab('soap')}>
+                          View SOAP Note
                         </button>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              
+                ))}
+
+              {/* Then show intake form */}
+              {timelineNotes
+                .filter((note) => note.id === 'intake-form')
+                .map((note) => (
+                  <div key={note.id} className="timeline-note intake-form-note">
+                    <div className="intake-form-note-content">
+                      <div className="intake-form-info">
+                        <p className="note-title">{patient.patient_id} - Intake Form</p>
+                        <p className="note-subtitle">Weight Loss Program</p>
+                        <div className="form-action-buttons">
+                          <button
+                            className="view-form-btn"
+                            onClick={() =>
+                              window.open(
+                                `${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
+                                '_blank'
+                              )
+                            }
+                          >
+                            View Form
+                          </button>
+                          <button className="download-form-btn" onClick={downloadPDF}>
+                            Download
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
               {/* Status Dropdown */}
               <div className="status-dropdown-section">
-                <select 
+                <select
                   className="status-dropdown"
                   value={patientStatus}
                   onChange={(e) => handleStatusChange(e.target.value)}
@@ -667,39 +668,36 @@ export const PatientProfile: React.FC = () => {
                   <option value="enrolled">ENROLLED</option>
                 </select>
               </div>
-              
+
               {/* Then show other notes (newest first) */}
               {timelineNotes
-                .filter(note => note.id !== 'intake-form' && !note.id.startsWith('soap-'))
+                .filter((note) => note.id !== 'intake-form' && !note.id.startsWith('soap-'))
                 .sort((a, b) => {
                   // Sort by date, newest first
                   return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                 })
-                .map(note => (
-                <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''}`}>
-                  <div className="note-header">
-                    <span className="note-date">
-                      {new Date(note.createdAt).toLocaleDateString()}
-                    </span>
-                    <div className="note-actions">
-                      <button 
-                        className="pin-btn"
-                        onClick={() => togglePinNote(note.id)}
-                        title={note.isPinned ? 'Unpin' : 'Pin'}
-                      >
-                        <PinIcon className="pin-icon" filled={note.isPinned} />
-                      </button>
-                      <button 
-                        className="delete-note-btn"
-                        onClick={() => deleteNote(note.id)}
-                      >
-                        <CloseIcon />
-                      </button>
+                .map((note) => (
+                  <div key={note.id} className={`timeline-note ${note.isPinned ? 'pinned' : ''}`}>
+                    <div className="note-header">
+                      <span className="note-date">
+                        {new Date(note.createdAt).toLocaleDateString()}
+                      </span>
+                      <div className="note-actions">
+                        <button
+                          className="pin-btn"
+                          onClick={() => togglePinNote(note.id)}
+                          title={note.isPinned ? 'Unpin' : 'Pin'}
+                        >
+                          <PinIcon className="pin-icon" filled={note.isPinned} />
+                        </button>
+                        <button className="delete-note-btn" onClick={() => deleteNote(note.id)}>
+                          <CloseIcon />
+                        </button>
+                      </div>
                     </div>
+                    <p className="note-content">{note.content}</p>
                   </div>
-                  <p className="note-content">{note.content}</p>
-                </div>
-              ))}
+                ))}
             </div>
 
             {/* Add Note Section */}
@@ -711,7 +709,7 @@ export const PatientProfile: React.FC = () => {
                 onChange={(e) => setNewNote(e.target.value)}
                 rows={3}
               />
-              <button 
+              <button
                 className="save-note-btn"
                 onClick={addTimelineNote}
                 disabled={!newNote.trim()}
@@ -726,25 +724,25 @@ export const PatientProfile: React.FC = () => {
           <div className="profile-content-section">
             <div className="patient-header">
               <div className="patient-avatar">
-                {patient.first_name[0]}{patient.last_name[0]}
+                {patient.first_name[0]}
+                {patient.last_name[0]}
               </div>
-              
+
               <div className="patient-header-info">
-                <h1>{patient.first_name} {patient.last_name}</h1>
+                <h1>
+                  {patient.first_name} {patient.last_name}
+                </h1>
                 <div className="patient-tags">
-                  {hashtags.map(tag => (
-                    <span 
+                  {hashtags.map((tag) => (
+                    <span
                       key={tag}
                       className="header-tag"
-                      style={{ 
-                        backgroundColor: getHashtagColor(tag)
+                      style={{
+                        backgroundColor: getHashtagColor(tag),
                       }}
                     >
                       {formatHashtagDisplay(tag)}
-                      <button 
-                        className="remove-tag-btn"
-                        onClick={() => removeHashtag(tag)}
-                      >
+                      <button className="remove-tag-btn" onClick={() => removeHashtag(tag)}>
                         ×
                       </button>
                     </span>
@@ -754,7 +752,7 @@ export const PatientProfile: React.FC = () => {
 
               <div className="profile-actions">
                 <div className="tag-btn-wrapper">
-                  <button 
+                  <button
                     className="tag-btn"
                     onClick={() => setShowHashtagInput(!showHashtagInput)}
                     title="Add hashtag"
@@ -763,7 +761,7 @@ export const PatientProfile: React.FC = () => {
                   </button>
                   {showHashtagInput && (
                     <div className="header-tag-input-wrapper">
-                      <input 
+                      <input
                         type="text"
                         className="header-tag-input"
                         placeholder="Add hashtag (e.g. weightloss, rep:laura)..."
@@ -781,61 +779,71 @@ export const PatientProfile: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <button className="profile-settings-btn" title="Edit Profile" onClick={() => setIsEditModalOpen(true)}>
+                <button
+                  className="profile-settings-btn"
+                  title="Edit Profile"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </button>
-                <button className="more-options-btn"><MoreOptionsIcon className="more-options-icon" /></button>
+                <button className="more-options-btn">
+                  <MoreOptionsIcon className="more-options-icon" />
+                </button>
               </div>
             </div>
           </div>
 
           <div className="profile-info-section">
             <div className="profile-tabs">
-              <button 
+              <button
                 className={`tab ${activeTab === 'overview' ? 'active' : ''}`}
                 onClick={() => setActiveTab('overview')}
               >
                 <UserIcon className="tab-icon" />
                 Overview
               </button>
-              <button 
+              <button
                 className={`tab ${activeTab === 'progress' ? 'active' : ''}`}
                 onClick={() => setActiveTab('progress')}
               >
                 <ChartIcon className="tab-icon" />
                 Progress
               </button>
-              <button 
+              <button
                 className={`tab ${activeTab === 'invoices' ? 'active' : ''}`}
                 onClick={() => setActiveTab('invoices')}
               >
                 <InvoiceIcon className="tab-icon" />
                 Invoices
               </button>
-              <button 
+              <button
                 className={`tab ${activeTab === 'soap' ? 'active' : ''}`}
                 onClick={() => setActiveTab('soap')}
               >
                 <DocumentIcon className="tab-icon" />
                 SOAP Notes
               </button>
-              <button 
+              <button
                 className={`tab ${activeTab === 'intake' ? 'active' : ''}`}
                 onClick={() => setActiveTab('intake')}
               >
                 <FormIcon className="tab-icon" />
                 Intake Form
               </button>
-              <button 
+              <button
                 className={`tab ${activeTab === 'prescriptions' ? 'active' : ''}`}
                 onClick={() => setActiveTab('prescriptions')}
               >
                 <PrescriptionIcon className="tab-icon" />
                 Prescriptions
               </button>
-              <button 
+              <button
                 className={`tab ${activeTab === 'cards' ? 'active' : ''}`}
                 onClick={() => setActiveTab('cards')}
               >
@@ -860,21 +868,31 @@ export const PatientProfile: React.FC = () => {
                       <div className="info-row">
                         <div className="info-item">
                           <label>NAME</label>
-                          <p>{patient.first_name} {patient.last_name}</p>
+                          <p>
+                            {patient.first_name} {patient.last_name}
+                          </p>
                         </div>
                         <div className="info-item">
                           <label>DATE OF BIRTH</label>
                           <p>
-                            {patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString('en-US', {
-                              month: 'long',
-                              day: 'numeric',
-                              year: 'numeric'
-                            }) : 'N/A'} ({patient.date_of_birth ? calculateAge(patient.date_of_birth) : 'N/A'} y/o)
+                            {patient.date_of_birth
+                              ? new Date(patient.date_of_birth).toLocaleDateString('en-US', {
+                                  month: 'long',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })
+                              : 'N/A'}{' '}
+                            ({patient.date_of_birth ? calculateAge(patient.date_of_birth) : 'N/A'}{' '}
+                            y/o)
                           </p>
                         </div>
                         <div className="info-item">
                           <label>SEX</label>
-                          <p>{patient.gender === 'female' ? 'Female' : patient.gender || 'Not specified'}</p>
+                          <p>
+                            {patient.gender === 'female'
+                              ? 'Female'
+                              : patient.gender || 'Not specified'}
+                          </p>
                         </div>
                       </div>
 
@@ -885,7 +903,7 @@ export const PatientProfile: React.FC = () => {
                             {(() => {
                               const { addressLine1, addressLine2, fullAddress } = formatAddress();
                               return addressLine1 ? (
-                                <a 
+                                <a
                                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
@@ -919,7 +937,11 @@ export const PatientProfile: React.FC = () => {
                       <div className="info-row">
                         <div className="info-item">
                           <label>HEIGHT</label>
-                          <p>{patient.height_inches ? `${Math.floor(patient.height_inches / 12)}' ${patient.height_inches % 12}"` : 'Not provided'}</p>
+                          <p>
+                            {patient.height_inches
+                              ? `${Math.floor(patient.height_inches / 12)}' ${patient.height_inches % 12}"`
+                              : 'Not provided'}
+                          </p>
                         </div>
                         <div className="info-item">
                           <label>WEIGHT</label>
@@ -953,12 +975,14 @@ export const PatientProfile: React.FC = () => {
                           rows={4}
                           placeholder="Enter additional information..."
                         />
-                        <button 
+                        <button
                           className="save-additional-info-btn"
                           onClick={handleSaveAdditionalInfo}
                           disabled={additionalInfo === patient.additional_info}
                         >
-                          {additionalInfo === patient.additional_info ? 'No changes' : 'Save Changes'}
+                          {additionalInfo === patient.additional_info
+                            ? 'No changes'
+                            : 'Save Changes'}
                         </button>
                       </div>
                     </div>
@@ -990,22 +1014,34 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item">
                                 <label>FIRST NAME</label>
-                                <p>{intakeFormData.firstname || intakeFormData.first_name || patient?.first_name || '-'}</p>
+                                <p>
+                                  {intakeFormData.firstname ||
+                                    intakeFormData.first_name ||
+                                    patient?.first_name ||
+                                    '-'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>LAST NAME</label>
-                                <p>{intakeFormData.lastname || intakeFormData.last_name || patient?.last_name || '-'}</p>
+                                <p>
+                                  {intakeFormData.lastname ||
+                                    intakeFormData.last_name ||
+                                    patient?.last_name ||
+                                    '-'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>DATE OF BIRTH</label>
                                 <p>
-                                  {intakeFormData.dob || patient?.date_of_birth ? 
-                                    new Date(intakeFormData.dob || patient?.date_of_birth).toLocaleDateString('en-US', {
-                                      month: 'long',
-                                      day: 'numeric',
-                                      year: 'numeric'
-                                    }) : '-'
-                                  }
+                                  {intakeFormData.dob || patient?.date_of_birth
+                                    ? new Date(
+                                        intakeFormData.dob || patient?.date_of_birth
+                                      ).toLocaleDateString('en-US', {
+                                        month: 'long',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                      })
+                                    : '-'}
                                 </p>
                               </div>
                             </div>
@@ -1016,7 +1052,12 @@ export const PatientProfile: React.FC = () => {
                               </div>
                               <div className="info-item">
                                 <label>PHONE NUMBER</label>
-                                <p>{intakeFormData['Phone Number'] || intakeFormData.phone || patient?.phone || '-'}</p>
+                                <p>
+                                  {intakeFormData['Phone Number'] ||
+                                    intakeFormData.phone ||
+                                    patient?.phone ||
+                                    '-'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>GENDER</label>
@@ -1027,8 +1068,21 @@ export const PatientProfile: React.FC = () => {
                               <div className="info-item">
                                 <label>I AM 18 YEARS OR OLDER</label>
                                 <p>
-                                  <span style={{ color: intakeFormData['I am 18 years or older'] === 'yes' || intakeFormData['I am 18 years or older'] === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
-                                    {intakeFormData['I am 18 years or older'] === 'yes' || intakeFormData['I am 18 years or older'] === true ? '✓' : '✗'}
+                                  <span
+                                    style={{
+                                      color:
+                                        intakeFormData['I am 18 years or older'] === 'yes' ||
+                                        intakeFormData['I am 18 years or older'] === true
+                                          ? '#14a97b'
+                                          : '#ef4444',
+                                      fontSize: '20px',
+                                      fontWeight: 'bold',
+                                    }}
+                                  >
+                                    {intakeFormData['I am 18 years or older'] === 'yes' ||
+                                    intakeFormData['I am 18 years or older'] === true
+                                      ? '✓'
+                                      : '✗'}
                                   </span>
                                 </p>
                               </div>
@@ -1043,21 +1097,33 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item">
                                 <label>WHAT IS YOUR HEIGHT?</label>
-                                <p>{intakeFormData.feet || '-'} ft {intakeFormData.inches || '-'} in</p>
+                                <p>
+                                  {intakeFormData.feet || '-'} ft {intakeFormData.inches || '-'} in
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>WHAT IS YOUR CURRENT WEIGHT?</label>
-                                <p>{intakeFormData.starting_weight || intakeFormData.weight || '-'} lbs</p>
+                                <p>
+                                  {intakeFormData.starting_weight || intakeFormData.weight || '-'}{' '}
+                                  lbs
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>BMI</label>
-                                <p>{intakeFormData.BMI || intakeFormData.bmi || patient?.bmi || '-'}</p>
+                                <p>
+                                  {intakeFormData.BMI || intakeFormData.bmi || patient?.bmi || '-'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item">
                                 <label>WHAT IS YOUR IDEAL/TARGET WEIGHT?</label>
-                                <p>{intakeFormData.idealweight || intakeFormData.target_weight || '-'} lbs</p>
+                                <p>
+                                  {intakeFormData.idealweight ||
+                                    intakeFormData.target_weight ||
+                                    '-'}{' '}
+                                  lbs
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -1071,11 +1137,18 @@ export const PatientProfile: React.FC = () => {
                               <div className="info-item full-width">
                                 <label>ADDRESS</label>
                                 <p>
-                                  {intakeFormData['address [house]'] || ''} {intakeFormData['address [street]'] || ''}
-                                  {intakeFormData['apartment#'] && `, Apt ${intakeFormData['apartment#']}`}
+                                  {intakeFormData['address [house]'] || ''}{' '}
+                                  {intakeFormData['address [street]'] || ''}
+                                  {intakeFormData['apartment#'] &&
+                                    `, Apt ${intakeFormData['apartment#']}`}
                                   <br />
-                                  {intakeFormData['address [city]'] || ''}{intakeFormData['address [city]'] && intakeFormData['address [state]'] ? ', ' : ''}
-                                  {intakeFormData['address [state]'] || ''} {intakeFormData['address [zip]'] || ''}
+                                  {intakeFormData['address [city]'] || ''}
+                                  {intakeFormData['address [city]'] &&
+                                  intakeFormData['address [state]']
+                                    ? ', '
+                                    : ''}
+                                  {intakeFormData['address [state]'] || ''}{' '}
+                                  {intakeFormData['address [zip]'] || ''}
                                 </p>
                               </div>
                             </div>
@@ -1088,26 +1161,57 @@ export const PatientProfile: React.FC = () => {
                           <div className="info-grid">
                             <div className="info-row">
                               <div className="info-item full-width">
-                                <label>DO YOU HAVE A HISTORY OF ANY OF THE FOLLOWING CHRONIC CONDITIONS?</label>
-                                <p>{intakeFormData['Do you have a history of any of the following chronic conditions?'] || intakeFormData.chronic_conditions || '-'}</p>
+                                <label>
+                                  DO YOU HAVE A HISTORY OF ANY OF THE FOLLOWING CHRONIC CONDITIONS?
+                                </label>
+                                <p>
+                                  {intakeFormData[
+                                    'Do you have a history of any of the following chronic conditions?'
+                                  ] ||
+                                    intakeFormData.chronic_conditions ||
+                                    '-'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>HAVE YOU HAD ANY SURGERIES? IF SO, PLEASE LIST THEM.</label>
-                                <p>{intakeFormData['Have you had any surgeries? If so, please list them.'] || intakeFormData.surgeries || '-'}</p>
+                                <p>
+                                  {intakeFormData[
+                                    'Have you had any surgeries? If so, please list them.'
+                                  ] ||
+                                    intakeFormData.surgeries ||
+                                    '-'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
-                                <label>ARE YOU CURRENTLY TAKING ANY PRESCRIPTION MEDICATIONS? IF SO, PLEASE LIST THEM.</label>
-                                <p>{intakeFormData['Are you currently taking any prescription medications? If so, please list them.'] || intakeFormData.medications || '-'}</p>
+                                <label>
+                                  ARE YOU CURRENTLY TAKING ANY PRESCRIPTION MEDICATIONS? IF SO,
+                                  PLEASE LIST THEM.
+                                </label>
+                                <p>
+                                  {intakeFormData[
+                                    'Are you currently taking any prescription medications? If so, please list them.'
+                                  ] ||
+                                    intakeFormData.medications ||
+                                    '-'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
-                                <label>DO YOU HAVE ANY ALLERGIES (MEDICATIONS, FOODS, OR OTHER)?</label>
-                                <p>{intakeFormData['Do you have any allergies (medications, foods, or other)?'] || intakeFormData.allergies || '-'}</p>
+                                <label>
+                                  DO YOU HAVE ANY ALLERGIES (MEDICATIONS, FOODS, OR OTHER)?
+                                </label>
+                                <p>
+                                  {intakeFormData[
+                                    'Do you have any allergies (medications, foods, or other)?'
+                                  ] ||
+                                    intakeFormData.allergies ||
+                                    '-'}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -1120,13 +1224,21 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>HOW OFTEN DO YOU EXERCISE PER WEEK?</label>
-                                <p>{intakeFormData['How often do you exercise per week?'] || intakeFormData.exercise_frequency || '-'}</p>
+                                <p>
+                                  {intakeFormData['How often do you exercise per week?'] ||
+                                    intakeFormData.exercise_frequency ||
+                                    '-'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>HOW WOULD YOU DESCRIBE YOUR CURRENT DIET?</label>
-                                <p>{intakeFormData['How would you describe your current diet?'] || intakeFormData.diet_description || '-'}</p>
+                                <p>
+                                  {intakeFormData['How would you describe your current diet?'] ||
+                                    intakeFormData.diet_description ||
+                                    '-'}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -1138,14 +1250,29 @@ export const PatientProfile: React.FC = () => {
                           <div className="info-grid">
                             <div className="info-row">
                               <div className="info-item full-width">
-                                <label>HAVE YOU PREVIOUSLY TAKEN ANY GLP-1 MEDICATIONS (OZEMPIC, WEGOVY, MOUNJARO, ETC.)?</label>
-                                <p>{intakeFormData['Have you previously taken any GLP-1 medications (Ozempic, Wegovy, Mounjaro, etc.)?'] || intakeFormData.glp1_history || '-'}</p>
+                                <label>
+                                  HAVE YOU PREVIOUSLY TAKEN ANY GLP-1 MEDICATIONS (OZEMPIC, WEGOVY,
+                                  MOUNJARO, ETC.)?
+                                </label>
+                                <p>
+                                  {intakeFormData[
+                                    'Have you previously taken any GLP-1 medications (Ozempic, Wegovy, Mounjaro, etc.)?'
+                                  ] ||
+                                    intakeFormData.glp1_history ||
+                                    '-'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>IF YES, WHICH MEDICATION(S) AND FOR HOW LONG?</label>
-                                <p>{intakeFormData['If yes, which medication(s) and for how long?'] || intakeFormData.glp1_details || '-'}</p>
+                                <p>
+                                  {intakeFormData[
+                                    'If yes, which medication(s) and for how long?'
+                                  ] ||
+                                    intakeFormData.glp1_details ||
+                                    '-'}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -1159,24 +1286,63 @@ export const PatientProfile: React.FC = () => {
                               <div className="info-item">
                                 <label>CONSENT TO TREATMENT</label>
                                 <p>
-                                  <span style={{ color: intakeFormData.consent_treatment === 'yes' || intakeFormData.consent_treatment === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
-                                    {intakeFormData.consent_treatment === 'yes' || intakeFormData.consent_treatment === true ? '✓' : '✗'}
+                                  <span
+                                    style={{
+                                      color:
+                                        intakeFormData.consent_treatment === 'yes' ||
+                                        intakeFormData.consent_treatment === true
+                                          ? '#14a97b'
+                                          : '#ef4444',
+                                      fontSize: '20px',
+                                      fontWeight: 'bold',
+                                    }}
+                                  >
+                                    {intakeFormData.consent_treatment === 'yes' ||
+                                    intakeFormData.consent_treatment === true
+                                      ? '✓'
+                                      : '✗'}
                                   </span>
                                 </p>
                               </div>
                               <div className="info-item">
                                 <label>CONSENT TO TELEHEALTH</label>
                                 <p>
-                                  <span style={{ color: intakeFormData.consent_telehealth === 'yes' || intakeFormData.consent_telehealth === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
-                                    {intakeFormData.consent_telehealth === 'yes' || intakeFormData.consent_telehealth === true ? '✓' : '✗'}
+                                  <span
+                                    style={{
+                                      color:
+                                        intakeFormData.consent_telehealth === 'yes' ||
+                                        intakeFormData.consent_telehealth === true
+                                          ? '#14a97b'
+                                          : '#ef4444',
+                                      fontSize: '20px',
+                                      fontWeight: 'bold',
+                                    }}
+                                  >
+                                    {intakeFormData.consent_telehealth === 'yes' ||
+                                    intakeFormData.consent_telehealth === true
+                                      ? '✓'
+                                      : '✗'}
                                   </span>
                                 </p>
                               </div>
                               <div className="info-item">
                                 <label>MARKETING CONSENT</label>
                                 <p>
-                                  <span style={{ color: intakeFormData.marketing_consent === 'yes' || intakeFormData.marketing_consent === true ? '#14a97b' : '#ef4444', fontSize: '20px', fontWeight: 'bold' }}>
-                                    {intakeFormData.marketing_consent === 'yes' || intakeFormData.marketing_consent === true ? '✓' : '✗'}
+                                  <span
+                                    style={{
+                                      color:
+                                        intakeFormData.marketing_consent === 'yes' ||
+                                        intakeFormData.marketing_consent === true
+                                          ? '#14a97b'
+                                          : '#ef4444',
+                                      fontSize: '20px',
+                                      fontWeight: 'bold',
+                                    }}
+                                  >
+                                    {intakeFormData.marketing_consent === 'yes' ||
+                                    intakeFormData.marketing_consent === true
+                                      ? '✓'
+                                      : '✗'}
                                   </span>
                                 </p>
                               </div>
@@ -1191,43 +1357,79 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item">
                                 <label>BLOOD PRESSURE</label>
-                                <p>{intakeFormData['Blood Pressure'] || intakeFormData.blood_pressure || 'I havent done it recently.'}</p>
+                                <p>
+                                  {intakeFormData['Blood Pressure'] ||
+                                    intakeFormData.blood_pressure ||
+                                    'I havent done it recently.'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>MEDICAL CONDITIONS</label>
-                                <p>{intakeFormData['Medical Conditions'] || intakeFormData.medical_conditions || 'No'}</p>
+                                <p>
+                                  {intakeFormData['Medical Conditions'] ||
+                                    intakeFormData.medical_conditions ||
+                                    'No'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>MENTAL HEALTH CONDITIONS</label>
-                                <p>{intakeFormData['Mental Health Conditions'] || intakeFormData.mental_health_conditions || 'No'}</p>
+                                <p>
+                                  {intakeFormData['Mental Health Conditions'] ||
+                                    intakeFormData.mental_health_conditions ||
+                                    'No'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item">
                                 <label>SURGERIES/PROCEDURES</label>
-                                <p>{intakeFormData['Surgeries/Procedures'] || intakeFormData.surgeries_procedures || 'No'}</p>
+                                <p>
+                                  {intakeFormData['Surgeries/Procedures'] ||
+                                    intakeFormData.surgeries_procedures ||
+                                    'No'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>TYPE 2 DIABETES</label>
-                                <p>{intakeFormData['Type 2 Diabetes'] || intakeFormData.type2_diabetes || 'No'}</p>
+                                <p>
+                                  {intakeFormData['Type 2 Diabetes'] ||
+                                    intakeFormData.type2_diabetes ||
+                                    'No'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>THYROID CANCER</label>
-                                <p>{intakeFormData['Thyroid Cancer'] || intakeFormData.thyroid_cancer || 'No'}</p>
+                                <p>
+                                  {intakeFormData['Thyroid Cancer'] ||
+                                    intakeFormData.thyroid_cancer ||
+                                    'No'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item">
                                 <label>MULTIPLE ENDOCRINE NEOPLASIA</label>
-                                <p>{intakeFormData['Multiple Endocrine Neoplasia'] || intakeFormData.multiple_endocrine_neoplasia || 'No'}</p>
+                                <p>
+                                  {intakeFormData['Multiple Endocrine Neoplasia'] ||
+                                    intakeFormData.multiple_endocrine_neoplasia ||
+                                    'No'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>GASTROPARESIS</label>
-                                <p>{intakeFormData['Gastroparesis'] || intakeFormData.gastroparesis || 'No'}</p>
+                                <p>
+                                  {intakeFormData['Gastroparesis'] ||
+                                    intakeFormData.gastroparesis ||
+                                    'No'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>PREGNANT/BREASTFEEDING</label>
-                                <p>{intakeFormData['Pregnant/Breastfeeding'] || intakeFormData.pregnant_breastfeeding || 'No'}</p>
+                                <p>
+                                  {intakeFormData['Pregnant/Breastfeeding'] ||
+                                    intakeFormData.pregnant_breastfeeding ||
+                                    'No'}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -1240,19 +1442,31 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>DIAGNOSED CONDITIONS</label>
-                                <p>{intakeFormData['Diagnosed Conditions'] || intakeFormData.diagnosed_conditions || 'No, none of these apply to me'}</p>
+                                <p>
+                                  {intakeFormData['Diagnosed Conditions'] ||
+                                    intakeFormData.diagnosed_conditions ||
+                                    'No, none of these apply to me'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>CHRONIC DISEASES</label>
-                                <p>{intakeFormData['Chronic Diseases'] || intakeFormData.chronic_diseases || 'No, none of these'}</p>
+                                <p>
+                                  {intakeFormData['Chronic Diseases'] ||
+                                    intakeFormData.chronic_diseases ||
+                                    'No, none of these'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>FAMILY HISTORY</label>
-                                <p>{intakeFormData['Family History'] || intakeFormData.family_history || 'No, none of these.'}</p>
+                                <p>
+                                  {intakeFormData['Family History'] ||
+                                    intakeFormData.family_history ||
+                                    'No, none of these.'}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -1265,19 +1479,31 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>GLP-1 MEDICATION HISTORY</label>
-                                <p>{intakeFormData['GLP-1 Medication History'] || intakeFormData.glp1_medication_history || 'I have never taken a GLP-1 medication'}</p>
+                                <p>
+                                  {intakeFormData['GLP-1 Medication History'] ||
+                                    intakeFormData.glp1_medication_history ||
+                                    'I have never taken a GLP-1 medication'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>SIDE EFFECTS</label>
-                                <p>{intakeFormData['Side Effects'] || intakeFormData.side_effects || 'I dont experience side effects'}</p>
+                                <p>
+                                  {intakeFormData['Side Effects'] ||
+                                    intakeFormData.side_effects ||
+                                    'I dont experience side effects'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item full-width">
                                 <label>PERSONALIZED TREATMENT INTEREST</label>
-                                <p>{intakeFormData['Personalized Treatment Interest'] || intakeFormData.personalized_treatment_interest || 'No'}</p>
+                                <p>
+                                  {intakeFormData['Personalized Treatment Interest'] ||
+                                    intakeFormData.personalized_treatment_interest ||
+                                    'No'}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -1290,21 +1516,37 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item">
                                 <label>HOW DID YOU HEAR ABOUT US?</label>
-                                <p>{intakeFormData['How did you hear about us?'] || intakeFormData.referral_source || 'Instagram'}</p>
+                                <p>
+                                  {intakeFormData['How did you hear about us?'] ||
+                                    intakeFormData.referral_source ||
+                                    'Instagram'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>STATE OF RESIDENCE</label>
-                                <p>{intakeFormData['State of Residence'] || intakeFormData.state_of_residence || '-'}</p>
+                                <p>
+                                  {intakeFormData['State of Residence'] ||
+                                    intakeFormData.state_of_residence ||
+                                    '-'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item">
                                 <label>MARKETING CONSENT</label>
-                                <p>{intakeFormData['Marketing Consent'] || intakeFormData.marketing_consent_text || 'Yes'}</p>
+                                <p>
+                                  {intakeFormData['Marketing Consent'] ||
+                                    intakeFormData.marketing_consent_text ||
+                                    'Yes'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>TERMS AGREEMENT</label>
-                                <p>{intakeFormData['Terms Agreement'] || intakeFormData.terms_agreement || 'Yes'}</p>
+                                <p>
+                                  {intakeFormData['Terms Agreement'] ||
+                                    intakeFormData.terms_agreement ||
+                                    'Yes'}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -1317,25 +1559,39 @@ export const PatientProfile: React.FC = () => {
                             <div className="info-row">
                               <div className="info-item">
                                 <label>UTM SOURCE</label>
-                                <p>{intakeFormData['UTM Source'] || intakeFormData.utm_source || '-'}</p>
+                                <p>
+                                  {intakeFormData['UTM Source'] || intakeFormData.utm_source || '-'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>UTM MEDIUM</label>
-                                <p>{intakeFormData['UTM Medium'] || intakeFormData.utm_medium || '-'}</p>
+                                <p>
+                                  {intakeFormData['UTM Medium'] || intakeFormData.utm_medium || '-'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>UTM CAMPAIGN</label>
-                                <p>{intakeFormData['UTM Campaign'] || intakeFormData.utm_campaign || '-'}</p>
+                                <p>
+                                  {intakeFormData['UTM Campaign'] ||
+                                    intakeFormData.utm_campaign ||
+                                    '-'}
+                                </p>
                               </div>
                             </div>
                             <div className="info-row">
                               <div className="info-item">
                                 <label>UTM CONTENT</label>
-                                <p>{intakeFormData['UTM Content'] || intakeFormData.utm_content || '-'}</p>
+                                <p>
+                                  {intakeFormData['UTM Content'] ||
+                                    intakeFormData.utm_content ||
+                                    '-'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>UTM TERM</label>
-                                <p>{intakeFormData['UTM Term'] || intakeFormData.utm_term || '-'}</p>
+                                <p>
+                                  {intakeFormData['UTM Term'] || intakeFormData.utm_term || '-'}
+                                </p>
                               </div>
                               <div className="info-item">
                                 <label>UTM ID</label>
@@ -1347,21 +1603,35 @@ export const PatientProfile: React.FC = () => {
 
                         {/* PDF Download Button */}
                         <div className="form-actions-container">
-                          <button 
+                          <button
                             className="view-pdf-btn"
-                            onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                            onClick={() =>
+                              window.open(
+                                `${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
+                                '_blank'
+                              )
+                            }
                           >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
-                              <path d="M2 2a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V2zm2 0v12h8V2H4zm2 3h4v2H6V5zm0 3h4v2H6V8z"/>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 16 16"
+                              fill="currentColor"
+                              style={{ marginRight: '8px' }}
+                            >
+                              <path d="M2 2a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V2zm2 0v12h8V2H4zm2 3h4v2H6V5zm0 3h4v2H6V8z" />
                             </svg>
                             View Intake Form PDF
                           </button>
-                          <button 
-                            className="download-pdf-btn"
-                            onClick={downloadPDF}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
-                              <path d="M8.5 1v7.5H15m-6.5 0L15 2M1 9v5a1 1 0 001 1h12a1 1 0 001-1V9M8 11.5v3m0 0l-2.5-2.5M8 14.5l2.5-2.5"/>
+                          <button className="download-pdf-btn" onClick={downloadPDF}>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 16 16"
+                              fill="currentColor"
+                              style={{ marginRight: '8px' }}
+                            >
+                              <path d="M8.5 1v7.5H15m-6.5 0L15 2M1 9v5a1 1 0 001 1h12a1 1 0 001-1V9M8 11.5v3m0 0l-2.5-2.5M8 14.5l2.5-2.5" />
                             </svg>
                             Download Intake Form PDF
                           </button>
@@ -1370,28 +1640,47 @@ export const PatientProfile: React.FC = () => {
                     </>
                   ) : (
                     <div className="intake-form-card">
-                      <div className="form-icon"><FormIcon className="form-icon-large" /></div>
+                      <div className="form-icon">
+                        <FormIcon className="form-icon-large" />
+                      </div>
                       <div className="form-details">
                         <h3>Weight Loss Intake Form</h3>
-                        <p>Submitted on {patient && new Date(patient.created_at).toLocaleDateString()}</p>
+                        <p>
+                          Submitted on{' '}
+                          {patient && new Date(patient.created_at).toLocaleDateString()}
+                        </p>
                         <p className="form-id">Form ID: {patient?.patient_id}</p>
                       </div>
                       <div className="form-actions">
-                        <button 
+                        <button
                           className="view-pdf-btn"
-                          onClick={() => window.open(`${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`, '_blank')}
+                          onClick={() =>
+                            window.open(
+                              `${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
+                              '_blank'
+                            )
+                          }
                         >
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
-                            <path d="M2 2a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V2zm2 0v12h8V2H4zm2 3h4v2H6V5zm0 3h4v2H6V8z"/>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            style={{ marginRight: '8px' }}
+                          >
+                            <path d="M2 2a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V2zm2 0v12h8V2H4zm2 3h4v2H6V5zm0 3h4v2H6V8z" />
                           </svg>
                           View Intake Form PDF
                         </button>
-                        <button 
-                          className="download-pdf-btn"
-                          onClick={downloadPDF}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '8px' }}>
-                            <path d="M8.5 1v7.5H15m-6.5 0L15 2M1 9v5a1 1 0 001 1h12a1 1 0 001-1V9M8 11.5v3m0 0l-2.5-2.5M8 14.5l2.5-2.5"/>
+                        <button className="download-pdf-btn" onClick={downloadPDF}>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            style={{ marginRight: '8px' }}
+                          >
+                            <path d="M8.5 1v7.5H15m-6.5 0L15 2M1 9v5a1 1 0 001 1h12a1 1 0 001-1V9M8 11.5v3m0 0l-2.5-2.5M8 14.5l2.5-2.5" />
                           </svg>
                           Download Intake Form PDF
                         </button>
@@ -1410,7 +1699,7 @@ export const PatientProfile: React.FC = () => {
 
               {activeTab === 'invoices' && (
                 <div className="invoices-tab">
-                  <PatientInvoices 
+                  <PatientInvoices
                     patientId={patient.patient_id}
                     patientName={`${patient.first_name} ${patient.last_name}`}
                     stripeCustomerId={patient.stripe_customer_id}
@@ -1420,7 +1709,7 @@ export const PatientProfile: React.FC = () => {
 
               {activeTab === 'soap' && (
                 <div className="soap-tab">
-                  <SOAPNotes 
+                  <SOAPNotes
                     patientId={patient.patient_id}
                     patientName={`${patient.first_name} ${patient.last_name}`}
                     onSOAPCreated={(noteDate) => {
@@ -1429,7 +1718,7 @@ export const PatientProfile: React.FC = () => {
                         id: `soap-${Date.now()}`,
                         content: `SOAP Note Attached`,
                         createdAt: new Date(),
-                        isPinned: false
+                        isPinned: false,
                       };
                       const updatedNotes = [soapNote, ...timelineNotes];
                       setTimelineNotes(updatedNotes);
@@ -1473,4 +1762,4 @@ export const PatientProfile: React.FC = () => {
       )}
     </div>
   );
-}; 
+};

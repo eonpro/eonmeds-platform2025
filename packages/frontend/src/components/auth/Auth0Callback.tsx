@@ -25,19 +25,21 @@ export const Auth0Callback: React.FC = () => {
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <h2>Authentication Error</h2>
         <p>{error.message}</p>
-        <button onClick={() => window.location.href = '/'}>Go Home</button>
+        <button onClick={() => (window.location.href = '/')}>Go Home</button>
       </div>
     );
   }
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh',
-      flexDirection: 'column'
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        flexDirection: 'column',
+      }}
+    >
       <h2>Completing login...</h2>
       <p>Please wait while we redirect you.</p>
     </div>

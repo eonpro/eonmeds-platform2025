@@ -25,16 +25,16 @@ const BeccaAIModal: React.FC<BeccaAIModalProps> = ({ isOpen, status, patientName
 
   const getStatusMessage = () => {
     const firstName = patientName?.split(' ')[0] || 'patient';
-    
+
     switch (status) {
       case 'analyzing':
         return `Analyzing ${firstName}'s intake form information...`;
       case 'creating':
-        return "Writing personalized SOAP Note...";
+        return 'Writing personalized SOAP Note...';
       case 'ready':
         return `Perfect! I have created a personalized SOAP Note for ${patientName} and I've uploaded it for Provider approval!`;
       default:
-        return "BeccaAI Assistant";
+        return 'BeccaAI Assistant';
     }
   };
 
@@ -49,18 +49,24 @@ const BeccaAIModal: React.FC<BeccaAIModalProps> = ({ isOpen, status, patientName
             style={{ width: '100%', height: '100%' }}
           />
         </div>
-        
+
         <BeccaAILogo className="becca-logo" />
-        
+
         <p className="becca-status" key={status}>
           {getStatusMessage()}
         </p>
-        
+
         {status === 'ready' && (
           <div className="becca-success-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M9 12l2 2 4-4" stroke="#4CAF50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="12" cy="12" r="10" stroke="#4CAF50" strokeWidth="2"/>
+              <path
+                d="M9 12l2 2 4-4"
+                stroke="#4CAF50"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx="12" cy="12" r="10" stroke="#4CAF50" strokeWidth="2" />
             </svg>
           </div>
         )}
@@ -69,4 +75,4 @@ const BeccaAIModal: React.FC<BeccaAIModalProps> = ({ isOpen, status, patientName
   );
 };
 
-export default BeccaAIModal; 
+export default BeccaAIModal;

@@ -25,10 +25,10 @@ export const UserProfile: React.FC = () => {
 
       try {
         setLoading(true);
-        
+
         // First sync the user with backend
         await authService.syncUser();
-        
+
         // Then get the current user data
         const currentUser = await authService.getCurrentUser();
         setUserData(currentUser);
@@ -36,7 +36,7 @@ export const UserProfile: React.FC = () => {
         // Get language from token
         const claims = await getIdTokenClaims();
         const language = claims?.['https://eonmeds.com/language'] || 'en';
-        
+
         if (currentUser) {
           setUserData({ ...currentUser, language });
         }
@@ -65,23 +65,39 @@ export const UserProfile: React.FC = () => {
   return (
     <div className="user-profile">
       <h2>User Profile</h2>
-      
+
       <div className="profile-section">
         <h3>Auth0 Information</h3>
         <img src={user?.picture} alt={user?.name} width="100" />
-        <p><strong>Auth0 ID:</strong> {user?.sub}</p>
-        <p><strong>Email:</strong> {user?.email}</p>
-        <p><strong>Email Verified:</strong> {user?.email_verified ? 'Yes' : 'No'}</p>
+        <p>
+          <strong>Auth0 ID:</strong> {user?.sub}
+        </p>
+        <p>
+          <strong>Email:</strong> {user?.email}
+        </p>
+        <p>
+          <strong>Email Verified:</strong> {user?.email_verified ? 'Yes' : 'No'}
+        </p>
       </div>
 
       {userData && (
         <div className="profile-section">
           <h3>EONMeds Profile</h3>
-          <p><strong>Name:</strong> {userData.firstName} {userData.lastName}</p>
-          <p><strong>Phone:</strong> {userData.phone || 'Not provided'}</p>
-          <p><strong>Role:</strong> {userData.role} ({userData.roleCode})</p>
-          <p><strong>Language:</strong> {userData.language === 'es' ? 'Español' : 'English'}</p>
-          <p><strong>Database ID:</strong> {userData.id}</p>
+          <p>
+            <strong>Name:</strong> {userData.firstName} {userData.lastName}
+          </p>
+          <p>
+            <strong>Phone:</strong> {userData.phone || 'Not provided'}
+          </p>
+          <p>
+            <strong>Role:</strong> {userData.role} ({userData.roleCode})
+          </p>
+          <p>
+            <strong>Language:</strong> {userData.language === 'es' ? 'Español' : 'English'}
+          </p>
+          <p>
+            <strong>Database ID:</strong> {userData.id}
+          </p>
         </div>
       )}
 
@@ -91,4 +107,4 @@ export const UserProfile: React.FC = () => {
       </div>
     </div>
   );
-}; 
+};

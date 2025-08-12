@@ -26,7 +26,7 @@ interface PatientFormData {
 export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
   isOpen,
   onClose,
-  onSave
+  onSave,
 }) => {
   const [formData, setFormData] = useState<PatientFormData>({
     first_name: '',
@@ -41,9 +41,9 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
     city: '',
     state: '',
     zip: '',
-    status: 'pending'
+    status: 'pending',
   });
-  
+
   const [heightFeet, setHeightFeet] = useState<number>(0);
   const [heightInches, setHeightInches] = useState<number>(0);
   const [error, setError] = useState('');
@@ -51,23 +51,23 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleHeightChange = (type: 'feet' | 'inches', value: string) => {
     const numValue = parseInt(value) || 0;
-    
+
     if (type === 'feet') {
       setHeightFeet(numValue);
       const totalInches = numValue * 12 + heightInches;
-      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+      setFormData((prev) => ({ ...prev, height_inches: totalInches }));
     } else {
       setHeightInches(numValue);
       const totalInches = heightFeet * 12 + numValue;
-      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+      setFormData((prev) => ({ ...prev, height_inches: totalInches }));
     }
   };
 
@@ -90,15 +90,15 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Create New Client</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="close-button" onClick={onClose}>
+            ×
+          </button>
         </div>
 
-        {error && (
-          <div className="error-message">{error}</div>
-        )}
+        {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <p className="form-description">
@@ -303,4 +303,4 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
       </div>
     </div>
   );
-}; 
+};

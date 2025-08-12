@@ -2,7 +2,7 @@
 
 /**
  * Sync Stripe Customers with Existing Patients
- * 
+ *
  * This script will:
  * 1. Fetch all Stripe customers and their payment history
  * 2. Match them to existing patients by email or phone
@@ -20,7 +20,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Initialize database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 // Helper function to format phone for comparison
@@ -55,11 +55,14 @@ async function findPatientByEmailOrPhone(email, phone) {
       const normalizedPhone = normalizePhone(phone);
       if (normalizedPhone) {
         // Try different phone fields
-        const phoneResult = await pool.query(`
+        const phoneResult = await pool.query(
+          `
           SELECT * FROM patients 
           WHERE REPLACE(REPLACE(REPLACE(REPLACE(phone, '-', ''), '(', ''), ')', ''), ' ', '') = $1
-        `, [normalizedPhone]);
-        
+        `,
+          [normalizedPhone]
+        );
+
         if (phoneResult.rows.length > 0) {
           return phoneResult.rows[0];
         }
@@ -76,13 +79,16 @@ async function findPatientByEmailOrPhone(email, phone) {
 async function updatePatientStatus(patientId, stripeCustomerId) {
   try {
     // Update to client status and add stripe customer ID
-    await pool.query(`
+    await pool.query(
+      `
       UPDATE patients 
       SET status = 'client',
           stripe_customer_id = $2,
           updated_at = NOW()
       WHERE patient_id = $1
-    `, [patientId, stripeCustomerId]);
+    `,
+      [patientId, stripeCustomerId]
+    );
 
     console.log(`✅ Updated patient ${patientId} to client status`);
   } catch (error) {
@@ -93,7 +99,8 @@ async function updatePatientStatus(patientId, stripeCustomerId) {
 async function addActiveHashtag(patientId) {
   try {
     // Add #activemember hashtag if not already present
-    await pool.query(`
+    await pool.query(
+      `
       UPDATE patients 
       SET membership_hashtags = 
         CASE 
@@ -103,7 +110,9 @@ async function addActiveHashtag(patientId) {
         END,
         updated_at = NOW()
       WHERE patient_id = $1
-    `, [patientId]);
+    `,
+      [patientId]
+    );
 
     console.log(`✅ Added #activemember hashtag to patient ${patientId}`);
   } catch (error) {
@@ -123,13 +132,13 @@ async function syncStripeCustomers() {
 
     while (hasMore) {
       const params = {
-        limit: 100
+        limit: 100,
       };
-      
+
       if (startingAfter) {
         params.starting_after = startingAfter;
       }
-      
+
       const batch = await stripe.customers.list(params);
 
       customers.push(...batch.data);
@@ -151,28 +160,30 @@ async function syncStripeCustomers() {
 
       // Find matching patient
       const patient = await findPatientByEmailOrPhone(customer.email, customer.phone);
-      
+
       if (!patient) {
         console.log('   ❌ No matching patient found');
         continue;
       }
 
       matchedCount++;
-      console.log(`   ✅ Matched to patient: ${patient.first_name} ${patient.last_name} (${patient.patient_id})`);
+      console.log(
+        `   ✅ Matched to patient: ${patient.first_name} ${patient.last_name} (${patient.patient_id})`
+      );
 
       // Check for any successful charges
       const charges = await stripe.charges.list({
         customer: customer.id,
-        limit: 10
+        limit: 10,
       });
 
-      const hasSuccessfulPayment = charges.data.some(charge => 
-        charge.status === 'succeeded' && charge.paid
+      const hasSuccessfulPayment = charges.data.some(
+        (charge) => charge.status === 'succeeded' && charge.paid
       );
 
       if (hasSuccessfulPayment) {
         console.log('   💳 Has successful payments');
-        
+
         // Update to client status
         if (patient.status !== 'client') {
           await updatePatientStatus(patient.patient_id, customer.id);
@@ -186,7 +197,7 @@ async function syncStripeCustomers() {
       const subscriptions = await stripe.subscriptions.list({
         customer: customer.id,
         status: 'active',
-        limit: 10
+        limit: 10,
       });
 
       if (subscriptions.data.length > 0) {
@@ -196,7 +207,7 @@ async function syncStripeCustomers() {
       }
 
       // Small delay to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     console.log('\n📊 Sync Summary:');
@@ -204,7 +215,6 @@ async function syncStripeCustomers() {
     console.log(`   Matched to patients: ${matchedCount}`);
     console.log(`   Updated to client status: ${updatedCount}`);
     console.log(`   Active subscriptions: ${activeSubscriptions}`);
-
   } catch (error) {
     console.error('❌ Error during sync:', error);
   } finally {
@@ -221,7 +231,7 @@ syncStripeCustomers()
     console.log('\n✅ Sync completed successfully!');
     process.exit(0);
   })
-  .catch(error => {
+  .catch((error) => {
     console.error('\n❌ Sync failed:', error);
     process.exit(1);
-  }); 
+  });

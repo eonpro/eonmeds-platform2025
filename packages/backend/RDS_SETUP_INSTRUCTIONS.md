@@ -1,6 +1,7 @@
 # 🚀 RDS Database Setup Instructions
 
 ## Current Status
+
 - ✅ RDS instance is running
 - ✅ TypeScript compilation errors fixed
 - ✅ Database configuration retrieved from AWS
@@ -36,6 +37,7 @@ node test-rds-connection.js
 ```
 
 You should see:
+
 - ✅ Successfully connected to RDS!
 - Database info and version
 - List of tables (likely empty)
@@ -63,6 +65,7 @@ Or use a GUI tool like TablePlus/pgAdmin with these credentials.
 ## Step 5: Test HeyFlow Webhook
 
 Once everything is running:
+
 1. Go to HeyFlow and click "Test" on your webhook
 2. Check backend logs - you should see NO database errors
 3. Patient data will be saved to the database!
@@ -70,19 +73,23 @@ Once everything is running:
 ## Troubleshooting
 
 ### Connection Refused
+
 - Make sure you copied ALL the environment variables
 - Check your IP is in the security group (currently allows 75.220.8.116/32)
 
 ### Password Authentication Failed
+
 - Double-check the password in .env matches exactly
 - Special characters in password need to be preserved
 
 ### SSL Error
+
 - Make sure `DB_SSL=true` is set
 - The connection uses SSL for security
 
 ## Success Indicators
+
 - Backend runs without TypeScript errors ✅
 - No "ECONNREFUSED" errors in logs ✅
 - HeyFlow webhook returns 200 OK ✅
-- Patient data appears in database ✅ 
+- Patient data appears in database ✅

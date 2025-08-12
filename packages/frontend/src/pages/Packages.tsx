@@ -51,7 +51,7 @@ export const Packages: React.FC = () => {
   const handleToggleActive = async (pkg: ServicePackage) => {
     try {
       await apiClient.patch(`/api/v1/packages/${pkg.id}`, {
-        is_active: !pkg.is_active
+        is_active: !pkg.is_active,
       });
       fetchPackages();
     } catch (error) {
@@ -63,7 +63,7 @@ export const Packages: React.FC = () => {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
     }).format(price);
   };
 
@@ -71,10 +71,7 @@ export const Packages: React.FC = () => {
     <div className="packages-page">
       <div className="page-header">
         <h1>Service Packages</h1>
-        <button 
-          className="create-package-btn"
-          onClick={() => setShowCreateModal(true)}
-        >
+        <button className="create-package-btn" onClick={() => setShowCreateModal(true)}>
           + Create Package
         </button>
       </div>
@@ -85,10 +82,7 @@ export const Packages: React.FC = () => {
         <div className="empty-state">
           <h3>No packages yet</h3>
           <p>Create your first service package to start billing clients</p>
-          <button 
-            className="create-first-btn"
-            onClick={() => setShowCreateModal(true)}
-          >
+          <button className="create-first-btn" onClick={() => setShowCreateModal(true)}>
             Create Package
           </button>
         </div>
@@ -99,14 +93,10 @@ export const Packages: React.FC = () => {
               <div className="package-header">
                 <h3>{pkg.name}</h3>
                 <div className="package-actions">
-                  <button 
-                    className="edit-btn"
-                    onClick={() => setEditingPackage(pkg)}
-                    title="Edit"
-                  >
+                  <button className="edit-btn" onClick={() => setEditingPackage(pkg)} title="Edit">
                     ✏️
                   </button>
-                  <button 
+                  <button
                     className="delete-btn"
                     onClick={() => handleDeletePackage(pkg.id)}
                     title="Delete"
@@ -115,19 +105,17 @@ export const Packages: React.FC = () => {
                   </button>
                 </div>
               </div>
-              
+
               <div className="package-details">
                 <div className="package-category">{pkg.category}</div>
                 <div className="package-price">{formatPrice(pkg.price)}</div>
                 <div className="package-billing">per {pkg.billing_period.toLowerCase()}</div>
-                {pkg.description && (
-                  <p className="package-description">{pkg.description}</p>
-                )}
+                {pkg.description && <p className="package-description">{pkg.description}</p>}
               </div>
 
               <div className="package-footer">
                 <label className="toggle-switch">
-                  <input 
+                  <input
                     type="checkbox"
                     checked={pkg.is_active}
                     onChange={() => handleToggleActive(pkg)}
@@ -173,7 +161,7 @@ const PackageModal: React.FC<{
     billing_period: editingPackage?.billing_period || 'Monthly',
     price: editingPackage?.price || 0,
     description: editingPackage?.description || '',
-    is_active: editingPackage?.is_active ?? true
+    is_active: editingPackage?.is_active ?? true,
   });
   const [saving, setSaving] = useState(false);
 
@@ -182,16 +170,16 @@ const PackageModal: React.FC<{
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setSaving(true);
-      
+
       if (editingPackage) {
         await apiClient.put(`/api/v1/packages/${editingPackage.id}`, formData);
       } else {
         await apiClient.post('/api/v1/packages', formData);
       }
-      
+
       onSuccess();
     } catch (error) {
       console.error('Error saving package:', error);
@@ -203,10 +191,12 @@ const PackageModal: React.FC<{
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{editingPackage ? 'Edit Package' : 'Create Package'}</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="close-btn" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -229,8 +219,10 @@ const PackageModal: React.FC<{
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 required
               >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
                 ))}
               </select>
             </div>
@@ -242,8 +234,10 @@ const PackageModal: React.FC<{
                 onChange={(e) => setFormData({ ...formData, billing_period: e.target.value })}
                 required
               >
-                {billingPeriods.map(period => (
-                  <option key={period} value={period}>{period}</option>
+                {billingPeriods.map((period) => (
+                  <option key={period} value={period}>
+                    {period}
+                  </option>
                 ))}
               </select>
             </div>
@@ -256,7 +250,9 @@ const PackageModal: React.FC<{
               <input
                 type="number"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })
+                }
                 min="0"
                 step="0.01"
                 required
@@ -297,4 +293,4 @@ const PackageModal: React.FC<{
       </div>
     </div>
   );
-}; 
+};

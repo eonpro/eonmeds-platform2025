@@ -12,7 +12,7 @@ const Stripe = require('stripe');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 async function generateReport() {
@@ -55,7 +55,7 @@ async function generateReport() {
 
     console.log('RECENT CLIENTS:');
     console.log('-'.repeat(60));
-    recentClients.rows.forEach(p => {
+    recentClients.rows.forEach((p) => {
       const tags = p.membership_hashtags ? p.membership_hashtags.join(' ') : '';
       console.log(`${p.patient_id} | ${p.first_name} ${p.last_name}`);
       console.log(`   Email: ${p.email}`);
@@ -68,9 +68,9 @@ async function generateReport() {
     // Get Stripe statistics
     console.log('STRIPE STATS (fetching...):');
     const customers = await stripe.customers.list({ limit: 100 });
-    const activeSubscriptions = await stripe.subscriptions.list({ 
-      status: 'active', 
-      limit: 100 
+    const activeSubscriptions = await stripe.subscriptions.list({
+      status: 'active',
+      limit: 100,
     });
 
     console.log(`  Total Customers:       ${customers.data.length}+`);
@@ -78,25 +78,26 @@ async function generateReport() {
     console.log();
 
     // Find unmatched Stripe customers
-    const patientEmails = await pool.query('SELECT LOWER(email) as email FROM patients WHERE email IS NOT NULL');
-    const emailSet = new Set(patientEmails.rows.map(r => r.email));
-    
-    const unmatchedCustomers = customers.data.filter(c => 
-      c.email && !emailSet.has(c.email.toLowerCase())
+    const patientEmails = await pool.query(
+      'SELECT LOWER(email) as email FROM patients WHERE email IS NOT NULL'
+    );
+    const emailSet = new Set(patientEmails.rows.map((r) => r.email));
+
+    const unmatchedCustomers = customers.data.filter(
+      (c) => c.email && !emailSet.has(c.email.toLowerCase())
     );
 
     console.log(`UNMATCHED STRIPE CUSTOMERS: ${unmatchedCustomers.length}`);
     if (unmatchedCustomers.length > 0) {
       console.log('(These are in Stripe but not in patient database)');
       console.log('-'.repeat(60));
-      unmatchedCustomers.slice(0, 10).forEach(c => {
+      unmatchedCustomers.slice(0, 10).forEach((c) => {
         console.log(`  ${c.email} (${c.id})`);
       });
       if (unmatchedCustomers.length > 10) {
         console.log(`  ... and ${unmatchedCustomers.length - 10} more`);
       }
     }
-
   } catch (error) {
     console.error('Error generating report:', error);
   } finally {
@@ -104,4 +105,4 @@ async function generateReport() {
   }
 }
 
-generateReport(); 
+generateReport();

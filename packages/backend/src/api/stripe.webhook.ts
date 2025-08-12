@@ -20,11 +20,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 
   try {
     const stripe = getStripeClient();
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      webhookSecret
-    );
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -34,7 +30,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
   console.log(`Stripe webhook received: ${event.type}`);
 
   // Store event in database (fire and forget for quick response)
-  storeWebhookEvent(event).catch(err => {
+  storeWebhookEvent(event).catch((err) => {
     console.error('Failed to store webhook event:', err);
   });
 
@@ -44,23 +40,23 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       case 'checkout.session.completed':
         handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
         break;
-      
+
       case 'invoice.paid':
         handleInvoicePaid(event.data.object as Stripe.Invoice);
         break;
-      
+
       case 'invoice.payment_failed':
         handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
         break;
-      
+
       case 'customer.subscription.updated':
         handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
         break;
-      
+
       case 'customer.subscription.deleted':
         handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
         break;
-      
+
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
@@ -78,7 +74,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
  */
 async function storeWebhookEvent(event: Stripe.Event): Promise<void> {
   const client = await pool.connect();
-  
+
   try {
     // Ensure billing_events table exists
     await client.query(`
@@ -91,10 +87,10 @@ async function storeWebhookEvent(event: Stripe.Event): Promise<void> {
     `);
 
     // Insert the event
-    await client.query(
-      `INSERT INTO billing_events (type, payload) VALUES ($1, $2)`,
-      [event.type, event]
-    );
+    await client.query(`INSERT INTO billing_events (type, payload) VALUES ($1, $2)`, [
+      event.type,
+      event,
+    ]);
   } finally {
     client.release();
   }
@@ -105,7 +101,7 @@ async function storeWebhookEvent(event: Stripe.Event): Promise<void> {
  */
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session): Promise<void> {
   console.log('Checkout session completed:', session.id);
-  
+
   // Update local tables if needed
   if (session.customer && session.subscription) {
     const client = await pool.connect();
@@ -117,7 +113,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
           WHERE table_name = 'subscriptions'
         )
       `);
-      
+
       if (tableCheck.rows[0].exists) {
         // Update subscription status
         await client.query(
@@ -140,7 +136,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
  */
 async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
   console.log('Invoice paid:', invoice.id);
-  
+
   const client = await pool.connect();
   try {
     // Check if we have an invoices table
@@ -150,7 +146,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
         WHERE table_name = 'invoices'
       )
     `);
-    
+
     if (tableCheck.rows[0].exists) {
       // Update invoice status
       await client.query(
@@ -172,7 +168,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
  */
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   console.log('Invoice payment failed:', invoice.id);
-  
+
   const client = await pool.connect();
   try {
     // Check if we have an invoices table
@@ -182,7 +178,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void
         WHERE table_name = 'invoices'
       )
     `);
-    
+
     if (tableCheck.rows[0].exists) {
       // Update invoice status
       await client.query(
@@ -204,7 +200,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void
  */
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
   console.log('Subscription updated:', subscription.id);
-  
+
   const client = await pool.connect();
   try {
     // Check if we have a subscriptions table
@@ -214,7 +210,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
         WHERE table_name = 'subscriptions'
       )
     `);
-    
+
     if (tableCheck.rows[0].exists) {
       // Update subscription
       await client.query(
@@ -228,7 +224,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
           subscription.status,
           subscription.cancel_at_period_end,
           new Date(subscription.current_period_end * 1000),
-          subscription.id
+          subscription.id,
         ]
       );
     }
@@ -244,7 +240,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Pro
  */
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
   console.log('Subscription deleted:', subscription.id);
-  
+
   const client = await pool.connect();
   try {
     // Check if we have a subscriptions table
@@ -254,7 +250,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
         WHERE table_name = 'subscriptions'
       )
     `);
-    
+
     if (tableCheck.rows[0].exists) {
       // Update subscription status
       await client.query(

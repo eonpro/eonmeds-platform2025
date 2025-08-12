@@ -5,7 +5,7 @@
   /* Font Families */
   --qual-font-family: 'Poppins', sans-serif;
   --qual-font-family-mono: 'SF Mono', Monaco, monospace;
-  
+
   /* Font Sizes */
   --qual-font-size-page-title: 32px;
   --qual-font-size-subtitle: 16px;
@@ -14,24 +14,24 @@
   --qual-font-size-input: 14px;
   --qual-font-size-button: 14px;
   --qual-font-size-status: 12px;
-  
+
   /* Font Weights */
   --qual-font-weight-regular: 400;
   --qual-font-weight-medium: 500;
   --qual-font-weight-semibold: 600;
-  
+
   /* Letter Spacing */
   --qual-letter-spacing-table-header: 0.5px;
-  
+
   /* Line Heights */
   --qual-line-height-normal: 1.5;
   --qual-line-height-tight: 1.25;
-  
+
   /* Colors */
   --qual-color-text-primary: #1a1a1a;
   --qual-color-text-secondary: #6b7280;
   --qual-color-text-accent: #14a97b;
-  
+
   /* Spacing */
   --qual-padding-table-header: 16px 20px;
   --qual-padding-table-cell: 20px;

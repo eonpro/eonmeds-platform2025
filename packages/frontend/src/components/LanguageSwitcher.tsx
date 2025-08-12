@@ -8,7 +8,7 @@ export const LanguageSwitcher: React.FC = () => {
 
   const handleLanguageChange = async (langCode: string) => {
     if (langCode === currentLanguage || isChanging) return;
-    
+
     setIsChanging(true);
     try {
       await changeLanguage(langCode);
@@ -35,4 +35,4 @@ export const LanguageSwitcher: React.FC = () => {
       ))}
     </div>
   );
-}; 
+};

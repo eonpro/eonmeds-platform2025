@@ -16,17 +16,16 @@ interface Auth0User {
 export const syncAuth0User = async (req: Request, res: Response): Promise<void> => {
   try {
     const auth0User = (req as any).auth as Auth0User;
-    
+
     if (!auth0User) {
       res.status(401).json({ error: 'No Auth0 user found' });
       return;
     }
 
     // Check if user exists in our database
-    const existingUser = await query(
-      'SELECT id, auth0_id FROM users WHERE auth0_id = $1',
-      [auth0User.sub]
-    );
+    const existingUser = await query('SELECT id, auth0_id FROM users WHERE auth0_id = $1', [
+      auth0User.sub,
+    ]);
 
     let userId: string;
 
@@ -35,17 +34,14 @@ export const syncAuth0User = async (req: Request, res: Response): Promise<void> 
       const nameParts = (auth0User.name || '').split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
-      
+
       // Get role from Auth0 token
       const auth0Roles = auth0User['https://eonmeds.com/roles'] || ['patient'];
       const roleCode = auth0Roles[0] || 'patient';
-      
+
       // Get role ID from database
-      const roleResult = await query(
-        'SELECT id FROM roles WHERE code = $1',
-        [roleCode]
-      );
-      
+      const roleResult = await query('SELECT id FROM roles WHERE code = $1', [roleCode]);
+
       if (roleResult.rows.length === 0) {
         res.status(400).json({ error: 'Invalid role' });
         return;
@@ -64,28 +60,22 @@ export const syncAuth0User = async (req: Request, res: Response): Promise<void> 
           lastName,
           roleResult.rows[0].id,
           true,
-          true // Auth0 handles email verification
+          true, // Auth0 handles email verification
         ]
       );
 
       userId = createUserResult.rows[0].id;
 
       // Log user creation
-      await auditAction(
-        req as any,
-        'USER_CREATED_FROM_AUTH0',
-        'user',
-        userId,
-        { auth0_id: auth0User.sub, email: auth0User.email }
-      );
+      await auditAction(req as any, 'USER_CREATED_FROM_AUTH0', 'user', userId, {
+        auth0_id: auth0User.sub,
+        email: auth0User.email,
+      });
     } else {
       userId = existingUser.rows[0].id;
-      
+
       // Update last login
-      await query(
-        'UPDATE users SET last_login = NOW() WHERE id = $1',
-        [userId]
-      );
+      await query('UPDATE users SET last_login = NOW() WHERE id = $1', [userId]);
     }
 
     // Get full user details
@@ -109,7 +99,7 @@ export const syncAuth0User = async (req: Request, res: Response): Promise<void> 
       role: user.role_name,
       roleCode: user.role_code,
       permissions: user.permissions,
-      language: auth0User['https://eonmeds.com/language'] || 'en'
+      language: auth0User['https://eonmeds.com/language'] || 'en',
     });
   } catch (error) {
     console.error('Sync Auth0 user error:', error);
@@ -121,7 +111,7 @@ export const syncAuth0User = async (req: Request, res: Response): Promise<void> 
 export const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const auth0User = (req as any).auth as Auth0User;
-    
+
     if (!auth0User || !auth0User.sub) {
       res.status(401).json({ error: 'No authenticated user' });
       return;
@@ -139,9 +129,9 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
 
     if (userResult.rows.length === 0) {
       // User not synced yet - call sync endpoint
-      res.status(404).json({ 
-        error: 'User not found in database', 
-        message: 'Please call /auth/sync endpoint first' 
+      res.status(404).json({
+        error: 'User not found in database',
+        message: 'Please call /auth/sync endpoint first',
       });
       return;
     }
@@ -157,7 +147,7 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
       role: user.role_name,
       roleCode: user.role_code,
       permissions: user.permissions,
-      language: auth0User['https://eonmeds.com/language'] || 'en'
+      language: auth0User['https://eonmeds.com/language'] || 'en',
     });
   } catch (error) {
     console.error('Get current user error:', error);
@@ -196,13 +186,9 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
     const user = updateResult.rows[0];
 
     // Log profile update
-    await auditAction(
-      req as any,
-      'USER_PROFILE_UPDATE',
-      'user',
-      user.id,
-      { fields_updated: Object.keys(req.body) }
-    );
+    await auditAction(req as any, 'USER_PROFILE_UPDATE', 'user', user.id, {
+      fields_updated: Object.keys(req.body),
+    });
 
     res.json({
       message: 'Profile updated successfully',
@@ -211,8 +197,8 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
         email: user.email,
         firstName: user.first_name,
         lastName: user.last_name,
-        phone: user.phone
-      }
+        phone: user.phone,
+      },
     });
   } catch (error) {
     console.error('Update profile error:', error);
@@ -226,4 +212,4 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 // - login (use Auth0 universal login)
 // - logout (handled by Auth0)
 // - refreshToken (Auth0 handles token refresh)
-// - resetPassword (use Auth0 password reset flow) 
+// - resetPassword (use Auth0 password reset flow)

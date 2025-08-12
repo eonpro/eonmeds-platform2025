@@ -19,9 +19,12 @@ const pool = new Pool({
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  ssl: process.env.DB_SSL === 'true' ? {
-    rejectUnauthorized: false
-  } : false
+  ssl:
+    process.env.DB_SSL === 'true'
+      ? {
+          rejectUnauthorized: false,
+        }
+      : false,
 });
 
 // Test connection
@@ -29,27 +32,25 @@ async function testConnection() {
   try {
     console.log('🔌 Attempting to connect to RDS...');
     const client = await pool.connect();
-    
+
     console.log('✅ Successfully connected to RDS!\n');
-    
+
     // Test query
     const result = await client.query('SELECT NOW() as current_time, version() as pg_version');
     console.log('📊 Database Info:');
     console.log(`Current Time: ${result.rows[0].current_time}`);
     console.log(`PostgreSQL Version: ${result.rows[0].pg_version.split(',')[0]}`);
-    
+
     // Check if eonmeds database exists
-    const dbCheck = await client.query(
-      "SELECT datname FROM pg_database WHERE datname = 'eonmeds'"
-    );
-    
+    const dbCheck = await client.query("SELECT datname FROM pg_database WHERE datname = 'eonmeds'");
+
     if (dbCheck.rows.length > 0) {
       console.log('\n✅ Database "eonmeds" exists');
     } else {
       console.log('\n⚠️  Database "eonmeds" does not exist yet');
       console.log('   You may need to create it or use the default "postgres" database');
     }
-    
+
     // Check tables
     const tablesResult = await client.query(`
       SELECT table_name 
@@ -58,22 +59,22 @@ async function testConnection() {
       AND table_type = 'BASE TABLE'
       ORDER BY table_name;
     `);
-    
+
     console.log(`\n📋 Tables in database: ${tablesResult.rows.length}`);
     if (tablesResult.rows.length > 0) {
-      tablesResult.rows.forEach(row => {
+      tablesResult.rows.forEach((row) => {
         console.log(`   - ${row.table_name}`);
       });
     } else {
       console.log('   No tables found. You need to run the schema.sql file.');
     }
-    
+
     client.release();
     console.log('\n🎉 RDS connection test completed successfully!');
     process.exit(0);
   } catch (error) {
     console.error('\n❌ Connection failed:', error.message);
-    
+
     if (error.code === 'ECONNREFUSED') {
       console.error('\n💡 Tips:');
       console.error('1. Make sure you added the RDS configuration to your .env file');
@@ -84,9 +85,9 @@ async function testConnection() {
     } else if (error.message.includes('password')) {
       console.error('\n💡 Check that DB_PASSWORD is correct in your .env file');
     }
-    
+
     process.exit(1);
   }
 }
 
-testConnection(); 
+testConnection();

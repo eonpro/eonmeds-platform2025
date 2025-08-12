@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -26,27 +25,29 @@ const app = express();
 // Load environment variables
 dotenv.config();
 
-const PORT = process.env.PORT || 5002;
+const PORT = Number(process.env.PORT) || 3000;
 
 // CORS must be before all routes
-const corsOrigins = process.env.CORS_ORIGIN 
-  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
   : [
-    'http://localhost:3000',
-    'http://localhost:3001', 
-    'https://intuitive-learning-production.up.railway.app',
-    'https://eonmeds-platform2025-production.up.railway.app'
-  ];
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://intuitive-learning-production.up.railway.app',
+      'https://eonmeds-platform2025-production.up.railway.app',
+    ];
 
 console.log('🔒 CORS Origins configured:', corsOrigins);
 
-app.use(cors({
-  origin: corsOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['X-Total-Count']
-}));
+app.use(
+  cors({
+    origin: corsOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['X-Total-Count'],
+  })
+);
 
 // Request logging middleware (before body parsing)
 app.use((req, _res, next) => {
@@ -58,8 +59,9 @@ app.use((req, _res, next) => {
 // This is because Stripe requires the raw body for signature verification
 
 // Existing Stripe webhook endpoint (legacy)
-app.post('/api/v1/payments/webhook/stripe', 
-  express.raw({ type: 'application/json' }), 
+app.post(
+  '/api/v1/payments/webhook/stripe',
+  express.raw({ type: 'application/json' }),
   (req, res) => {
     // Import and use the webhook handler directly
     const { handleStripeWebhook } = require('./controllers/stripe-webhook.controller');
@@ -68,14 +70,11 @@ app.post('/api/v1/payments/webhook/stripe',
 );
 
 // New Stripe webhook endpoint with improved handling
-app.post('/api/v1/stripe/webhook',
-  express.raw({ type: 'application/json' }),
-  (req, res) => {
-    // Import and use the new webhook handler
-    const { handleStripeWebhook } = require('./routes/stripe.webhook');
-    handleStripeWebhook(req, res);
-  }
-);
+app.post('/api/v1/stripe/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  // Import and use the new webhook handler
+  const { handleStripeWebhook } = require('./routes/stripe.webhook');
+  handleStripeWebhook(req, res);
+});
 
 // NOW we can add body parsing middleware for all other routes
 app.use(express.json({ limit: '10mb' }));
@@ -83,16 +82,16 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
 // API version endpoint
 app.get('/api/v1', (_req, res) => {
-  res.json({ 
+  res.json({
     version: '1.0.0',
     endpoints: {
       webhooks: '/api/v1/webhooks',
@@ -103,8 +102,8 @@ app.get('/api/v1', (_req, res) => {
       documents: '/api/v1/documents',
       audit: '/api/v1/audit',
       payments: '/api/v1/payments',
-      packages: '/api/v1/packages'
-    }
+      packages: '/api/v1/packages',
+    },
   });
 });
 
@@ -133,30 +132,31 @@ console.log('✅ All routes registered (database check happens per route)');
 app.use((err: any, req: any, res: any, next: any) => {
   // Log error but don't expose internals
   console.error('Server error:', err);
-  
+
   // Check if response was already sent
   if (res.headersSent) {
     return next(err);
   }
-  
+
   // Default error response
   res.status(err.status || 500).json({
     ok: false,
-    error: err.message || 'Internal server error'
+    error: err.message || 'Internal server error',
   });
 });
 
 // Start server
-app.listen(PORT, async () => {
+app.listen(PORT, '0.0.0.0', async () => {
+  console.log('API on', PORT);
   console.log('🚀 Server is running!');
-  console.log(`📡 Listening on port ${PORT}`);
+  console.log(`📡 Listening on port ${PORT} on all interfaces`);
   console.log('🏥 EONMeds Backend API');
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Database Host: ${process.env.DB_HOST ? '✓ Configured' : '✗ Missing'}`);
   console.log(`Database Name: ${process.env.DB_NAME ? '✓ Configured' : '✗ Missing'}`);
   console.log(`JWT Secret: ${process.env.JWT_SECRET ? '✓ Configured' : '✗ Missing'}`);
   console.log(`Port: ${PORT}`);
-  
+
   await testDatabaseConnection();
   await ensureSOAPNotesTable();
 });
@@ -166,21 +166,21 @@ let databaseConnected = false;
 
 async function initializeDatabase() {
   console.log('Attempting database connection...');
-  
+
   try {
     const isConnected = await testDatabaseConnection();
-    
+
     if (isConnected) {
       console.log('✅ Database connected successfully');
       databaseConnected = true;
-      
+
       // Ensure critical tables exist
       try {
         // Import pool for direct queries
         const { pool } = await import('./config/database');
-        
+
         // SOAP notes table is now handled by database.ts with correct schema
-        
+
         // Create invoice_payments table if it doesn't exist
         await pool.query(`
           CREATE TABLE IF NOT EXISTS invoice_payments (
@@ -197,16 +197,16 @@ async function initializeDatabase() {
             created_at TIMESTAMP DEFAULT NOW()
           );
         `);
-        
+
         // Create indexes
         await pool.query(`
           CREATE INDEX IF NOT EXISTS idx_payment_invoice ON invoice_payments(invoice_id);
         `);
-        
+
         await pool.query(`
           CREATE INDEX IF NOT EXISTS idx_payment_date ON invoice_payments(payment_date);
         `);
-        
+
         // Create invoices table
         await pool.query(`
           CREATE TABLE IF NOT EXISTS invoices (
@@ -257,7 +257,7 @@ async function initializeDatabase() {
         // Call ensureSOAPNotesTable to create the table with correct schema
         const { ensureSOAPNotesTable } = await import('./config/database');
         await ensureSOAPNotesTable();
-        
+
         console.log('✅ Database tables verified/created');
       } catch (tableError) {
         console.log('Note: Could not verify/create tables:', (tableError as Error).message);
@@ -278,19 +278,19 @@ export { databaseConnected };
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     error: 'Not Found',
     message: `Route ${req.method} ${req.path} not found`,
-    database: databaseConnected ? 'connected' : 'not connected'
+    database: databaseConnected ? 'connected' : 'not connected',
   });
 });
 
 // Error handling middleware
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: any, _req: express.Request, res: express.Response) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 });
 
@@ -300,4 +300,4 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-export default app; 
+export default app;

@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements,
-} from '@stripe/react-stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import './StripePaymentForm.css';
 
@@ -22,7 +17,7 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
   onPaymentMethodCreated,
   onCancel,
   saveCard = false,
-  processing = false
+  processing = false,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -147,11 +142,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = (props) => {
           Stripe is not configured. Please check your environment settings.
         </div>
         <div className="form-actions">
-          <button
-            type="button"
-            className="cancel-btn"
-            onClick={props.onCancel}
-          >
+          <button type="button" className="cancel-btn" onClick={props.onCancel}>
             Cancel
           </button>
         </div>
@@ -164,4 +155,4 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = (props) => {
       <PaymentForm {...props} />
     </Elements>
   );
-}; 
+};

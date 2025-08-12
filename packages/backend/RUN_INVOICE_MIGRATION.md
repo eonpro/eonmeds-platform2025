@@ -29,6 +29,7 @@ railway run npm run migrate:invoices
 ## Verify Migration Success
 
 After running the migration, you should see:
+
 - ✅ Tables created: invoices, invoice_items, invoice_payments
 - ✅ Invoice number generation test showing a number like "INV-2024-01000"
 - 🎉 Migration completed successfully!
@@ -41,4 +42,4 @@ After running the migration, you should see:
 4. **generate_invoice_number()** function - Auto-generates invoice numbers
 5. Various indexes for performance
 
-Once complete, your invoice creation and fetching should work properly! 
+Once complete, your invoice creation and fetching should work properly!

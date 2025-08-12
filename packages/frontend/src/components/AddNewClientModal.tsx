@@ -11,7 +11,7 @@ interface AddNewClientModalProps {
 export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
 }) => {
   const [formData, setFormData] = useState({
     first_name: '',
@@ -19,7 +19,7 @@ export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
     email: '',
     phone: '',
     date_of_birth: '',
-    gender: 'male'
+    gender: 'male',
   });
   const [inviteToApp, setInviteToApp] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,9 +27,9 @@ export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -40,7 +40,7 @@ export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
 
     try {
       await patientService.createPatient(formData);
-      
+
       // Reset form
       setFormData({
         first_name: '',
@@ -48,10 +48,10 @@ export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
         email: '',
         phone: '',
         date_of_birth: '',
-        gender: 'male'
+        gender: 'male',
       });
       setInviteToApp(false);
-      
+
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -67,9 +67,9 @@ export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2>Add New Client</h2>
-        
+
         {error && <div className="error-message">{error}</div>}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
@@ -83,7 +83,7 @@ export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="last_name">Last Name</label>
               <input
@@ -162,19 +162,10 @@ export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
           </div>
 
           <div className="modal-actions">
-            <button
-              type="button"
-              className="cancel-btn"
-              onClick={onClose}
-              disabled={loading}
-            >
+            <button type="button" className="cancel-btn" onClick={onClose} disabled={loading}>
               Cancel
             </button>
-            <button
-              type="submit"
-              className="save-btn"
-              disabled={loading}
-            >
+            <button type="submit" className="save-btn" disabled={loading}>
               {loading ? 'Saving...' : 'Save'}
             </button>
           </div>
@@ -182,4 +173,4 @@ export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
       </div>
     </div>
   );
-}; 
+};
