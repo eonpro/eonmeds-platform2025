@@ -693,70 +693,36 @@ router.get('/diagnostics/stripe', async (req: Request, res: Response) => {
     const env = {
       STRIPE_SECRET_KEY: !!process.env.STRIPE_SECRET_KEY,
       STRIPE_WEBHOOK_SECRET: !!process.env.STRIPE_WEBHOOK_SECRET,
-      stripeSecretKey: !!process.env.STRIPE_SECRET_KEY,
-      stripeWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
-      databaseUrl: !!process.env.DATABASE_URL,
-      appBaseUrl: !!process.env.APP_BASE_URL,
-      taxEnabled: process.env.TAX_ENABLED === 'true',
-      stripeMode: process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_') ? 'test' : 'live',
     };
 
     // Check Stripe connection
-    let stripeInfo = { ok: false, apiVersion: null, error: null };
-    if (hasAccess && env.stripeSecretKey) {
+    let stripeInfo = { ok: false, apiVersion: null };
+    if (hasAccess && env.STRIPE_SECRET_KEY) {
       try {
         const stripe = getStripeClient();
         await stripe.balance.retrieve();
         stripeInfo = {
           ok: true,
           apiVersion: '2024-06-20',
-          error: null,
         };
-      } catch (error: any) {
+      } catch {
         stripeInfo = {
           ok: false,
           apiVersion: null,
-          error: error.message,
         };
-      }
-    }
-
-    // Check database connection
-    let dbInfo = { ok: false, error: null };
-    if (hasAccess && env.databaseUrl) {
-      try {
-        const { pool } = await import('../config/database');
-        await pool.query('SELECT 1');
-        dbInfo = { ok: true, error: null };
-      } catch (error: any) {
-        dbInfo = { ok: false, error: error.message };
       }
     }
 
     // Webhook configuration
     const webhook = {
       path: '/api/v1/stripe/webhook',
-      legacyPath: '/api/v1/payments/webhook/stripe',
       rawBodyEnabled: true,
-      secretConfigured: env.stripeWebhookSecret,
     };
 
-    // List billing routes
-    const billingRoutes = router.stack
-      .filter((layer: any) => layer.route)
-      .map((layer: any) => ({
-        path: layer.route.path,
-        methods: Object.keys(layer.route.methods),
-      }));
-
     const response = {
-      authenticated: isAuthenticated,
-      hasAccess,
       env,
       stripe: hasAccess ? stripeInfo : { restricted: true },
-      db: hasAccess ? dbInfo : { restricted: true },
       webhook,
-      billingRoutes: hasAccess ? billingRoutes : [],
     };
 
     res.json(response);
