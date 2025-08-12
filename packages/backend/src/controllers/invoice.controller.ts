@@ -55,10 +55,14 @@ export const getPatientInvoices = async (req: Request, res: Response): Promise<v
 // Create a new invoice
 export const createInvoice = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log('Invoice creation request body:', req.body);
+    
     const { patient_id, amount, total_amount, description, due_date, status = 'draft', items = [] } = req.body;
     
     // Support both 'amount' and 'total_amount' for backwards compatibility
     const invoiceAmount = amount || total_amount;
+    
+    console.log('Creating invoice with data:', { patient_id, amount, total_amount, invoiceAmount });
     
     // Validate required fields
     if (!patient_id) {
@@ -66,8 +70,8 @@ export const createInvoice = async (req: Request, res: Response): Promise<void> 
       return;
     }
     
-    if (!invoiceAmount || invoiceAmount <= 0) {
-      res.status(400).json({ error: 'Valid invoice amount is required' });
+    if (invoiceAmount === null || invoiceAmount === undefined || invoiceAmount <= 0) {
+      res.status(400).json({ error: 'Valid invoice amount is required. Received: ' + invoiceAmount });
       return;
     }
     
@@ -115,7 +119,11 @@ export const createInvoice = async (req: Request, res: Response): Promise<void> 
     });
   } catch (error) {
     console.error('Error creating invoice:', error);
-    res.status(500).json({ error: 'Failed to create invoice' });
+    res.status(500).json({ 
+      error: 'Failed to create invoice',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      details: error
+    });
   }
 };
 
