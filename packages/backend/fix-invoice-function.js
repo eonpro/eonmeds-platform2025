@@ -1,4 +1,9 @@
-const { pool } = require('./src/config/database');
+const { Pool } = require('pg');
+require('dotenv').config();
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
 async function fixInvoiceFunction() {
   console.log('🔧 Adding missing invoice number generation function...');
