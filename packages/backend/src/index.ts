@@ -238,6 +238,24 @@ async function initializeDatabase() {
           );
         `);
 
+        // Create sequence for invoice numbers
+        await pool.query(`
+          CREATE SEQUENCE IF NOT EXISTS invoice_number_seq START WITH 1000;
+        `);
+
+        // Create function to generate invoice numbers
+        await pool.query(`
+          CREATE OR REPLACE FUNCTION generate_invoice_number()
+          RETURNS VARCHAR AS $$
+          DECLARE
+            new_number VARCHAR;
+          BEGIN
+            new_number := 'INV-' || TO_CHAR(NOW(), 'YYYY') || '-' || LPAD(nextval('invoice_number_seq')::text, 5, '0');
+            RETURN new_number;
+          END;
+          $$ LANGUAGE plpgsql;
+        `);
+
         // Create invoice_items table
         await pool.query(`
           CREATE TABLE IF NOT EXISTS invoice_items (
