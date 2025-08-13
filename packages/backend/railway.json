@@ -8,8 +8,4 @@
     "restartPolicyType": "always",
     "restartPolicyMaxRetries": 10
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 7644f380d1a23cec0eccea60515f76c4270c25af
