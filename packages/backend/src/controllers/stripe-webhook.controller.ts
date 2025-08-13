@@ -27,11 +27,9 @@ export const handleStripeWebhook = async (
     console.error(
       "Webhook Error: No stripe-signature header value was provided.",
     );
-    return res
-      .status(400)
-      .json({
-        error: "Webhook Error: No stripe-signature header value was provided.",
-      });
+    return res.status(400).json({
+      error: "Webhook Error: No stripe-signature header value was provided.",
+    });
   }
   let event: Stripe.Event;
 

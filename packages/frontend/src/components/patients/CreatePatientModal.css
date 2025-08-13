@@ -37,7 +37,7 @@
   font-size: 24px;
   font-weight: 600;
   color: #111827;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .close-button {
@@ -67,14 +67,14 @@
   padding: 12px 24px;
   margin: 0;
   font-size: 14px;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .form-description {
   margin: 0 24px 20px;
   color: #6b7280;
   font-size: 14px;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 form {
@@ -103,7 +103,7 @@ form {
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .form-group input,
@@ -112,7 +112,7 @@ form {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 16px;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   background: white;
   transition: all 0.2s;
 }
@@ -143,7 +143,7 @@ form {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .cancel-button {
@@ -179,9 +179,9 @@ form {
   .form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .modal-content {
     width: 95%;
     margin: 10px;
   }
-} 
+}

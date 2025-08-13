@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useApi } from '../../hooks/useApi';
-import './MarkAsPaidModal.css';
+import React, { useState } from "react";
+import { useApi } from "../../hooks/useApi";
+import "./MarkAsPaidModal.css";
 
 interface MarkAsPaidModalProps {
   invoice: any;
@@ -11,56 +11,63 @@ interface MarkAsPaidModalProps {
 export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
   invoice,
   onClose,
-  onSuccess
+  onSuccess,
 }) => {
   const apiClient = useApi();
   const [processing, setProcessing] = useState(false);
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
-  const [paymentMethod, setPaymentMethod] = useState('cash');
-  const [reference, setReference] = useState('');
-  const [notes, setNotes] = useState('');
+  const [paymentDate, setPaymentDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [reference, setReference] = useState("");
+  const [notes, setNotes] = useState("");
 
   const handleMarkAsPaid = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setProcessing(true);
-      
-      const response = await apiClient.post('/api/v1/payments/mark-paid', {
+
+      const response = await apiClient.post("/api/v1/payments/mark-paid", {
         invoice_id: invoice.id,
         payment_date: paymentDate,
         payment_method: paymentMethod,
         reference: reference,
-        notes: notes
+        notes: notes,
       });
 
       if (response.data.success) {
-        alert('Invoice marked as paid successfully!');
+        alert("Invoice marked as paid successfully!");
         onSuccess();
       } else {
-        alert(response.data.error || 'Failed to mark invoice as paid');
+        alert(response.data.error || "Failed to mark invoice as paid");
       }
     } catch (error: any) {
-      console.error('Error marking invoice as paid:', error);
-      alert(error.response?.data?.error || 'Failed to mark invoice as paid. Please try again.');
+      console.error("Error marking invoice as paid:", error);
+      alert(
+        error.response?.data?.error ||
+          "Failed to mark invoice as paid. Please try again.",
+      );
     } finally {
       setProcessing(false);
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="mark-paid-modal" onClick={e => e.stopPropagation()}>
+      <div className="mark-paid-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Mark Invoice as Paid</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="close-btn" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <form onSubmit={handleMarkAsPaid}>
@@ -71,7 +78,9 @@ export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
             </div>
             <div className="info-row">
               <span className="label">Amount:</span>
-              <span className="value amount">{formatCurrency(invoice.amount_due)}</span>
+              <span className="value amount">
+                {formatCurrency(invoice.amount_due)}
+              </span>
             </div>
           </div>
 
@@ -125,30 +134,26 @@ export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
           <div className="warning-message">
             <span className="warning-icon">⚠️</span>
             <p>
-              This will mark the invoice as paid without processing a charge. 
+              This will mark the invoice as paid without processing a charge.
               Use this only for payments received outside the platform.
             </p>
           </div>
 
           <div className="modal-actions">
-            <button 
-              type="button" 
-              className="cancel-btn" 
+            <button
+              type="button"
+              className="cancel-btn"
               onClick={onClose}
               disabled={processing}
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="confirm-btn" 
-              disabled={processing}
-            >
-              {processing ? 'Processing...' : 'Mark as Paid'}
+            <button type="submit" className="confirm-btn" disabled={processing}>
+              {processing ? "Processing..." : "Mark as Paid"}
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-}; 
+};

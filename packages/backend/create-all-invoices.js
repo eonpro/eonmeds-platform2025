@@ -1,14 +1,16 @@
-const { Client } = require('pg');
-require('dotenv').config();
+const { Client } = require("pg");
+require("dotenv").config();
 
 async function createInvoicesForPaidClients() {
   const client = new Client({
-    connectionString: process.env.DATABASE_URL || 'postgresql://eonmeds_admin:EON#2024secure!@eonmeds-dev-db.cxy4o6eyy4sq.us-west-2.rds.amazonaws.com:5432/eonmeds'
+    connectionString:
+      process.env.DATABASE_URL ||
+      "postgresql://eonmeds_admin:EON#2024secure!@eonmeds-dev-db.cxy4o6eyy4sq.us-west-2.rds.amazonaws.com:5432/eonmeds",
   });
 
   try {
     await client.connect();
-    console.log('Connected to database');
+    console.log("Connected to database");
 
     // First, get all payments from Stripe that don't have invoices yet
     const paymentsQuery = `
@@ -32,7 +34,9 @@ async function createInvoicesForPaidClients() {
     `;
 
     const paymentsResult = await client.query(paymentsQuery);
-    console.log(`Found ${paymentsResult.rows.length} payments without invoices`);
+    console.log(
+      `Found ${paymentsResult.rows.length} payments without invoices`,
+    );
 
     // Also check for clients with specific amounts in their names/notes
     const clientsQuery = `
@@ -54,20 +58,22 @@ async function createInvoicesForPaidClients() {
     `;
 
     const clientsResult = await client.query(clientsQuery);
-    console.log(`Found ${clientsResult.rows.length} qualified clients without invoices`);
+    console.log(
+      `Found ${clientsResult.rows.length} qualified clients without invoices`,
+    );
 
     // Process payments first
     for (const payment of paymentsResult.rows) {
       // Determine the medication based on amount
-      let description = '';
+      let description = "";
       const amountInDollars = payment.amount / 100;
-      
+
       if (amountInDollars === 229) {
-        description = 'Semaglutide 2.5mg/mL - Monthly';
+        description = "Semaglutide 2.5mg/mL - Monthly";
       } else if (amountInDollars === 329) {
-        description = 'Tirzepatide 10mg/mL - Monthly';
+        description = "Tirzepatide 10mg/mL - Monthly";
       } else if (amountInDollars === 249) {
-        description = 'Semaglutide 2.5mg/mL - Monthly (Special Rate)';
+        description = "Semaglutide 2.5mg/mL - Monthly (Special Rate)";
       } else {
         // For other amounts, try to guess based on proximity
         if (Math.abs(amountInDollars - 229) < Math.abs(amountInDollars - 329)) {
@@ -77,7 +83,9 @@ async function createInvoicesForPaidClients() {
         }
       }
 
-      console.log(`Creating invoice for ${payment.first_name} ${payment.last_name} - $${amountInDollars} - ${description}`);
+      console.log(
+        `Creating invoice for ${payment.first_name} ${payment.last_name} - $${amountInDollars} - ${description}`,
+      );
 
       // Create the invoice
       const invoiceQuery = `
@@ -126,29 +134,38 @@ async function createInvoicesForPaidClients() {
           payment.created_at,
           payment.amount / 100, // Convert cents to dollars
           payment.stripe_payment_intent_id,
-          description
+          description,
         ]);
-        
-        console.log(`✅ Created invoice ${invoiceResult.rows[0].invoice_number} for ${payment.first_name} ${payment.last_name}`);
+
+        console.log(
+          `✅ Created invoice ${invoiceResult.rows[0].invoice_number} for ${payment.first_name} ${payment.last_name}`,
+        );
       } catch (err) {
-        console.error(`❌ Error creating invoice for ${payment.first_name}: ${err.message}`);
+        console.error(
+          `❌ Error creating invoice for ${payment.first_name}: ${err.message}`,
+        );
       }
     }
 
     // Process known clients with specific hashtags
     const knownAmounts = {
-      'Evelyn Zelaya': 229, // Semaglutide
-      'Yerislaydi Gonzalez': 329, // Tirzepatide
-      'Glenda Naranjo': 329, // Tirzepatide
-      'Melida Romero': 329 // Tirzepatide
+      "Evelyn Zelaya": 229, // Semaglutide
+      "Yerislaydi Gonzalez": 329, // Tirzepatide
+      "Glenda Naranjo": 329, // Tirzepatide
+      "Melida Romero": 329, // Tirzepatide
     };
 
     for (const client of clientsResult.rows) {
       const fullName = `${client.first_name} ${client.last_name}`;
       const amount = knownAmounts[fullName] || 229; // Default to Semaglutide
-      const description = amount === 229 ? 'Semaglutide 2.5mg/mL - Monthly' : 'Tirzepatide 10mg/mL - Monthly';
+      const description =
+        amount === 229
+          ? "Semaglutide 2.5mg/mL - Monthly"
+          : "Tirzepatide 10mg/mL - Monthly";
 
-      console.log(`Creating invoice for ${fullName} - $${amount} - ${description}`);
+      console.log(
+        `Creating invoice for ${fullName} - $${amount} - ${description}`,
+      );
 
       const invoiceQuery = `
         INSERT INTO invoices (
@@ -192,22 +209,25 @@ async function createInvoicesForPaidClients() {
         const invoiceResult = await client.query(invoiceQuery, [
           client.patient_id,
           amount,
-          description
+          description,
         ]);
-        
-        console.log(`✅ Created invoice ${invoiceResult.rows[0].invoice_number} for ${fullName}`);
+
+        console.log(
+          `✅ Created invoice ${invoiceResult.rows[0].invoice_number} for ${fullName}`,
+        );
       } catch (err) {
-        console.error(`❌ Error creating invoice for ${fullName}: ${err.message}`);
+        console.error(
+          `❌ Error creating invoice for ${fullName}: ${err.message}`,
+        );
       }
     }
 
-    console.log('\nInvoice creation complete!');
-
+    console.log("\nInvoice creation complete!");
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
   } finally {
     await client.end();
   }
 }
 
-createInvoicesForPaidClients(); 
+createInvoicesForPaidClients();

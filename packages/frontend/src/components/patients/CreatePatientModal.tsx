@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import './CreatePatientModal.css';
+import React, { useState } from "react";
+import "./CreatePatientModal.css";
 
 interface CreatePatientModalProps {
   isOpen: boolean;
@@ -26,61 +26,63 @@ interface PatientFormData {
 export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
   isOpen,
   onClose,
-  onSave
+  onSave,
 }) => {
   const [formData, setFormData] = useState<PatientFormData>({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    date_of_birth: '',
-    gender: '',
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    date_of_birth: "",
+    gender: "",
     height_inches: undefined,
     weight_lbs: undefined,
-    address: '',
-    city: '',
-    state: '',
-    zip: '',
-    status: 'pending'
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    status: "pending",
   });
-  
+
   const [heightFeet, setHeightFeet] = useState<number>(0);
   const [heightInches, setHeightInches] = useState<number>(0);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleHeightChange = (type: 'feet' | 'inches', value: string) => {
+  const handleHeightChange = (type: "feet" | "inches", value: string) => {
     const numValue = parseInt(value) || 0;
-    
-    if (type === 'feet') {
+
+    if (type === "feet") {
       setHeightFeet(numValue);
       const totalInches = numValue * 12 + heightInches;
-      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+      setFormData((prev) => ({ ...prev, height_inches: totalInches }));
     } else {
       setHeightInches(numValue);
       const totalInches = heightFeet * 12 + numValue;
-      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+      setFormData((prev) => ({ ...prev, height_inches: totalInches }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       await onSave(formData);
       onClose();
     } catch (err) {
-      setError('Failed to create patient. Please try again.');
+      setError("Failed to create patient. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -90,19 +92,20 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Create New Client</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="close-button" onClick={onClose}>
+            ×
+          </button>
         </div>
 
-        {error && (
-          <div className="error-message">{error}</div>
-        )}
+        {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <p className="form-description">
-            Enter the client information below. A unique client ID will be automatically generated.
+            Enter the client information below. A unique client ID will be
+            automatically generated.
           </p>
 
           <div className="form-grid">
@@ -191,7 +194,7 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
                   <input
                     type="number"
                     value={heightFeet}
-                    onChange={(e) => handleHeightChange('feet', e.target.value)}
+                    onChange={(e) => handleHeightChange("feet", e.target.value)}
                     min="0"
                     max="8"
                     placeholder="0"
@@ -202,7 +205,9 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
                   <input
                     type="number"
                     value={heightInches}
-                    onChange={(e) => handleHeightChange('inches', e.target.value)}
+                    onChange={(e) =>
+                      handleHeightChange("inches", e.target.value)
+                    }
                     min="0"
                     max="11"
                     placeholder="0"
@@ -218,7 +223,7 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
                 type="number"
                 id="weight_lbs"
                 name="weight_lbs"
-                value={formData.weight_lbs || ''}
+                value={formData.weight_lbs || ""}
                 onChange={handleInputChange}
                 min="0"
                 max="1000"
@@ -296,11 +301,11 @@ export const CreatePatientModal: React.FC<CreatePatientModalProps> = ({
               Cancel
             </button>
             <button type="submit" className="save-button" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Client'}
+              {loading ? "Creating..." : "Create Client"}
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-}; 
+};

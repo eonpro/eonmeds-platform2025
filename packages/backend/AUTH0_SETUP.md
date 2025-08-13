@@ -50,4 +50,4 @@ After setting the environment variables and redeploying:
 3. Log back in
 4. Try generating a SOAP note again
 
-The SOAP notes should now work properly! 
+The SOAP notes should now work properly!

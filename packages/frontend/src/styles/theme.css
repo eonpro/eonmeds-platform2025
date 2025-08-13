@@ -1,12 +1,12 @@
 /* EONMeds Brand Colors and Global Theme */
 :root {
   /* Brand Colors */
-  --color-primary-light: #e9ff9c;  /* Light Yellow/Lime */
-  --color-primary-orange: #ffce57;  /* Orange/Peach */
-  --color-primary-green: #aee548;  /* Light Green */
-  --color-primary-teal: #14a97b;   /* Teal/Green */
-  --color-primary-burnt: #e77c35;  /* Burnt Orange */
-  
+  --color-primary-light: #e9ff9c; /* Light Yellow/Lime */
+  --color-primary-orange: #ffce57; /* Orange/Peach */
+  --color-primary-green: #aee548; /* Light Green */
+  --color-primary-teal: #14a97b; /* Teal/Green */
+  --color-primary-burnt: #e77c35; /* Burnt Orange */
+
   /* Neutral Colors */
   --color-white: #ffffff;
   --color-black: #000000;
@@ -20,31 +20,35 @@
   --color-gray-700: #374151;
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
-  
+
   /* Semantic Colors */
   --color-success: var(--color-primary-green);
   --color-warning: var(--color-primary-orange);
   --color-error: #ef4444;
   --color-info: var(--color-primary-teal);
-  
+
   /* Typography */
-  --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  
+  --font-family:
+    "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
+
   /* Font Weights */
   --font-weight-light: 300;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  
+
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 /* Global Styles */
@@ -63,7 +67,12 @@ body {
 }
 
 /* Typography Classes */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-family);
   font-weight: var(--font-weight-semibold);
   margin: 0;
@@ -119,14 +128,26 @@ a:hover {
 }
 
 /* Form Elements */
-input, select, textarea {
+input,
+select,
+textarea {
   font-family: var(--font-family);
   font-size: 14px;
 }
 
 /* Utility Classes */
-.text-light { font-weight: var(--font-weight-light); }
-.text-regular { font-weight: var(--font-weight-regular); }
-.text-medium { font-weight: var(--font-weight-medium); }
-.text-semibold { font-weight: var(--font-weight-semibold); }
-.text-bold { font-weight: var(--font-weight-bold); } 
+.text-light {
+  font-weight: var(--font-weight-light);
+}
+.text-regular {
+  font-weight: var(--font-weight-regular);
+}
+.text-medium {
+  font-weight: var(--font-weight-medium);
+}
+.text-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+.text-bold {
+  font-weight: var(--font-weight-bold);
+}

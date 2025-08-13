@@ -1,79 +1,81 @@
 // US State abbreviations and names
 
 export const US_STATES = [
-  { abbreviation: 'AL', name: 'Alabama' },
-  { abbreviation: 'AK', name: 'Alaska' },
-  { abbreviation: 'AZ', name: 'Arizona' },
-  { abbreviation: 'AR', name: 'Arkansas' },
-  { abbreviation: 'CA', name: 'California' },
-  { abbreviation: 'CO', name: 'Colorado' },
-  { abbreviation: 'CT', name: 'Connecticut' },
-  { abbreviation: 'DE', name: 'Delaware' },
-  { abbreviation: 'FL', name: 'Florida' },
-  { abbreviation: 'GA', name: 'Georgia' },
-  { abbreviation: 'HI', name: 'Hawaii' },
-  { abbreviation: 'ID', name: 'Idaho' },
-  { abbreviation: 'IL', name: 'Illinois' },
-  { abbreviation: 'IN', name: 'Indiana' },
-  { abbreviation: 'IA', name: 'Iowa' },
-  { abbreviation: 'KS', name: 'Kansas' },
-  { abbreviation: 'KY', name: 'Kentucky' },
-  { abbreviation: 'LA', name: 'Louisiana' },
-  { abbreviation: 'ME', name: 'Maine' },
-  { abbreviation: 'MD', name: 'Maryland' },
-  { abbreviation: 'MA', name: 'Massachusetts' },
-  { abbreviation: 'MI', name: 'Michigan' },
-  { abbreviation: 'MN', name: 'Minnesota' },
-  { abbreviation: 'MS', name: 'Mississippi' },
-  { abbreviation: 'MO', name: 'Missouri' },
-  { abbreviation: 'MT', name: 'Montana' },
-  { abbreviation: 'NE', name: 'Nebraska' },
-  { abbreviation: 'NV', name: 'Nevada' },
-  { abbreviation: 'NH', name: 'New Hampshire' },
-  { abbreviation: 'NJ', name: 'New Jersey' },
-  { abbreviation: 'NM', name: 'New Mexico' },
-  { abbreviation: 'NY', name: 'New York' },
-  { abbreviation: 'NC', name: 'North Carolina' },
-  { abbreviation: 'ND', name: 'North Dakota' },
-  { abbreviation: 'OH', name: 'Ohio' },
-  { abbreviation: 'OK', name: 'Oklahoma' },
-  { abbreviation: 'OR', name: 'Oregon' },
-  { abbreviation: 'PA', name: 'Pennsylvania' },
-  { abbreviation: 'RI', name: 'Rhode Island' },
-  { abbreviation: 'SC', name: 'South Carolina' },
-  { abbreviation: 'SD', name: 'South Dakota' },
-  { abbreviation: 'TN', name: 'Tennessee' },
-  { abbreviation: 'TX', name: 'Texas' },
-  { abbreviation: 'UT', name: 'Utah' },
-  { abbreviation: 'VT', name: 'Vermont' },
-  { abbreviation: 'VA', name: 'Virginia' },
-  { abbreviation: 'WA', name: 'Washington' },
-  { abbreviation: 'WV', name: 'West Virginia' },
-  { abbreviation: 'WI', name: 'Wisconsin' },
-  { abbreviation: 'WY', name: 'Wyoming' },
-  { abbreviation: 'DC', name: 'District of Columbia' }
+  { abbreviation: "AL", name: "Alabama" },
+  { abbreviation: "AK", name: "Alaska" },
+  { abbreviation: "AZ", name: "Arizona" },
+  { abbreviation: "AR", name: "Arkansas" },
+  { abbreviation: "CA", name: "California" },
+  { abbreviation: "CO", name: "Colorado" },
+  { abbreviation: "CT", name: "Connecticut" },
+  { abbreviation: "DE", name: "Delaware" },
+  { abbreviation: "FL", name: "Florida" },
+  { abbreviation: "GA", name: "Georgia" },
+  { abbreviation: "HI", name: "Hawaii" },
+  { abbreviation: "ID", name: "Idaho" },
+  { abbreviation: "IL", name: "Illinois" },
+  { abbreviation: "IN", name: "Indiana" },
+  { abbreviation: "IA", name: "Iowa" },
+  { abbreviation: "KS", name: "Kansas" },
+  { abbreviation: "KY", name: "Kentucky" },
+  { abbreviation: "LA", name: "Louisiana" },
+  { abbreviation: "ME", name: "Maine" },
+  { abbreviation: "MD", name: "Maryland" },
+  { abbreviation: "MA", name: "Massachusetts" },
+  { abbreviation: "MI", name: "Michigan" },
+  { abbreviation: "MN", name: "Minnesota" },
+  { abbreviation: "MS", name: "Mississippi" },
+  { abbreviation: "MO", name: "Missouri" },
+  { abbreviation: "MT", name: "Montana" },
+  { abbreviation: "NE", name: "Nebraska" },
+  { abbreviation: "NV", name: "Nevada" },
+  { abbreviation: "NH", name: "New Hampshire" },
+  { abbreviation: "NJ", name: "New Jersey" },
+  { abbreviation: "NM", name: "New Mexico" },
+  { abbreviation: "NY", name: "New York" },
+  { abbreviation: "NC", name: "North Carolina" },
+  { abbreviation: "ND", name: "North Dakota" },
+  { abbreviation: "OH", name: "Ohio" },
+  { abbreviation: "OK", name: "Oklahoma" },
+  { abbreviation: "OR", name: "Oregon" },
+  { abbreviation: "PA", name: "Pennsylvania" },
+  { abbreviation: "RI", name: "Rhode Island" },
+  { abbreviation: "SC", name: "South Carolina" },
+  { abbreviation: "SD", name: "South Dakota" },
+  { abbreviation: "TN", name: "Tennessee" },
+  { abbreviation: "TX", name: "Texas" },
+  { abbreviation: "UT", name: "Utah" },
+  { abbreviation: "VT", name: "Vermont" },
+  { abbreviation: "VA", name: "Virginia" },
+  { abbreviation: "WA", name: "Washington" },
+  { abbreviation: "WV", name: "West Virginia" },
+  { abbreviation: "WI", name: "Wisconsin" },
+  { abbreviation: "WY", name: "Wyoming" },
+  { abbreviation: "DC", name: "District of Columbia" },
 ];
 
-export function getStateAbbreviation(stateName: string | null | undefined): string {
-  if (!stateName) return '';
-  
+export function getStateAbbreviation(
+  stateName: string | null | undefined,
+): string {
+  if (!stateName) return "";
+
   // If already an abbreviation, return it
   if (stateName.length === 2) return stateName.toUpperCase();
-  
+
   // Find matching state
-  const state = US_STATES.find(s => 
-    s.name.toLowerCase() === stateName.toLowerCase()
+  const state = US_STATES.find(
+    (s) => s.name.toLowerCase() === stateName.toLowerCase(),
   );
-  
+
   return state?.abbreviation || stateName;
 }
 
 export function getStateName(abbreviation: string | null | undefined): string {
-  if (!abbreviation) return '';
-  
-  const state = US_STATES.find(s => 
-    s.abbreviation === abbreviation.toUpperCase()
+  if (!abbreviation) return "";
+
+  const state = US_STATES.find(
+    (s) => s.abbreviation === abbreviation.toUpperCase(),
   );
-  
+
   return state?.name || abbreviation;
-} 
+}

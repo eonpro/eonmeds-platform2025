@@ -2,7 +2,7 @@
 
 /**
  * Sync Stripe Customers with Existing Patients
- * 
+ *
  * This script will:
  * 1. Fetch all Stripe customers and their payment history
  * 2. Match them to existing patients by email or phone
@@ -10,9 +10,9 @@
  * 4. Add #activemember hashtag for paid subscriptions
  */
 
-require('dotenv').config();
-const { Pool } = require('pg');
-const Stripe = require('stripe');
+require("dotenv").config();
+const { Pool } = require("pg");
+const Stripe = require("stripe");
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -20,18 +20,21 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Initialize database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false,
 });
 
 // Helper function to format phone for comparison
 function normalizePhone(phone) {
   if (!phone) return null;
   // Remove all non-digits
-  const digits = phone.replace(/\D/g, '');
+  const digits = phone.replace(/\D/g, "");
   // Handle different formats
   if (digits.length === 10) {
     return digits; // US number without country code
-  } else if (digits.length === 11 && digits.startsWith('1')) {
+  } else if (digits.length === 11 && digits.startsWith("1")) {
     return digits.substring(1); // US number with country code
   }
   return digits;
@@ -42,8 +45,8 @@ async function findPatientByEmailOrPhone(email, phone) {
     // First try email (exact match)
     if (email) {
       const emailResult = await pool.query(
-        'SELECT * FROM patients WHERE LOWER(email) = LOWER($1)',
-        [email]
+        "SELECT * FROM patients WHERE LOWER(email) = LOWER($1)",
+        [email],
       );
       if (emailResult.rows.length > 0) {
         return emailResult.rows[0];
@@ -55,11 +58,14 @@ async function findPatientByEmailOrPhone(email, phone) {
       const normalizedPhone = normalizePhone(phone);
       if (normalizedPhone) {
         // Try different phone fields
-        const phoneResult = await pool.query(`
+        const phoneResult = await pool.query(
+          `
           SELECT * FROM patients 
           WHERE REPLACE(REPLACE(REPLACE(REPLACE(phone, '-', ''), '(', ''), ')', ''), ' ', '') = $1
-        `, [normalizedPhone]);
-        
+        `,
+          [normalizedPhone],
+        );
+
         if (phoneResult.rows.length > 0) {
           return phoneResult.rows[0];
         }
@@ -68,7 +74,7 @@ async function findPatientByEmailOrPhone(email, phone) {
 
     return null;
   } catch (error) {
-    console.error('Error finding patient:', error);
+    console.error("Error finding patient:", error);
     return null;
   }
 }
@@ -76,13 +82,16 @@ async function findPatientByEmailOrPhone(email, phone) {
 async function updatePatientStatus(patientId, stripeCustomerId) {
   try {
     // Update to client status and add stripe customer ID
-    await pool.query(`
+    await pool.query(
+      `
       UPDATE patients 
       SET status = 'client',
           stripe_customer_id = $2,
           updated_at = NOW()
       WHERE patient_id = $1
-    `, [patientId, stripeCustomerId]);
+    `,
+      [patientId, stripeCustomerId],
+    );
 
     console.log(`✅ Updated patient ${patientId} to client status`);
   } catch (error) {
@@ -93,7 +102,8 @@ async function updatePatientStatus(patientId, stripeCustomerId) {
 async function addActiveHashtag(patientId) {
   try {
     // Add #activemember hashtag if not already present
-    await pool.query(`
+    await pool.query(
+      `
       UPDATE patients 
       SET membership_hashtags = 
         CASE 
@@ -103,7 +113,9 @@ async function addActiveHashtag(patientId) {
         END,
         updated_at = NOW()
       WHERE patient_id = $1
-    `, [patientId]);
+    `,
+      [patientId],
+    );
 
     console.log(`✅ Added #activemember hashtag to patient ${patientId}`);
   } catch (error) {
@@ -112,24 +124,24 @@ async function addActiveHashtag(patientId) {
 }
 
 async function syncStripeCustomers() {
-  console.log('🔄 Starting Stripe customer sync...\n');
+  console.log("🔄 Starting Stripe customer sync...\n");
 
   try {
     // Get all Stripe customers
-    console.log('📥 Fetching Stripe customers...');
+    console.log("📥 Fetching Stripe customers...");
     const customers = [];
     let hasMore = true;
     let startingAfter = null;
 
     while (hasMore) {
       const params = {
-        limit: 100
+        limit: 100,
       };
-      
+
       if (startingAfter) {
         params.starting_after = startingAfter;
       }
-      
+
       const batch = await stripe.customers.list(params);
 
       customers.push(...batch.data);
@@ -147,81 +159,89 @@ async function syncStripeCustomers() {
 
     // Process each customer
     for (const customer of customers) {
-      console.log(`\n🔍 Processing customer: ${customer.email || customer.phone || customer.id}`);
+      console.log(
+        `\n🔍 Processing customer: ${customer.email || customer.phone || customer.id}`,
+      );
 
       // Find matching patient
-      const patient = await findPatientByEmailOrPhone(customer.email, customer.phone);
-      
+      const patient = await findPatientByEmailOrPhone(
+        customer.email,
+        customer.phone,
+      );
+
       if (!patient) {
-        console.log('   ❌ No matching patient found');
+        console.log("   ❌ No matching patient found");
         continue;
       }
 
       matchedCount++;
-      console.log(`   ✅ Matched to patient: ${patient.first_name} ${patient.last_name} (${patient.patient_id})`);
+      console.log(
+        `   ✅ Matched to patient: ${patient.first_name} ${patient.last_name} (${patient.patient_id})`,
+      );
 
       // Check for any successful charges
       const charges = await stripe.charges.list({
         customer: customer.id,
-        limit: 10
+        limit: 10,
       });
 
-      const hasSuccessfulPayment = charges.data.some(charge => 
-        charge.status === 'succeeded' && charge.paid
+      const hasSuccessfulPayment = charges.data.some(
+        (charge) => charge.status === "succeeded" && charge.paid,
       );
 
       if (hasSuccessfulPayment) {
-        console.log('   💳 Has successful payments');
-        
+        console.log("   💳 Has successful payments");
+
         // Update to client status
-        if (patient.status !== 'client') {
+        if (patient.status !== "client") {
           await updatePatientStatus(patient.patient_id, customer.id);
           updatedCount++;
         } else {
-          console.log('   ℹ️  Already has client status');
+          console.log("   ℹ️  Already has client status");
         }
       }
 
       // Check for active subscriptions
       const subscriptions = await stripe.subscriptions.list({
         customer: customer.id,
-        status: 'active',
-        limit: 10
+        status: "active",
+        limit: 10,
       });
 
       if (subscriptions.data.length > 0) {
-        console.log(`   📅 Has ${subscriptions.data.length} active subscription(s)`);
+        console.log(
+          `   📅 Has ${subscriptions.data.length} active subscription(s)`,
+        );
         await addActiveHashtag(patient.patient_id);
         activeSubscriptions++;
       }
 
       // Small delay to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    console.log('\n📊 Sync Summary:');
+    console.log("\n📊 Sync Summary:");
     console.log(`   Total Stripe customers: ${customers.length}`);
     console.log(`   Matched to patients: ${matchedCount}`);
     console.log(`   Updated to client status: ${updatedCount}`);
     console.log(`   Active subscriptions: ${activeSubscriptions}`);
-
   } catch (error) {
-    console.error('❌ Error during sync:', error);
+    console.error("❌ Error during sync:", error);
   } finally {
     await pool.end();
   }
 }
 
 // Run the sync
-console.log('🚀 Stripe Customer Sync Tool');
-console.log('============================\n');
+console.log("🚀 Stripe Customer Sync Tool");
+console.log("============================\n");
 
 syncStripeCustomers()
   .then(() => {
-    console.log('\n✅ Sync completed successfully!');
+    console.log("\n✅ Sync completed successfully!");
     process.exit(0);
   })
-  .catch(error => {
-    console.error('\n❌ Sync failed:', error);
+  .catch((error) => {
+    console.error("\n❌ Sync failed:", error);
     process.exit(1);
-  }); 
+  });

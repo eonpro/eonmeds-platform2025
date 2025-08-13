@@ -1,7 +1,9 @@
-import axios from 'axios';
+import axios from "axios";
 
 // Patient service for API calls
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app';
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL ||
+  "https://eonmeds-platform2025-production.up.railway.app";
 
 export interface Patient {
   id: string;
@@ -20,7 +22,7 @@ export interface Patient {
   bmi?: number;
   membership_hashtags?: string[];
   membership_status?: string;
-  
+
   // Address fields
   address?: string; // Legacy full address
   address_house?: string;
@@ -29,10 +31,10 @@ export interface Patient {
   city?: string;
   state?: string;
   zip?: string;
-  
+
   // Additional info
   additional_info?: string;
-  
+
   // Payment integration
   stripe_customer_id?: string;
 }
@@ -55,7 +57,7 @@ export interface IntakeFormData {
 class PatientService {
   private async getAuthToken(): Promise<string | null> {
     // Try to get the Auth0 token, but don't fail if it's not there
-    const auth0Token = localStorage.getItem('auth0Token');
+    const auth0Token = localStorage.getItem("auth0Token");
     return auth0Token;
   }
 
@@ -69,26 +71,29 @@ class PatientService {
       const response = await axios.get(`${API_BASE_URL}/api/v1/patients`, {
         params,
         headers: {
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
       return response.data;
     } catch (error) {
-      console.error('Error fetching patients:', error);
+      console.error("Error fetching patients:", error);
       throw error;
     }
   }
 
   async getPatientById(id: string): Promise<Patient> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/v1/patients/${id}`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await axios.get(
+        `${API_BASE_URL}/api/v1/patients/${id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
       return response.data;
     } catch (error) {
-      console.error('Error fetching patient:', error);
+      console.error("Error fetching patient:", error);
       throw error;
     }
   }
@@ -96,19 +101,19 @@ class PatientService {
   async createPatient(patientData: Partial<Patient>): Promise<Patient> {
     try {
       const token = await this.getAuthToken();
-      const headers: any = { 'Content-Type': 'application/json' };
+      const headers: any = { "Content-Type": "application/json" };
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
-      
+
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/patients`,
         patientData,
-        { headers }
+        { headers },
       );
       return response.data;
     } catch (error) {
-      console.error('Error creating patient:', error);
+      console.error("Error creating patient:", error);
       throw error;
     }
   }
@@ -120,13 +125,16 @@ class PatientService {
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
-      
-      const response = await axios.get(`${API_BASE_URL}/api/v1/patients/${id}/intake`, {
-        headers
-      });
+
+      const response = await axios.get(
+        `${API_BASE_URL}/api/v1/patients/${id}/intake`,
+        {
+          headers,
+        },
+      );
       return response.data;
     } catch (error) {
-      console.error('Error fetching intake data:', error);
+      console.error("Error fetching intake data:", error);
       throw error;
     }
   }
@@ -134,42 +142,45 @@ class PatientService {
   async updatePatientStatus(id: string, status: string): Promise<boolean> {
     try {
       const token = await this.getAuthToken();
-      const headers: any = { 'Content-Type': 'application/json' };
+      const headers: any = { "Content-Type": "application/json" };
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
-      
+
       const response = await axios.patch(
         `${API_BASE_URL}/api/v1/patients/${id}/status`,
         { status },
-        { headers }
+        { headers },
       );
       return response.data.success;
     } catch (error) {
-      console.error('Error updating patient status:', error);
+      console.error("Error updating patient status:", error);
       throw error;
     }
   }
 
-  async updatePatient(id: string, patientData: Partial<Patient>): Promise<Patient> {
+  async updatePatient(
+    id: string,
+    patientData: Partial<Patient>,
+  ): Promise<Patient> {
     try {
       const token = await this.getAuthToken();
-      const headers: any = { 'Content-Type': 'application/json' };
+      const headers: any = { "Content-Type": "application/json" };
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
-      
+
       const response = await axios.put(
         `${API_BASE_URL}/api/v1/patients/${id}`,
         patientData,
-        { headers }
+        { headers },
       );
       return response.data;
     } catch (error) {
-      console.error('Error updating patient:', error);
+      console.error("Error updating patient:", error);
       throw error;
     }
   }
 }
 
-export const patientService = new PatientService(); 
+export const patientService = new PatientService();

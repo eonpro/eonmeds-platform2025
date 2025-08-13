@@ -1,5 +1,5 @@
-import React from 'react';
-import './InvoiceDetailsModal.css';
+import React from "react";
+import "./InvoiceDetailsModal.css";
 
 interface InvoiceDetailsModalProps {
   invoice: any;
@@ -10,52 +10,62 @@ interface InvoiceDetailsModalProps {
 export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
   invoice,
   onClose,
-  onCharge
+  onCharge,
 }) => {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'paid': return '#10b981';
-      case 'open': return '#f59e0b';
-      case 'overdue': return '#ef4444';
-      case 'draft': return '#6b7280';
-      default: return '#6b7280';
+      case "paid":
+        return "#10b981";
+      case "open":
+        return "#f59e0b";
+      case "overdue":
+        return "#ef4444";
+      case "draft":
+        return "#6b7280";
+      default:
+        return "#6b7280";
     }
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="invoice-details-modal" onClick={e => e.stopPropagation()}>
+      <div
+        className="invoice-details-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
           <h2>Invoice Details</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="close-btn" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <div className="invoice-header-info">
           <div className="invoice-number-section">
             <h3>Invoice #{invoice.invoice_number}</h3>
-            <span 
+            <span
               className="status-badge"
               style={{ backgroundColor: getStatusColor(invoice.status) }}
             >
               {invoice.status}
             </span>
           </div>
-          
+
           <div className="invoice-dates">
             <div className="date-item">
               <label>Invoice Date</label>
@@ -86,7 +96,9 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                     <td>{item.description}</td>
                     <td className="center">{item.quantity}</td>
                     <td className="right">{formatCurrency(item.unit_price)}</td>
-                    <td className="right amount">{formatCurrency(item.amount)}</td>
+                    <td className="right amount">
+                      {formatCurrency(item.amount)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -102,12 +114,16 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
               {invoice.amount_paid > 0 && (
                 <div className="total-line">
                   <span>Amount Paid</span>
-                  <span className="paid">-{formatCurrency(invoice.amount_paid)}</span>
+                  <span className="paid">
+                    -{formatCurrency(invoice.amount_paid)}
+                  </span>
                 </div>
               )}
               <div className="total-line final">
                 <span>Amount Due</span>
-                <span className="amount-due">{formatCurrency(invoice.amount_due)}</span>
+                <span className="amount-due">
+                  {formatCurrency(invoice.amount_due)}
+                </span>
               </div>
             </div>
           </div>
@@ -124,7 +140,7 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
           <button className="secondary-btn" onClick={onClose}>
             Close
           </button>
-          {invoice.status === 'open' && (
+          {invoice.status === "open" && (
             <button className="primary-btn charge" onClick={onCharge}>
               💳 Charge Invoice
             </button>
@@ -133,4 +149,4 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
       </div>
     </div>
   );
-}; 
+};

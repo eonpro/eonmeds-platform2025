@@ -16,7 +16,9 @@
 .alert-dialog-content {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 360px;
   width: 90%;
   padding: 24px;
@@ -60,7 +62,7 @@
   font-size: 16px;
   font-weight: 600;
   color: #111827;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .alert-dialog-body p {
@@ -68,7 +70,7 @@
   font-size: 14px;
   color: #4b5563;
   line-height: 1.5;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .alert-dialog-close {
@@ -81,7 +83,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .alert-dialog-close:hover {
@@ -107,4 +109,4 @@
 .alert-dialog-content.warning .alert-dialog-close:hover {
   background-color: #d97706;
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-} 
+}

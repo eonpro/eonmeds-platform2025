@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap");
 
 .becca-modal-overlay {
   position: fixed;
@@ -47,7 +47,8 @@
 }
 
 @keyframes floatAnimation {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -75,7 +76,7 @@
 
 .becca-status {
   color: rgba(30, 30, 30, 0.95);
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 20px;
   font-weight: 400;
   margin: 0;
@@ -125,13 +126,13 @@
     width: 200px;
     height: 200px;
   }
-  
+
   .becca-logo {
     width: 160px;
   }
-  
+
   .becca-status {
     font-size: 18px;
     padding: 0 20px;
   }
-} 
+}

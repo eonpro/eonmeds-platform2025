@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
-import './LanguageSwitcher.css';
+import React, { useState } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
+import "./LanguageSwitcher.css";
 
 export const LanguageSwitcher: React.FC = () => {
   const { currentLanguage, changeLanguage, availableLanguages } = useLanguage();
@@ -8,12 +8,12 @@ export const LanguageSwitcher: React.FC = () => {
 
   const handleLanguageChange = async (langCode: string) => {
     if (langCode === currentLanguage || isChanging) return;
-    
+
     setIsChanging(true);
     try {
       await changeLanguage(langCode);
     } catch (error) {
-      console.error('Failed to change language:', error);
+      console.error("Failed to change language:", error);
     } finally {
       setIsChanging(false);
     }
@@ -24,7 +24,7 @@ export const LanguageSwitcher: React.FC = () => {
       {availableLanguages.map((lang) => (
         <button
           key={lang.code}
-          className={`lang-button ${currentLanguage === lang.code ? 'active' : ''} ${isChanging ? 'disabled' : ''}`}
+          className={`lang-button ${currentLanguage === lang.code ? "active" : ""} ${isChanging ? "disabled" : ""}`}
           onClick={() => handleLanguageChange(lang.code)}
           disabled={isChanging}
           title={lang.name}
@@ -35,4 +35,4 @@ export const LanguageSwitcher: React.FC = () => {
       ))}
     </div>
   );
-}; 
+};

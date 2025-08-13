@@ -47,7 +47,7 @@
 }
 
 .stat-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -189,12 +189,12 @@
   .dashboard-container {
     padding: 20px;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .dashboard-title {
     font-size: 28px;
   }
-} 
+}

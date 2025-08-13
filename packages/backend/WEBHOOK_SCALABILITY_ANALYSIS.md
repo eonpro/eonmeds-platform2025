@@ -31,27 +31,27 @@
 
 ```typescript
 // webhook.controller.ts enhancement
-import { Queue } from 'bull';
+import { Queue } from "bull";
 
-const webhookQueue = new Queue('webhook-processing', {
+const webhookQueue = new Queue("webhook-processing", {
   redis: {
     host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT
-  }
+    port: process.env.REDIS_PORT,
+  },
 });
 
 export const handleHeyFlowWebhook = async (req: Request, res: Response) => {
   // Immediately queue the webhook
-  const job = await webhookQueue.add('process-webhook', {
+  const job = await webhookQueue.add("process-webhook", {
     payload: req.body,
     receivedAt: new Date(),
-    headers: req.headers
+    headers: req.headers,
   });
-  
+
   // Return immediately
-  res.status(200).json({ 
-    received: true, 
-    jobId: job.id 
+  res.status(200).json({
+    received: true,
+    jobId: job.id,
   });
 };
 ```
@@ -68,21 +68,21 @@ class BatchProcessor {
   private batch: any[] = [];
   private batchSize = 100;
   private flushInterval = 1000; // 1 second
-  
+
   async addToBatch(webhookData: any) {
     this.batch.push(webhookData);
-    
+
     if (this.batch.length >= this.batchSize) {
       await this.flush();
     }
   }
-  
+
   async flush() {
     if (this.batch.length === 0) return;
-    
+
     const values = this.batch.map(prepareBulkInsert);
     await pool.query(buildBulkInsertQuery(values));
-    
+
     this.batch = [];
   }
 }
@@ -95,17 +95,17 @@ class BatchProcessor {
 **Solution**: Redis caching for frequently accessed data
 
 ```typescript
-import Redis from 'ioredis';
+import Redis from "ioredis";
 const redis = new Redis();
 
 // Cache patient data
 async function getCachedPatient(id: string) {
   const cached = await redis.get(`patient:${id}`);
   if (cached) return JSON.parse(cached);
-  
+
   const patient = await fetchFromDatabase(id);
   await redis.setex(`patient:${id}`, 3600, JSON.stringify(patient));
-  
+
   return patient;
 }
 ```
@@ -146,25 +146,25 @@ interface WebhookAdapter {
 }
 
 class HeyFlowAdapter implements WebhookAdapter {
-  source = 'heyflow';
+  source = "heyflow";
   // Implementation
 }
 
 class TypeformAdapter implements WebhookAdapter {
-  source = 'typeform';
+  source = "typeform";
   // Implementation
 }
 
 class GoogleFormsAdapter implements WebhookAdapter {
-  source = 'google-forms';
+  source = "google-forms";
   // Implementation
 }
 
 // Registry
 const adapters = new Map<string, WebhookAdapter>([
-  ['heyflow', new HeyFlowAdapter()],
-  ['typeform', new TypeformAdapter()],
-  ['google-forms', new GoogleFormsAdapter()]
+  ["heyflow", new HeyFlowAdapter()],
+  ["typeform", new TypeformAdapter()],
+  ["google-forms", new GoogleFormsAdapter()],
 ]);
 ```
 
@@ -176,33 +176,33 @@ const adapters = new Map<string, WebhookAdapter>([
 
 ```typescript
 // Metrics collection
-import { Counter, Histogram, register } from 'prom-client';
+import { Counter, Histogram, register } from "prom-client";
 
 const webhookCounter = new Counter({
-  name: 'webhooks_received_total',
-  help: 'Total webhooks received',
-  labelNames: ['source', 'form_type']
+  name: "webhooks_received_total",
+  help: "Total webhooks received",
+  labelNames: ["source", "form_type"],
 });
 
 const processingDuration = new Histogram({
-  name: 'webhook_processing_duration_seconds',
-  help: 'Webhook processing duration',
-  labelNames: ['source', 'status']
+  name: "webhook_processing_duration_seconds",
+  help: "Webhook processing duration",
+  labelNames: ["source", "status"],
 });
 
 // Health check endpoint
-router.get('/health/detailed', async (req, res) => {
+router.get("/health/detailed", async (req, res) => {
   const checks = await Promise.all([
     checkDatabase(),
     checkRedis(),
     checkWebhookQueue(),
-    checkDiskSpace()
+    checkDiskSpace(),
   ]);
-  
+
   res.json({
-    status: checks.every(c => c.healthy) ? 'healthy' : 'degraded',
+    status: checks.every((c) => c.healthy) ? "healthy" : "degraded",
     checks,
-    metrics: await register.metrics()
+    metrics: await register.metrics(),
   });
 });
 ```
@@ -226,36 +226,39 @@ spec:
   minReplicas: 2
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Pods
-    pods:
-      metric:
-        name: webhook_queue_depth
-      target:
-        type: AverageValue
-        averageValue: 100
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: webhook_queue_depth
+        target:
+          type: AverageValue
+          averageValue: 100
 ```
 
 ## Implementation Priority
 
 ### Phase 1: Immediate (1-2 days)
+
 1. ✅ Add New Client modal (COMPLETED)
 2. Add Redis queue for webhook processing
 3. Implement batch processing
 4. Add missing database indexes
 
 ### Phase 2: Short-term (1 week)
+
 1. Generic webhook adapter pattern
 2. Caching layer implementation
 3. Enhanced monitoring dashboard
 4. Database partitioning
 
 ### Phase 3: Medium-term (2-3 weeks)
+
 1. Multi-source webhook support
 2. Auto-scaling infrastructure
 3. Advanced analytics
@@ -272,11 +275,13 @@ spec:
 ## Cost Optimization
 
 ### Current Monthly Costs (Estimated)
+
 - AWS RDS: $100
 - EC2/Railway: $50
 - Total: $150/month
 
 ### Optimized Architecture Costs
+
 - AWS RDS (with read replicas): $200
 - Redis Cache: $50
 - EKS Cluster: $150
@@ -310,4 +315,4 @@ The current webhook implementation is functional but needs enhancements for scal
 2. **Short-term**: Multi-source support for new revenue streams
 3. **Long-term**: Full observability and auto-scaling
 
-With these improvements, the system can handle 100x current load while maintaining sub-second response times. 
+With these improvements, the system can handle 100x current load while maintaining sub-second response times.

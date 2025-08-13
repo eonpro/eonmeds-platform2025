@@ -1,6 +1,6 @@
-import React from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { useTranslation } from 'react-i18next';
+import React from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useTranslation } from "react-i18next";
 
 interface LoginButtonProps {
   className?: string;
@@ -8,26 +8,23 @@ interface LoginButtonProps {
 
 export const LoginButton: React.FC<LoginButtonProps> = ({ className }) => {
   const { loginWithRedirect } = useAuth0();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
 
   const handleLogin = () => {
     loginWithRedirect({
       appState: {
-        returnTo: window.location.pathname
+        returnTo: window.location.pathname,
       },
       authorizationParams: {
-        scope: 'openid profile email offline_access',
-        audience: process.env.REACT_APP_AUTH0_AUDIENCE
-      }
+        scope: "openid profile email offline_access",
+        audience: process.env.REACT_APP_AUTH0_AUDIENCE,
+      },
     });
   };
 
   return (
-    <button
-      className={className || 'btn btn-primary'}
-      onClick={handleLogin}
-    >
-      {t('nav.login')}
+    <button className={className || "btn btn-primary"} onClick={handleLogin}>
+      {t("nav.login")}
     </button>
   );
-}; 
+};

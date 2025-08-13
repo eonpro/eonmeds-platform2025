@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useApi } from '../../hooks/useApi';
-import { CardIcon, CloseIcon } from '../common/Icons';
-import { LoadingSpinner } from '../common/LoadingSpinner';
-import { StripePaymentForm } from './StripePaymentForm';
-import './PatientCards.css';
+import React, { useState, useEffect } from "react";
+import { useApi } from "../../hooks/useApi";
+import { CardIcon, CloseIcon } from "../common/Icons";
+import { LoadingSpinner } from "../common/LoadingSpinner";
+import { StripePaymentForm } from "./StripePaymentForm";
+import "./PatientCards.css";
 
 interface SavedCard {
   id: string;
@@ -34,11 +34,13 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
   const loadCards = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get(`/api/v1/payments/patients/${patientId}/cards`);
+      const response = await apiClient.get(
+        `/api/v1/payments/patients/${patientId}/cards`,
+      );
       setCards(response.data.cards || []);
     } catch (err) {
-      console.error('Error loading cards:', err);
-      setError('Failed to load saved cards');
+      console.error("Error loading cards:", err);
+      setError("Failed to load saved cards");
     } finally {
       setLoading(false);
     }
@@ -51,21 +53,21 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
     try {
       await apiClient.post(`/api/v1/payments/patients/${patientId}/cards`, {
         payment_method_id: paymentMethodId,
-        set_as_default: cards.length === 0 // Set as default if it's the first card
+        set_as_default: cards.length === 0, // Set as default if it's the first card
       });
-      
+
       setShowAddCard(false);
       await loadCards();
     } catch (err: any) {
-      console.error('Error adding card:', err);
-      setError(err.response?.data?.error || 'Failed to add card');
+      console.error("Error adding card:", err);
+      setError(err.response?.data?.error || "Failed to add card");
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteCard = async (cardId: string) => {
-    if (!window.confirm('Are you sure you want to remove this card?')) {
+    if (!window.confirm("Are you sure you want to remove this card?")) {
       return;
     }
 
@@ -73,8 +75,8 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
       await apiClient.delete(`/api/v1/payments/cards/${cardId}`);
       await loadCards();
     } catch (err) {
-      console.error('Error deleting card:', err);
-      alert('Failed to remove card');
+      console.error("Error deleting card:", err);
+      alert("Failed to remove card");
     }
   };
 
@@ -95,7 +97,7 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
     <div className="patient-cards-container">
       <div className="cards-header">
         <h3>Saved Payment Methods</h3>
-        <button 
+        <button
           className="add-card-btn"
           onClick={() => setShowAddCard(!showAddCard)}
         >
@@ -107,7 +109,7 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
         <div className="add-card-form">
           <h4>Add New Card</h4>
           {error && <div className="error-message">{error}</div>}
-          
+
           <StripePaymentForm
             onPaymentMethodCreated={handleAddCard}
             onCancel={() => {
@@ -128,7 +130,7 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
             <p className="text-muted">Add a card to enable quick payments</p>
           </div>
         ) : (
-          cards.map(card => (
+          cards.map((card) => (
             <div key={card.id} className="card-item">
               <div className="card-details">
                 <CardIcon className="card-icon" />
@@ -157,4 +159,4 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
       </div>
     </div>
   );
-}; 
+};

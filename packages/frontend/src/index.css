@@ -1,5 +1,5 @@
 /* Import EONMeds Theme */
-@import './styles/theme.css';
+@import "./styles/theme.css";
 
 body {
   margin: 0;
@@ -9,6 +9,6 @@ body {
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }

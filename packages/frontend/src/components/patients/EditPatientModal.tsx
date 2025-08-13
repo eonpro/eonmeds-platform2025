@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { US_STATES, getStateAbbreviation } from '../../utils/states';
-import './EditPatientModal.css';
+import React, { useState, useEffect } from "react";
+import { US_STATES, getStateAbbreviation } from "../../utils/states";
+import "./EditPatientModal.css";
 
 interface EditPatientModalProps {
   isOpen: boolean;
@@ -34,7 +34,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
   isOpen,
   onClose,
   patient,
-  onSave
+  onSave,
 }) => {
   const [formData, setFormData] = useState<Partial<PatientData>>({});
   const [loading, setLoading] = useState(false);
@@ -46,13 +46,17 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
     if (patient) {
       // Check if we have new format fields or need to parse legacy address
       let addressData = {
-        address_house: patient.address_house || '',
-        address_street: patient.address_street || '',
-        apartment_number: patient.apartment_number || ''
+        address_house: patient.address_house || "",
+        address_street: patient.address_street || "",
+        apartment_number: patient.apartment_number || "",
       };
-      
+
       // If new fields are empty but we have a legacy address, try to parse it
-      if (!patient.address_house && !patient.address_street && patient.address) {
+      if (
+        !patient.address_house &&
+        !patient.address_street &&
+        patient.address
+      ) {
         // Try to extract house number and street from legacy address
         const addressMatch = patient.address.match(/^(\d+)\s+(.+)$/);
         if (addressMatch) {
@@ -60,7 +64,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
           addressData.address_street = addressMatch[2];
         }
       }
-      
+
       setFormData({
         first_name: patient.first_name,
         last_name: patient.last_name,
@@ -77,9 +81,9 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
         city: patient.city,
         state: getStateAbbreviation(patient.state),
         zip: patient.zip,
-        status: patient.status
+        status: patient.status,
       });
-      
+
       // Convert height to feet and inches
       if (patient.height_inches) {
         setHeightFeet(Math.floor(patient.height_inches / 12));
@@ -88,24 +92,26 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
     }
   }, [patient]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleHeightChange = (type: 'feet' | 'inches', value: string) => {
+  const handleHeightChange = (type: "feet" | "inches", value: string) => {
     const numValue = parseInt(value) || 0;
-    if (type === 'feet') {
+    if (type === "feet") {
       setHeightFeet(numValue);
-      const totalInches = (numValue * 12) + heightInches;
-      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+      const totalInches = numValue * 12 + heightInches;
+      setFormData((prev) => ({ ...prev, height_inches: totalInches }));
     } else {
       setHeightInches(numValue);
-      const totalInches = (heightFeet * 12) + numValue;
-      setFormData(prev => ({ ...prev, height_inches: totalInches }));
+      const totalInches = heightFeet * 12 + numValue;
+      setFormData((prev) => ({ ...prev, height_inches: totalInches }));
     }
   };
 
@@ -113,13 +119,13 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     try {
       await onSave(formData);
       onClose();
     } catch (err) {
-      setError('Failed to update patient. Please try again.');
-      console.error('Error updating patient:', err);
+      setError("Failed to update patient. Please try again.");
+      console.error("Error updating patient:", err);
     } finally {
       setLoading(false);
     }
@@ -129,15 +135,15 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Edit Patient Information</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="close-button" onClick={onClose}>
+            ×
+          </button>
         </div>
 
-        {error && (
-          <div className="error-message">{error}</div>
-        )}
+        {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-grid">
@@ -147,7 +153,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="text"
                 id="first_name"
                 name="first_name"
-                value={formData.first_name || ''}
+                value={formData.first_name || ""}
                 onChange={handleInputChange}
                 required
               />
@@ -159,7 +165,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="text"
                 id="last_name"
                 name="last_name"
-                value={formData.last_name || ''}
+                value={formData.last_name || ""}
                 onChange={handleInputChange}
                 required
               />
@@ -171,7 +177,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="email"
                 id="email"
                 name="email"
-                value={formData.email || ''}
+                value={formData.email || ""}
                 onChange={handleInputChange}
                 required
               />
@@ -183,7 +189,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="tel"
                 id="phone"
                 name="phone"
-                value={formData.phone || ''}
+                value={formData.phone || ""}
                 onChange={handleInputChange}
               />
             </div>
@@ -194,7 +200,11 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="date"
                 id="date_of_birth"
                 name="date_of_birth"
-                value={formData.date_of_birth ? formData.date_of_birth.split('T')[0] : ''}
+                value={
+                  formData.date_of_birth
+                    ? formData.date_of_birth.split("T")[0]
+                    : ""
+                }
                 onChange={handleInputChange}
               />
             </div>
@@ -204,7 +214,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
               <select
                 id="gender"
                 name="gender"
-                value={formData.gender || ''}
+                value={formData.gender || ""}
                 onChange={handleInputChange}
               >
                 <option value="">Select Gender</option>
@@ -222,7 +232,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                   <input
                     type="number"
                     value={heightFeet}
-                    onChange={(e) => handleHeightChange('feet', e.target.value)}
+                    onChange={(e) => handleHeightChange("feet", e.target.value)}
                     min="0"
                     max="8"
                     placeholder="0"
@@ -233,7 +243,9 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                   <input
                     type="number"
                     value={heightInches}
-                    onChange={(e) => handleHeightChange('inches', e.target.value)}
+                    onChange={(e) =>
+                      handleHeightChange("inches", e.target.value)
+                    }
                     min="0"
                     max="11"
                     placeholder="0"
@@ -249,7 +261,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="number"
                 id="weight_lbs"
                 name="weight_lbs"
-                value={formData.weight_lbs || ''}
+                value={formData.weight_lbs || ""}
                 onChange={handleInputChange}
                 min="0"
                 max="1000"
@@ -263,7 +275,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="text"
                 id="address_house"
                 name="address_house"
-                value={formData.address_house || ''}
+                value={formData.address_house || ""}
                 onChange={handleInputChange}
                 placeholder=""
               />
@@ -275,7 +287,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="text"
                 id="address_street"
                 name="address_street"
-                value={formData.address_street || ''}
+                value={formData.address_street || ""}
                 onChange={handleInputChange}
                 placeholder=""
               />
@@ -287,7 +299,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="text"
                 id="apartment_number"
                 name="apartment_number"
-                value={formData.apartment_number || ''}
+                value={formData.apartment_number || ""}
                 onChange={handleInputChange}
                 placeholder=""
               />
@@ -299,7 +311,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="text"
                 id="city"
                 name="city"
-                value={formData.city || ''}
+                value={formData.city || ""}
                 onChange={handleInputChange}
               />
             </div>
@@ -309,11 +321,11 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
               <select
                 id="state"
                 name="state"
-                value={formData.state || ''}
+                value={formData.state || ""}
                 onChange={handleInputChange}
               >
                 <option value="">Select State</option>
-                {US_STATES.map(state => (
+                {US_STATES.map((state) => (
                   <option key={state.abbreviation} value={state.abbreviation}>
                     {state.name}
                   </option>
@@ -327,7 +339,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
                 type="text"
                 id="zip"
                 name="zip"
-                value={formData.zip || ''}
+                value={formData.zip || ""}
                 onChange={handleInputChange}
               />
             </div>
@@ -337,7 +349,7 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
               <select
                 id="status"
                 name="status"
-                value={formData.status || ''}
+                value={formData.status || ""}
                 onChange={handleInputChange}
               >
                 <option value="active">Active</option>
@@ -353,11 +365,11 @@ export const EditPatientModal: React.FC<EditPatientModalProps> = ({
               Cancel
             </button>
             <button type="submit" className="save-button" disabled={loading}>
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-}; 
+};

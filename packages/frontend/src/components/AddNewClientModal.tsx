@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { patientService } from '../services/patient.service';
-import './AddNewClientModal.css';
+import React, { useState } from "react";
+import { patientService } from "../services/patient.service";
+import "./AddNewClientModal.css";
 
 interface AddNewClientModalProps {
   isOpen: boolean;
@@ -11,51 +11,56 @@ interface AddNewClientModalProps {
 export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
 }) => {
   const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    date_of_birth: '',
-    gender: 'male'
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    date_of_birth: "",
+    gender: "male",
   });
   const [inviteToApp, setInviteToApp] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
       await patientService.createPatient(formData);
-      
+
       // Reset form
       setFormData({
-        first_name: '',
-        last_name: '',
-        email: '',
-        phone: '',
-        date_of_birth: '',
-        gender: 'male'
+        first_name: "",
+        last_name: "",
+        email: "",
+        phone: "",
+        date_of_birth: "",
+        gender: "male",
       });
       setInviteToApp(false);
-      
+
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create patient. Please try again.');
+      setError(
+        err.response?.data?.message ||
+          "Failed to create patient. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -67,9 +72,9 @@ export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2>Add New Client</h2>
-        
+
         {error && <div className="error-message">{error}</div>}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
@@ -83,7 +88,7 @@ export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
                 required
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="last_name">Last Name</label>
               <input
@@ -170,16 +175,12 @@ export const AddNewClientModal: React.FC<AddNewClientModalProps> = ({
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="save-btn"
-              disabled={loading}
-            >
-              {loading ? 'Saving...' : 'Save'}
+            <button type="submit" className="save-btn" disabled={loading}>
+              {loading ? "Saving..." : "Save"}
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-}; 
+};

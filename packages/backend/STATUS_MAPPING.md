@@ -17,4 +17,4 @@ When processing Stripe payments, always set patient status to `'qualified'` (not
 ## Hashtags
 
 - `#activemember` - Patient has an active Stripe subscription
-- `#fromstripe` - Patient was created from Stripe data (not from form submission) 
+- `#fromstripe` - Patient was created from Stripe data (not from form submission)

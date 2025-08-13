@@ -25,7 +25,9 @@
 .confirm-dialog-content {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 400px;
   width: 90%;
   animation: slideIn 0.3s ease;
@@ -55,7 +57,7 @@
   font-size: 18px;
   font-weight: 600;
   color: #111827;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .confirm-dialog-header .close-btn {
@@ -87,7 +89,7 @@
   font-size: 14px;
   color: #4b5563;
   line-height: 1.6;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .confirm-dialog-actions {
@@ -107,7 +109,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   border: none;
 }
 
@@ -149,4 +151,4 @@
 .confirm-btn.warning:hover {
   background-color: #d97706;
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-} 
+}

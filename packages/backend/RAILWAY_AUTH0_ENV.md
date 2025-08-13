@@ -26,4 +26,4 @@ OPENAI_API_KEY=(your OpenAI API key)
 - The `AUTH0_CLIENT_SECRET` needs to be obtained from your Auth0 dashboard
 - These values must match what's configured in your frontend
 - After adding variables, Railway will redeploy automatically (2-3 minutes)
-- After deployment completes, clear browser data and login again 
+- After deployment completes, clear browser data and login again

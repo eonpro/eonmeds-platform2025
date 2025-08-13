@@ -5,6 +5,7 @@
 Add these to your Railway dashboard under the Backend service:
 
 ### Stripe Configuration (REQUIRED)
+
 ```bash
 # Live Stripe Keys
 STRIPE_SECRET_KEY=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
@@ -17,12 +18,14 @@ INVOICE_DUE_DAYS=30
 ```
 
 ### Database Configuration (Already Set)
+
 ```bash
 DATABASE_URL=postgresql://username:password@host:port/database
 DATABASE_SSL=true
 ```
 
 ### Auth0 Configuration (Already Set)
+
 ```bash
 AUTH0_DOMAIN=your-domain.auth0.com
 AUTH0_AUDIENCE=your-api-identifier
@@ -31,6 +34,7 @@ AUTH0_CLIENT_SECRET=your-client-secret
 ```
 
 ### Other Required Variables
+
 ```bash
 JWT_SECRET=your-jwt-secret
 NODE_ENV=production
@@ -108,6 +112,7 @@ stripe trigger payment_intent.succeeded
 ## Verifying Setup
 
 After deployment, check:
+
 1. Railway logs show "✅ Stripe configuration loaded successfully"
 2. Webhook endpoint responds with 200 OK
-3. Test a payment to verify processing 
+3. Test a payment to verify processing

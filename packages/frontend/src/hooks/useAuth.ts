@@ -1,12 +1,12 @@
-import { useAuth0 } from '@auth0/auth0-react';
-import { useEffect, useState } from 'react';
-import authService from '../services/auth.service';
+import { useAuth0 } from "@auth0/auth0-react";
+import { useEffect, useState } from "react";
+import authService from "../services/auth.service";
 
 export const useAuth = () => {
   const auth0 = useAuth0();
   const [roles, setRoles] = useState<string[]>([]);
   const [permissions, setPermissions] = useState<string[]>([]);
-  const [language, setLanguage] = useState<string>('en');
+  const [language, setLanguage] = useState<string>("en");
 
   useEffect(() => {
     // Set auth0 instance in auth service
@@ -16,11 +16,11 @@ export const useAuth = () => {
       if (auth0.isAuthenticated) {
         try {
           const claims = await auth0.getIdTokenClaims();
-          setRoles(claims?.['https://eonmeds.com/roles'] || []);
+          setRoles(claims?.["https://eonmeds.com/roles"] || []);
           setPermissions(claims?.permissions || []);
-          setLanguage(claims?.['https://eonmeds.com/language'] || 'en');
+          setLanguage(claims?.["https://eonmeds.com/language"] || "en");
         } catch (error) {
-          console.error('Error loading auth data:', error);
+          console.error("Error loading auth data:", error);
         }
       }
     };
@@ -37,23 +37,23 @@ export const useAuth = () => {
   };
 
   const hasAnyRole = (roleList: string[]): boolean => {
-    return roleList.some(role => hasRole(role));
+    return roleList.some((role) => hasRole(role));
   };
 
   const hasAllPermissions = (permissionList: string[]): boolean => {
-    return permissionList.every(permission => hasPermission(permission));
+    return permissionList.every((permission) => hasPermission(permission));
   };
 
   const isProvider = (): boolean => {
-    return hasAnyRole(['provider', 'admin', 'superadmin']);
+    return hasAnyRole(["provider", "admin", "superadmin"]);
   };
 
   const isAdmin = (): boolean => {
-    return hasAnyRole(['admin', 'superadmin']);
+    return hasAnyRole(["admin", "superadmin"]);
   };
 
   const isSuperAdmin = (): boolean => {
-    return hasRole('superadmin');
+    return hasRole("superadmin");
   };
 
   return {
@@ -68,6 +68,6 @@ export const useAuth = () => {
     isProvider,
     isAdmin,
     isSuperAdmin,
-    authService
+    authService,
   };
-}; 
+};

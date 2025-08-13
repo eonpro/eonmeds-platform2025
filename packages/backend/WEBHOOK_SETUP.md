@@ -1,9 +1,11 @@
 # HeyFlow Webhook Integration Setup Guide
 
 ## Overview
+
 This guide explains how to set up and test the HeyFlow webhook integration for patient intake forms.
 
 ## Prerequisites
+
 1. Backend server running on port 3002
 2. PostgreSQL database (local or AWS RDS)
 3. HeyFlow account with form created
@@ -12,6 +14,7 @@ This guide explains how to set up and test the HeyFlow webhook integration for p
 ## Setup Steps
 
 ### 1. Environment Configuration
+
 Add the following to your `packages/backend/.env` file:
 
 ```bash
@@ -27,6 +30,7 @@ DB_PASSWORD=your-password
 ```
 
 ### 2. Database Setup
+
 Run the database migrations to create required tables:
 
 ```bash
@@ -38,25 +42,31 @@ psql -U postgres -d eonmeds
 ```
 
 Or if using AWS RDS:
+
 ```bash
 psql -h your-rds-endpoint.region.rds.amazonaws.com -U postgres -d eonmeds -f packages/backend/src/config/schema.sql
 ```
 
 ### 3. Restart Backend Server
+
 After updating .env, restart the backend:
+
 ```bash
 cd packages/backend
 npm run dev
 ```
 
 ### 4. Test Webhook Locally
+
 Use the provided test script:
+
 ```bash
 cd packages/backend
 HEYFLOW_WEBHOOK_SECRET=your-webhook-secret-here node test-webhook.js
 ```
 
 ### 5. Configure HeyFlow Dashboard
+
 1. Log into HeyFlow dashboard
 2. Navigate to your form settings
 3. Go to Integrations → Webhooks
@@ -66,6 +76,7 @@ HEYFLOW_WEBHOOK_SECRET=your-webhook-secret-here node test-webhook.js
    - Secret: Same value as HEYFLOW_WEBHOOK_SECRET
 
 For local testing with ngrok:
+
 ```bash
 ngrok http 3002
 # Use the ngrok URL + /api/v1/webhooks/heyflow
@@ -74,6 +85,7 @@ ngrok http 3002
 ## Webhook Payload Structure
 
 ### Expected Fields from HeyFlow Form:
+
 ```javascript
 {
   "webhookId": "unique-webhook-id",
@@ -95,21 +107,21 @@ ngrok http 3002
       "phone": "string",
       "date_of_birth": "YYYY-MM-DD",
       "gender": "string",
-      
+
       // Physical Information
       "height_feet": number,
       "height_inches": number,
       "weight_lbs": number,
-      
+
       // Medical Information
       "medical_conditions": ["array"],
       "current_medications": ["array"],
       "allergies": ["array"],
-      
+
       // Consent
       "consent_treatment": boolean,
       "consent_telehealth": boolean,
-      
+
       // Form-specific fields...
     }
   }
@@ -119,11 +131,13 @@ ngrok http 3002
 ## Security Features
 
 ### HMAC Signature Verification
+
 - All webhooks are verified using HMAC-SHA256
 - Signature sent in `x-heyflow-signature` header
 - Timing-safe comparison prevents timing attacks
 
 ### Data Protection
+
 - Raw webhooks stored in `webhook_events` table
 - Patient data encrypted at rest (if using RDS encryption)
 - All access logged for HIPAA compliance
@@ -131,22 +145,24 @@ ngrok http 3002
 ## Monitoring & Debugging
 
 ### Check Webhook Health
+
 ```bash
 curl http://localhost:3000/api/v1/webhooks/health
 ```
 
 ### View Recent Webhooks (SQL)
+
 ```sql
 -- View recent webhook events
-SELECT id, webhook_id, event_type, processed, error_message, created_at 
-FROM webhook_events 
-ORDER BY created_at DESC 
+SELECT id, webhook_id, event_type, processed, error_message, created_at
+FROM webhook_events
+ORDER BY created_at DESC
 LIMIT 10;
 
 -- View recent patients
-SELECT id, first_name, last_name, email, form_type, status, created_at 
-FROM patients 
-ORDER BY created_at DESC 
+SELECT id, first_name, last_name, email, form_type, status, created_at
+FROM patients
+ORDER BY created_at DESC
 LIMIT 10;
 ```
 
@@ -178,8 +194,9 @@ LIMIT 10;
 ## Next Steps
 
 After successful webhook setup:
+
 1. Create patient dashboard to view submissions
 2. Implement email notifications for new patients
 3. Set up Stripe subscription creation
 4. Add more form types (testosterone, etc.)
-5. Create webhook analytics dashboard 
+5. Create webhook analytics dashboard

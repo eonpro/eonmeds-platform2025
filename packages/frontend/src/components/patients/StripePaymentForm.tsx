@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Elements,
   CardElement,
   useStripe,
   useElements,
-} from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import './StripePaymentForm.css';
+} from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import "./StripePaymentForm.css";
 
 // Initialize Stripe with the publishable key
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || '');
+const stripePromise = loadStripe(
+  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "",
+);
 
 interface StripePaymentFormProps {
   onPaymentMethodCreated: (paymentMethodId: string) => void;
@@ -22,7 +24,7 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
   onPaymentMethodCreated,
   onCancel,
   saveCard = false,
-  processing = false
+  processing = false,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -34,13 +36,13 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
     e.preventDefault();
 
     if (!stripe || !elements) {
-      setError('Stripe has not loaded yet. Please try again.');
+      setError("Stripe has not loaded yet. Please try again.");
       return;
     }
 
     const cardElement = elements.getElement(CardElement);
     if (!cardElement) {
-      setError('Card element not found');
+      setError("Card element not found");
       return;
     }
 
@@ -49,13 +51,14 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
 
     try {
       // Create payment method
-      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-      });
+      const { error: pmError, paymentMethod } =
+        await stripe.createPaymentMethod({
+          type: "card",
+          card: cardElement,
+        });
 
       if (pmError) {
-        setError(pmError.message || 'An error occurred');
+        setError(pmError.message || "An error occurred");
         setProcessingPayment(false);
         return;
       }
@@ -64,7 +67,7 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
         onPaymentMethodCreated(paymentMethod.id);
       }
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+      setError(err.message || "An unexpected error occurred");
       setProcessingPayment(false);
     }
   };
@@ -72,17 +75,17 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
   const CARD_ELEMENT_OPTIONS = {
     style: {
       base: {
-        color: '#32325d',
+        color: "#32325d",
         fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
-        fontSmoothing: 'antialiased',
-        fontSize: '16px',
-        '::placeholder': {
-          color: '#aab7c4',
+        fontSmoothing: "antialiased",
+        fontSize: "16px",
+        "::placeholder": {
+          color: "#aab7c4",
         },
       },
       invalid: {
-        color: '#fa755a',
-        iconColor: '#fa755a',
+        color: "#fa755a",
+        iconColor: "#fa755a",
       },
     },
   };
@@ -123,7 +126,7 @@ const PaymentForm: React.FC<StripePaymentFormProps> = ({
           className="submit-btn"
           disabled={!stripe || !cardComplete || processingPayment || processing}
         >
-          {processingPayment || processing ? 'Processing...' : 'Add Card'}
+          {processingPayment || processing ? "Processing..." : "Add Card"}
         </button>
       </div>
     </form>
@@ -147,11 +150,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = (props) => {
           Stripe is not configured. Please check your environment settings.
         </div>
         <div className="form-actions">
-          <button
-            type="button"
-            className="cancel-btn"
-            onClick={props.onCancel}
-          >
+          <button type="button" className="cancel-btn" onClick={props.onCancel}>
             Cancel
           </button>
         </div>
@@ -164,4 +163,4 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = (props) => {
       <PaymentForm {...props} />
     </Elements>
   );
-}; 
+};

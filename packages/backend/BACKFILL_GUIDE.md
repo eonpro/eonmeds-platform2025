@@ -5,6 +5,7 @@ This guide explains how to backfill historical Stripe payments into your EONMeds
 ## What Does It Do?
 
 The backfill script will:
+
 1. Fetch all successful payments from your Stripe account
 2. Create or update patient records
 3. Generate invoices for each payment
@@ -95,4 +96,4 @@ At the end, you'll see:
 1. **Run During Low Traffic**: This script makes API calls to Stripe and database updates
 2. **Monitor Logs**: Watch for any errors that need manual intervention
 3. **Verify Results**: Check a few patient records to ensure they were updated correctly
-4. **One-Time Run**: Once run successfully, future payments will be handled by webhooks 
+4. **One-Time Run**: Once run successfully, future payments will be handled by webhooks

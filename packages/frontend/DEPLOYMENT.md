@@ -1,6 +1,7 @@
 # Frontend Deployment Guide - Railway
 
 ## Prerequisites
+
 - Railway account
 - GitHub repository connected to Railway
 - Backend already deployed to Railway
@@ -8,6 +9,7 @@
 ## Deployment Steps
 
 ### 1. Create New Railway Service
+
 1. Go to your Railway project dashboard
 2. Click "New Service"
 3. Select "GitHub Repo"
@@ -15,12 +17,14 @@
 5. Select the `main` branch
 
 ### 2. Configure Service Settings
+
 1. In the service settings, set:
    - **Service Name**: `eonmeds-frontend`
    - **Root Directory**: `/packages/frontend`
    - **Watch Paths**: `/packages/frontend/**`
 
 ### 3. Configure Environment Variables
+
 Add the following environment variables in Railway:
 
 ```bash
@@ -38,6 +42,7 @@ REACT_APP_DEBUG=false
 ```
 
 ### 4. Deploy
+
 1. Railway will automatically detect the `railway.toml` configuration
 2. The build will start automatically
 3. Monitor the build logs for any errors
@@ -46,6 +51,7 @@ REACT_APP_DEBUG=false
 ### 5. Post-Deployment Configuration
 
 #### Update Auth0 Settings
+
 1. Go to Auth0 Dashboard
 2. Navigate to your application settings
 3. Add the Railway frontend URL to:
@@ -54,9 +60,11 @@ REACT_APP_DEBUG=false
    - **Allowed Web Origins**: `https://your-frontend-url.railway.app`
 
 #### Update Backend CORS (if needed)
+
 If you want to restrict CORS, update the backend's `CORS_ORIGIN` environment variable to include your frontend URL.
 
 ### 6. Verify Deployment
+
 1. Visit the Railway-provided URL
 2. Check browser console for any errors
 3. Test the login flow
@@ -65,27 +73,33 @@ If you want to restrict CORS, update the backend's `CORS_ORIGIN` environment var
 ## Troubleshooting
 
 ### Build Failures
+
 - Check build logs in Railway dashboard
 - Ensure all dependencies are in `package.json` (not devDependencies)
 - Verify Node version compatibility
 
 ### Runtime Errors
+
 - Check browser console for errors
 - Verify all environment variables are set correctly
 - Check network tab for failed API requests
 
 ### Auth0 Issues
+
 - Ensure all URLs are added to Auth0 settings
 - Check that environment variables match Auth0 configuration
 - Verify the audience parameter matches your API
 
 ## Monitoring
+
 - Railway provides logs for your application
 - Set up health checks in Railway for uptime monitoring
 - Consider adding error tracking (Sentry, etc.)
 
 ## Updates
+
 To update the deployed frontend:
+
 1. Make changes locally
 2. Commit and push to GitHub
-3. Railway will automatically rebuild and redeploy 
+3. Railway will automatically rebuild and redeploy

@@ -1,59 +1,62 @@
-const { Pool } = require('pg');
+const { Pool } = require("pg");
 
 // Use the EXACT password from Railway environment variables
 const pool = new Pool({
-  host: 'eonmeds-dev-db.cxy4o6eyy4sq.us-west-2.rds.amazonaws.com',
+  host: "eonmeds-dev-db.cxy4o6eyy4sq.us-west-2.rds.amazonaws.com",
   port: 5432,
-  database: 'eonmeds',
-  user: 'eonmeds_admin',
-  password: '398Xakf$57',  // This is the correct password from Railway
-  ssl: { rejectUnauthorized: false }
+  database: "eonmeds",
+  user: "eonmeds_admin",
+  password: "398Xakf$57", // This is the correct password from Railway
+  ssl: { rejectUnauthorized: false },
 });
 
 async function fixSoapNotesTable() {
   try {
-    console.log('Connecting to AWS RDS database...');
-    
+    console.log("Connecting to AWS RDS database...");
+
     // First check current structure
     const checkResult = await pool.query(`
       SELECT column_name, data_type, character_maximum_length
       FROM information_schema.columns 
       WHERE table_name = 'soap_notes' AND column_name = 'patient_id'
     `);
-    
+
     if (checkResult.rows.length > 0) {
-      console.log('Current patient_id column:', checkResult.rows[0]);
+      console.log("Current patient_id column:", checkResult.rows[0]);
     }
-    
+
     // Drop the existing constraint
-    console.log('Dropping existing constraint...');
-    await pool.query('ALTER TABLE soap_notes DROP CONSTRAINT IF EXISTS soap_notes_patient_id_fkey');
-    
+    console.log("Dropping existing constraint...");
+    await pool.query(
+      "ALTER TABLE soap_notes DROP CONSTRAINT IF EXISTS soap_notes_patient_id_fkey",
+    );
+
     // Change column type
-    console.log('Changing patient_id column type to VARCHAR(50)...');
-    await pool.query('ALTER TABLE soap_notes ALTER COLUMN patient_id TYPE VARCHAR(50) USING patient_id::VARCHAR(50)');
-    
+    console.log("Changing patient_id column type to VARCHAR(50)...");
+    await pool.query(
+      "ALTER TABLE soap_notes ALTER COLUMN patient_id TYPE VARCHAR(50) USING patient_id::VARCHAR(50)",
+    );
+
     // Add the constraint back
-    console.log('Adding foreign key constraint...');
+    console.log("Adding foreign key constraint...");
     await pool.query(`
       ALTER TABLE soap_notes ADD CONSTRAINT soap_notes_patient_id_fkey 
       FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE
     `);
-    
+
     // Verify the fix
-    console.log('Verifying the fix...');
+    console.log("Verifying the fix...");
     const result = await pool.query(`
       SELECT column_name, data_type, character_maximum_length
       FROM information_schema.columns 
       WHERE table_name = 'soap_notes' AND column_name = 'patient_id'
     `);
-    
-    console.log('\n✅ SOAP notes table fixed successfully!');
-    console.log('Patient ID column:', result.rows[0]);
-    
+
+    console.log("\n✅ SOAP notes table fixed successfully!");
+    console.log("Patient ID column:", result.rows[0]);
   } catch (error) {
-    console.error('❌ Error fixing SOAP notes table:', error.message);
-    if (error.detail) console.error('Detail:', error.detail);
+    console.error("❌ Error fixing SOAP notes table:", error.message);
+    if (error.detail) console.error("Detail:", error.detail);
   } finally {
     await pool.end();
   }

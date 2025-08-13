@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useApi } from '../hooks/useApi';
-import './PatientDetail.css';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useApi } from "../hooks/useApi";
+import "./PatientDetail.css";
 
 interface PatientDetailData {
   // Basic Info
@@ -13,31 +13,31 @@ interface PatientDetailData {
   phone: string;
   date_of_birth: string;
   gender: string;
-  
+
   // Physical Info
   height_inches?: number;
   weight_lbs?: number;
   bmi?: number;
-  
+
   // Medical Info
   medical_conditions?: string[];
   current_medications?: string[];
   allergies?: string[];
-  
+
   // Form Submission Info
   form_type: string;
   submitted_at: string;
   heyflow_submission_id?: string;
-  
+
   // Status
   status: string;
   membership_status?: string;
   membership_hashtags?: string[];
-  
+
   // Timestamps
   created_at: string;
   updated_at: string;
-  
+
   // Raw webhook data
   raw_webhook_data?: any;
 }
@@ -52,7 +52,7 @@ interface IntakeFormData {
   diabetes_type?: string;
   thyroid_condition?: boolean;
   heart_conditions?: string[];
-  
+
   // Additional fields from webhook
   [key: string]: any;
 }
@@ -61,13 +61,15 @@ export const PatientDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const apiClient = useApi();
-  
+
   const [patient, setPatient] = useState<PatientDetailData | null>(null);
   const [intakeData, setIntakeData] = useState<IntakeFormData | null>(null);
   const [rawWebhookData, setRawWebhookData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'intake' | 'raw'>('overview');
+  const [activeTab, setActiveTab] = useState<"overview" | "intake" | "raw">(
+    "overview",
+  );
 
   useEffect(() => {
     if (!id || !apiClient) return;
@@ -75,30 +77,35 @@ export const PatientDetail: React.FC = () => {
     const fetchPatientData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch patient details
-        const patientResponse = await apiClient.get<PatientDetailData>(`/api/v1/patients/${id}`);
+        const patientResponse = await apiClient.get<PatientDetailData>(
+          `/api/v1/patients/${id}`,
+        );
         setPatient(patientResponse.data);
-        
+
         // Fetch intake form data
         try {
-          const intakeResponse = await apiClient.get<IntakeFormData>(`/api/v1/patients/${id}/intake`);
+          const intakeResponse = await apiClient.get<IntakeFormData>(
+            `/api/v1/patients/${id}/intake`,
+          );
           setIntakeData(intakeResponse.data);
         } catch (intakeError) {
-          console.log('No intake data available');
+          console.log("No intake data available");
         }
-        
+
         // Fetch raw webhook data
         try {
-          const webhookResponse = await apiClient.get(`/api/v1/patients/${id}/webhook-data`);
+          const webhookResponse = await apiClient.get(
+            `/api/v1/patients/${id}/webhook-data`,
+          );
           setRawWebhookData(webhookResponse.data);
         } catch (webhookError) {
-          console.log('No raw webhook data available');
+          console.log("No raw webhook data available");
         }
-        
       } catch (err: any) {
-        setError(err.message || 'Failed to load patient data');
-        console.error('Error fetching patient data:', err);
+        setError(err.message || "Failed to load patient data");
+        console.error("Error fetching patient data:", err);
       } finally {
         setLoading(false);
       }
@@ -108,18 +115,18 @@ export const PatientDetail: React.FC = () => {
   }, [id, apiClient]);
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return '-';
+    if (!dateString) return "-";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const formatPhoneNumber = (phone: string) => {
-    if (!phone) return '-';
-    const cleaned = phone.replace(/\D/g, '');
+    if (!phone) return "-";
+    const cleaned = phone.replace(/\D/g, "");
     const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
     if (match) {
       return `(${match[1]}) ${match[2]}-${match[3]}`;
@@ -128,37 +135,48 @@ export const PatientDetail: React.FC = () => {
   };
 
   const calculateAge = (birthDate: string) => {
-    if (!birthDate) return '-';
+    if (!birthDate) return "-";
     const today = new Date();
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
     return age;
   };
 
   const renderStatus = (status: string) => {
-    const statusConfig: { [key: string]: { color: string; bg: string; label: string } } = {
-      active: { color: '#00C851', bg: '#00C85115', label: 'Active' },
-      qualified: { color: '#33B5E5', bg: '#33B5E515', label: 'Qualified' },
-      paused: { color: '#FFA500', bg: '#FFA50015', label: 'Paused' },
-      cancelled: { color: '#FF4444', bg: '#FF444415', label: 'Cancelled' },
-      pending_review: { color: '#FFBB33', bg: '#FFBB3315', label: 'Pending Review' }
+    const statusConfig: {
+      [key: string]: { color: string; bg: string; label: string };
+    } = {
+      active: { color: "#00C851", bg: "#00C85115", label: "Active" },
+      qualified: { color: "#33B5E5", bg: "#33B5E515", label: "Qualified" },
+      paused: { color: "#FFA500", bg: "#FFA50015", label: "Paused" },
+      cancelled: { color: "#FF4444", bg: "#FF444415", label: "Cancelled" },
+      pending_review: {
+        color: "#FFBB33",
+        bg: "#FFBB3315",
+        label: "Pending Review",
+      },
     };
 
     const config = statusConfig[status] || statusConfig.qualified;
 
     return (
-      <span style={{
-        padding: '6px 16px',
-        borderRadius: '4px',
-        fontSize: '14px',
-        fontWeight: '500',
-        color: config.color,
-        backgroundColor: config.bg
-      }}>
+      <span
+        style={{
+          padding: "6px 16px",
+          borderRadius: "4px",
+          fontSize: "14px",
+          fontWeight: "500",
+          color: config.color,
+          backgroundColor: config.bg,
+        }}
+      >
         {config.label}
       </span>
     );
@@ -177,8 +195,8 @@ export const PatientDetail: React.FC = () => {
     return (
       <div className="patient-detail-error">
         <h2>Error</h2>
-        <p>{error || 'Patient not found'}</p>
-        <button onClick={() => navigate('/clients')}>Back to Patients</button>
+        <p>{error || "Patient not found"}</p>
+        <button onClick={() => navigate("/clients")}>Back to Patients</button>
       </div>
     );
   }
@@ -187,18 +205,24 @@ export const PatientDetail: React.FC = () => {
     <div className="patient-detail-container">
       {/* Header */}
       <div className="patient-header">
-        <button className="back-button" onClick={() => navigate('/clients')}>
+        <button className="back-button" onClick={() => navigate("/clients")}>
           ← Back to Patients
         </button>
-        
+
         <div className="patient-header-info">
-          <h1>{patient.first_name} {patient.last_name}</h1>
+          <h1>
+            {patient.first_name} {patient.last_name}
+          </h1>
           <div className="patient-header-meta">
             <span>ID: {patient.patient_id}</span>
             <span>•</span>
-            <span>{renderStatus(patient.membership_status || patient.status)}</span>
-            {patient.membership_hashtags?.map(tag => (
-              <span key={tag} className="hashtag">{tag}</span>
+            <span>
+              {renderStatus(patient.membership_status || patient.status)}
+            </span>
+            {patient.membership_hashtags?.map((tag) => (
+              <span key={tag} className="hashtag">
+                {tag}
+              </span>
             ))}
           </div>
         </div>
@@ -207,20 +231,20 @@ export const PatientDetail: React.FC = () => {
       {/* Tabs */}
       <div className="patient-tabs">
         <button
-          className={activeTab === 'overview' ? 'active' : ''}
-          onClick={() => setActiveTab('overview')}
+          className={activeTab === "overview" ? "active" : ""}
+          onClick={() => setActiveTab("overview")}
         >
           Overview
         </button>
         <button
-          className={activeTab === 'intake' ? 'active' : ''}
-          onClick={() => setActiveTab('intake')}
+          className={activeTab === "intake" ? "active" : ""}
+          onClick={() => setActiveTab("intake")}
         >
           Intake Form
         </button>
         <button
-          className={activeTab === 'raw' ? 'active' : ''}
-          onClick={() => setActiveTab('raw')}
+          className={activeTab === "raw" ? "active" : ""}
+          onClick={() => setActiveTab("raw")}
         >
           Raw Data
         </button>
@@ -228,7 +252,7 @@ export const PatientDetail: React.FC = () => {
 
       {/* Tab Content */}
       <div className="patient-content">
-        {activeTab === 'overview' && (
+        {activeTab === "overview" && (
           <div className="overview-tab">
             {/* Personal Information */}
             <div className="info-section">
@@ -236,7 +260,9 @@ export const PatientDetail: React.FC = () => {
               <div className="info-grid">
                 <div className="info-item">
                   <label>Full Name</label>
-                  <span>{patient.first_name} {patient.last_name}</span>
+                  <span>
+                    {patient.first_name} {patient.last_name}
+                  </span>
                 </div>
                 <div className="info-item">
                   <label>Email</label>
@@ -248,15 +274,20 @@ export const PatientDetail: React.FC = () => {
                 </div>
                 <div className="info-item">
                   <label>Date of Birth</label>
-                  <span>{formatDate(patient.date_of_birth)} (Age: {calculateAge(patient.date_of_birth)})</span>
+                  <span>
+                    {formatDate(patient.date_of_birth)} (Age:{" "}
+                    {calculateAge(patient.date_of_birth)})
+                  </span>
                 </div>
                 <div className="info-item">
                   <label>Gender</label>
-                  <span>{patient.gender || '-'}</span>
+                  <span>{patient.gender || "-"}</span>
                 </div>
                 <div className="info-item">
                   <label>Form Type</label>
-                  <span>{patient.form_type?.replace('_', ' ').toUpperCase()}</span>
+                  <span>
+                    {patient.form_type?.replace("_", " ").toUpperCase()}
+                  </span>
                 </div>
               </div>
             </div>
@@ -269,7 +300,10 @@ export const PatientDetail: React.FC = () => {
                   {patient.height_inches && (
                     <div className="info-item">
                       <label>Height</label>
-                      <span>{Math.floor(patient.height_inches / 12)}' {patient.height_inches % 12}"</span>
+                      <span>
+                        {Math.floor(patient.height_inches / 12)}'{" "}
+                        {patient.height_inches % 12}"
+                      </span>
                     </div>
                   )}
                   {patient.weight_lbs && (
@@ -289,26 +323,30 @@ export const PatientDetail: React.FC = () => {
             )}
 
             {/* Medical Information */}
-            {(patient.medical_conditions || patient.current_medications || patient.allergies) && (
+            {(patient.medical_conditions ||
+              patient.current_medications ||
+              patient.allergies) && (
               <div className="info-section">
                 <h2>Medical Information</h2>
                 <div className="info-grid full-width">
-                  {patient.medical_conditions && patient.medical_conditions.length > 0 && (
-                    <div className="info-item">
-                      <label>Medical Conditions</label>
-                      <span>{patient.medical_conditions.join(', ')}</span>
-                    </div>
-                  )}
-                  {patient.current_medications && patient.current_medications.length > 0 && (
-                    <div className="info-item">
-                      <label>Current Medications</label>
-                      <span>{patient.current_medications.join(', ')}</span>
-                    </div>
-                  )}
+                  {patient.medical_conditions &&
+                    patient.medical_conditions.length > 0 && (
+                      <div className="info-item">
+                        <label>Medical Conditions</label>
+                        <span>{patient.medical_conditions.join(", ")}</span>
+                      </div>
+                    )}
+                  {patient.current_medications &&
+                    patient.current_medications.length > 0 && (
+                      <div className="info-item">
+                        <label>Current Medications</label>
+                        <span>{patient.current_medications.join(", ")}</span>
+                      </div>
+                    )}
                   {patient.allergies && patient.allergies.length > 0 && (
                     <div className="info-item">
                       <label>Allergies</label>
-                      <span>{patient.allergies.join(', ')}</span>
+                      <span>{patient.allergies.join(", ")}</span>
                     </div>
                   )}
                 </div>
@@ -342,21 +380,26 @@ export const PatientDetail: React.FC = () => {
           </div>
         )}
 
-        {activeTab === 'intake' && (
+        {activeTab === "intake" && (
           <div className="intake-tab">
             <h2>Intake Form Data</h2>
             {intakeData ? (
               <div className="intake-data">
                 {Object.entries(intakeData).map(([key, value]) => (
                   <div key={key} className="intake-item">
-                    <label>{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</label>
+                    <label>
+                      {key
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </label>
                     <span>
-                      {Array.isArray(value) 
-                        ? value.join(', ') 
-                        : typeof value === 'boolean' 
-                        ? value ? 'Yes' : 'No'
-                        : value?.toString() || '-'
-                      }
+                      {Array.isArray(value)
+                        ? value.join(", ")
+                        : typeof value === "boolean"
+                          ? value
+                            ? "Yes"
+                            : "No"
+                          : value?.toString() || "-"}
                     </span>
                   </div>
                 ))}
@@ -367,11 +410,12 @@ export const PatientDetail: React.FC = () => {
           </div>
         )}
 
-        {activeTab === 'raw' && (
+        {activeTab === "raw" && (
           <div className="raw-tab">
             <h2>Raw Webhook Data</h2>
             <p className="raw-description">
-              This is the original data received from HeyFlow. Useful for debugging and understanding the complete submission.
+              This is the original data received from HeyFlow. Useful for
+              debugging and understanding the complete submission.
             </p>
             {rawWebhookData ? (
               <pre className="raw-data">
@@ -385,4 +429,4 @@ export const PatientDetail: React.FC = () => {
       </div>
     </div>
   );
-}; 
+};

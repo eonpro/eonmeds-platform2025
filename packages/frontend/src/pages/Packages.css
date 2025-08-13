@@ -214,7 +214,7 @@
 }
 
 .slider::before {
-  content: '';
+  content: "";
   width: 20px;
   height: 20px;
   background-color: white;
@@ -404,4 +404,4 @@ form {
 .save-btn:disabled {
   background-color: #9ca3af;
   cursor: not-allowed;
-} 
+}

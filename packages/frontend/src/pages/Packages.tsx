@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useApi } from '../hooks/useApi';
-import './Packages.css';
+import React, { useState, useEffect } from "react";
+import { useApi } from "../hooks/useApi";
+import "./Packages.css";
 
 interface ServicePackage {
   id: string;
@@ -18,7 +18,9 @@ export const Packages: React.FC = () => {
   const [packages, setPackages] = useState<ServicePackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingPackage, setEditingPackage] = useState<ServicePackage | null>(null);
+  const [editingPackage, setEditingPackage] = useState<ServicePackage | null>(
+    null,
+  );
 
   useEffect(() => {
     fetchPackages();
@@ -27,43 +29,44 @@ export const Packages: React.FC = () => {
   const fetchPackages = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/api/v1/packages');
+      const response = await apiClient.get("/api/v1/packages");
       setPackages(response.data.packages || []);
     } catch (error) {
-      console.error('Error fetching packages:', error);
+      console.error("Error fetching packages:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeletePackage = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this package?')) return;
+    if (!window.confirm("Are you sure you want to delete this package?"))
+      return;
 
     try {
       await apiClient.delete(`/api/v1/packages/${id}`);
       fetchPackages();
     } catch (error) {
-      console.error('Error deleting package:', error);
-      alert('Failed to delete package');
+      console.error("Error deleting package:", error);
+      alert("Failed to delete package");
     }
   };
 
   const handleToggleActive = async (pkg: ServicePackage) => {
     try {
       await apiClient.patch(`/api/v1/packages/${pkg.id}`, {
-        is_active: !pkg.is_active
+        is_active: !pkg.is_active,
       });
       fetchPackages();
     } catch (error) {
-      console.error('Error updating package:', error);
-      alert('Failed to update package');
+      console.error("Error updating package:", error);
+      alert("Failed to update package");
     }
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(price);
   };
 
@@ -71,7 +74,7 @@ export const Packages: React.FC = () => {
     <div className="packages-page">
       <div className="page-header">
         <h1>Service Packages</h1>
-        <button 
+        <button
           className="create-package-btn"
           onClick={() => setShowCreateModal(true)}
         >
@@ -85,7 +88,7 @@ export const Packages: React.FC = () => {
         <div className="empty-state">
           <h3>No packages yet</h3>
           <p>Create your first service package to start billing clients</p>
-          <button 
+          <button
             className="create-first-btn"
             onClick={() => setShowCreateModal(true)}
           >
@@ -95,18 +98,21 @@ export const Packages: React.FC = () => {
       ) : (
         <div className="packages-grid">
           {packages.map((pkg) => (
-            <div key={pkg.id} className={`package-card ${!pkg.is_active ? 'inactive' : ''}`}>
+            <div
+              key={pkg.id}
+              className={`package-card ${!pkg.is_active ? "inactive" : ""}`}
+            >
               <div className="package-header">
                 <h3>{pkg.name}</h3>
                 <div className="package-actions">
-                  <button 
+                  <button
                     className="edit-btn"
                     onClick={() => setEditingPackage(pkg)}
                     title="Edit"
                   >
                     ✏️
                   </button>
-                  <button 
+                  <button
                     className="delete-btn"
                     onClick={() => handleDeletePackage(pkg.id)}
                     title="Delete"
@@ -115,11 +121,13 @@ export const Packages: React.FC = () => {
                   </button>
                 </div>
               </div>
-              
+
               <div className="package-details">
                 <div className="package-category">{pkg.category}</div>
                 <div className="package-price">{formatPrice(pkg.price)}</div>
-                <div className="package-billing">per {pkg.billing_period.toLowerCase()}</div>
+                <div className="package-billing">
+                  per {pkg.billing_period.toLowerCase()}
+                </div>
                 {pkg.description && (
                   <p className="package-description">{pkg.description}</p>
                 )}
@@ -127,13 +135,15 @@ export const Packages: React.FC = () => {
 
               <div className="package-footer">
                 <label className="toggle-switch">
-                  <input 
+                  <input
                     type="checkbox"
                     checked={pkg.is_active}
                     onChange={() => handleToggleActive(pkg)}
                   />
                   <span className="slider"></span>
-                  <span className="label">{pkg.is_active ? 'Active' : 'Inactive'}</span>
+                  <span className="label">
+                    {pkg.is_active ? "Active" : "Inactive"}
+                  </span>
                 </label>
               </div>
             </div>
@@ -168,34 +178,40 @@ const PackageModal: React.FC<{
 }> = ({ package: editingPackage, onClose, onSuccess }) => {
   const apiClient = useApi();
   const [formData, setFormData] = useState({
-    name: editingPackage?.name || '',
-    category: editingPackage?.category || 'Weight Loss',
-    billing_period: editingPackage?.billing_period || 'Monthly',
+    name: editingPackage?.name || "",
+    category: editingPackage?.category || "Weight Loss",
+    billing_period: editingPackage?.billing_period || "Monthly",
     price: editingPackage?.price || 0,
-    description: editingPackage?.description || '',
-    is_active: editingPackage?.is_active ?? true
+    description: editingPackage?.description || "",
+    is_active: editingPackage?.is_active ?? true,
   });
   const [saving, setSaving] = useState(false);
 
-  const categories = ['Weight Loss', 'Testosterone', 'Consultation', 'Lab Work', 'Custom'];
-  const billingPeriods = ['Monthly', 'Quarterly', 'One-time'];
+  const categories = [
+    "Weight Loss",
+    "Testosterone",
+    "Consultation",
+    "Lab Work",
+    "Custom",
+  ];
+  const billingPeriods = ["Monthly", "Quarterly", "One-time"];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setSaving(true);
-      
+
       if (editingPackage) {
         await apiClient.put(`/api/v1/packages/${editingPackage.id}`, formData);
       } else {
-        await apiClient.post('/api/v1/packages', formData);
+        await apiClient.post("/api/v1/packages", formData);
       }
-      
+
       onSuccess();
     } catch (error) {
-      console.error('Error saving package:', error);
-      alert('Failed to save package');
+      console.error("Error saving package:", error);
+      alert("Failed to save package");
     } finally {
       setSaving(false);
     }
@@ -203,10 +219,12 @@ const PackageModal: React.FC<{
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{editingPackage ? 'Edit Package' : 'Create Package'}</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <h2>{editingPackage ? "Edit Package" : "Create Package"}</h2>
+          <button className="close-btn" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -215,7 +233,9 @@ const PackageModal: React.FC<{
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="e.g., Weight Loss - Monthly"
               required
             />
@@ -226,11 +246,15 @@ const PackageModal: React.FC<{
               <label>Category</label>
               <select
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
                 required
               >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
                 ))}
               </select>
             </div>
@@ -239,11 +263,15 @@ const PackageModal: React.FC<{
               <label>Billing Period</label>
               <select
                 value={formData.billing_period}
-                onChange={(e) => setFormData({ ...formData, billing_period: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, billing_period: e.target.value })
+                }
                 required
               >
-                {billingPeriods.map(period => (
-                  <option key={period} value={period}>{period}</option>
+                {billingPeriods.map((period) => (
+                  <option key={period} value={period}>
+                    {period}
+                  </option>
                 ))}
               </select>
             </div>
@@ -256,7 +284,12 @@ const PackageModal: React.FC<{
               <input
                 type="number"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    price: parseFloat(e.target.value) || 0,
+                  })
+                }
                 min="0"
                 step="0.01"
                 required
@@ -268,7 +301,9 @@ const PackageModal: React.FC<{
             <label>Description (Optional)</label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Package details..."
               rows={3}
             />
@@ -279,7 +314,9 @@ const PackageModal: React.FC<{
               <input
                 type="checkbox"
                 checked={formData.is_active}
-                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({ ...formData, is_active: e.target.checked })
+                }
               />
               Active (available for selection)
             </label>
@@ -290,11 +327,15 @@ const PackageModal: React.FC<{
               Cancel
             </button>
             <button type="submit" className="save-btn" disabled={saving}>
-              {saving ? 'Saving...' : editingPackage ? 'Update Package' : 'Create Package'}
+              {saving
+                ? "Saving..."
+                : editingPackage
+                  ? "Update Package"
+                  : "Create Package"}
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-}; 
+};

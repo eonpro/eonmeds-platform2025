@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
-const readline = require('readline');
-const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
+const readline = require("readline");
+const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
+const axios = require("axios");
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 console.log(`
@@ -25,24 +25,28 @@ async function question(prompt) {
 
 async function generateWebhookConfig() {
   // Step 1: Get form details
-  const formName = await question('📝 What is your HeyFlow form name? ');
-  const formId = await question('🔑 What is your HeyFlow form ID? ');
-  const formType = await question('💊 Form type (weight_loss/testosterone/diabetes/other)? ');
-  
+  const formName = await question("📝 What is your HeyFlow form name? ");
+  const formId = await question("🔑 What is your HeyFlow form ID? ");
+  const formType = await question(
+    "💊 Form type (weight_loss/testosterone/diabetes/other)? ",
+  );
+
   // Step 2: Generate secure webhook secret
-  const webhookSecret = 'hf_' + crypto.randomBytes(32).toString('hex');
+  const webhookSecret = "hf_" + crypto.randomBytes(32).toString("hex");
   console.log(`\n✅ Generated webhook secret: ${webhookSecret}`);
-  
+
   // Step 3: Determine webhook URL
-  const environment = await question('\n🌍 Environment (local/staging/production)? ');
+  const environment = await question(
+    "\n🌍 Environment (local/staging/production)? ",
+  );
   const webhookUrls = {
-    local: 'http://localhost:3002/api/v1/webhooks/heyflow',
-    staging: 'https://staging.eonmeds.com/api/v1/webhooks/heyflow',
-    production: 'https://api.eonmeds.com/api/v1/webhooks/heyflow'
+    local: "http://localhost:3002/api/v1/webhooks/heyflow",
+    staging: "https://staging.eonmeds.com/api/v1/webhooks/heyflow",
+    production: "https://api.eonmeds.com/api/v1/webhooks/heyflow",
   };
-  
+
   const webhookUrl = webhookUrls[environment] || webhookUrls.local;
-  
+
   // Step 4: Create form configuration
   const formConfig = {
     id: crypto.randomUUID(),
@@ -52,25 +56,25 @@ async function generateWebhookConfig() {
     webhook_url: webhookUrl,
     webhook_secret: webhookSecret,
     field_mappings: getDefaultFieldMappings(formType),
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
   };
-  
+
   // Step 5: Save configuration
-  const configDir = path.join(__dirname, 'src/config/forms');
+  const configDir = path.join(__dirname, "src/config/forms");
   if (!fs.existsSync(configDir)) {
     fs.mkdirSync(configDir, { recursive: true });
   }
-  
+
   const configFile = path.join(configDir, `${formId}.json`);
   fs.writeFileSync(configFile, JSON.stringify(formConfig, null, 2));
-  
+
   // Step 6: Update .env file
   console.log(`
 📋 Add this to your .env file:
 ================================
-HEYFLOW_WEBHOOK_SECRET_${formId.toUpperCase().replace(/-/g, '_')}=${webhookSecret}
+HEYFLOW_WEBHOOK_SECRET_${formId.toUpperCase().replace(/-/g, "_")}=${webhookSecret}
 `);
-  
+
   // Step 7: Display HeyFlow configuration
   console.log(`
 🔧 Configure in HeyFlow Dashboard:
@@ -88,14 +92,16 @@ HEYFLOW_WEBHOOK_SECRET_${formId.toUpperCase().replace(/-/g, '_')}=${webhookSecre
 
 5. Click "Save" and test with a form submission
 `);
-  
+
   // Step 8: Test webhook connectivity
-  const testNow = await question('\n🧪 Would you like to test the webhook now? (y/n) ');
-  
-  if (testNow.toLowerCase() === 'y') {
+  const testNow = await question(
+    "\n🧪 Would you like to test the webhook now? (y/n) ",
+  );
+
+  if (testNow.toLowerCase() === "y") {
     await testWebhookConnection(formConfig);
   }
-  
+
   console.log(`
 ✅ Setup Complete!
 ==================
@@ -108,82 +114,82 @@ Next steps:
 3. Submit a test form
 4. Check logs at: /api/v1/webhooks/monitor/${formId}
 `);
-  
+
   rl.close();
 }
 
 function getDefaultFieldMappings(formType) {
   const commonMappings = {
     // HeyFlow field -> Database field
-    'firstname': 'first_name',
-    'lastname': 'last_name',
-    'email': 'email',
-    'phone': 'phone',
-    'PhoneNumber': 'phone',
-    'dob': 'date_of_birth',
-    'dateofbirth': 'date_of_birth',
-    'gender': 'gender',
-    'consent_treatment': 'consent_treatment',
-    'consent_telehealth': 'consent_telehealth'
+    firstname: "first_name",
+    lastname: "last_name",
+    email: "email",
+    phone: "phone",
+    PhoneNumber: "phone",
+    dob: "date_of_birth",
+    dateofbirth: "date_of_birth",
+    gender: "gender",
+    consent_treatment: "consent_treatment",
+    consent_telehealth: "consent_telehealth",
   };
-  
+
   const typeMappings = {
     weight_loss: {
       ...commonMappings,
-      'starting_weight': 'weight_lbs',
-      'target_weight': 'target_weight_lbs',
-      'feet': 'height_feet',
-      'inches': 'height_inches',
-      'weight_loss_timeline': 'weight_loss_timeline',
-      'exercise_frequency': 'exercise_frequency'
+      starting_weight: "weight_lbs",
+      target_weight: "target_weight_lbs",
+      feet: "height_feet",
+      inches: "height_inches",
+      weight_loss_timeline: "weight_loss_timeline",
+      exercise_frequency: "exercise_frequency",
     },
     testosterone: {
       ...commonMappings,
-      'current_symptoms': 'symptoms',
-      'testosterone_history': 'previous_treatment',
-      'energy_level': 'energy_level'
+      current_symptoms: "symptoms",
+      testosterone_history: "previous_treatment",
+      energy_level: "energy_level",
     },
     diabetes: {
       ...commonMappings,
-      'a1c_level': 'a1c_level',
-      'diabetes_type': 'diabetes_type',
-      'insulin_use': 'insulin_use'
-    }
+      a1c_level: "a1c_level",
+      diabetes_type: "diabetes_type",
+      insulin_use: "insulin_use",
+    },
   };
-  
+
   return typeMappings[formType] || commonMappings;
 }
 
 async function testWebhookConnection(config) {
-  console.log('\n🔄 Testing webhook connection...');
-  
+  console.log("\n🔄 Testing webhook connection...");
+
   const testPayload = {
-    webhookId: 'test_' + Date.now(),
-    eventType: 'connection.test',
+    webhookId: "test_" + Date.now(),
+    eventType: "connection.test",
     formId: config.heyflow_form_id,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
-  
+
   try {
     // Generate test signature
-    const hmac = crypto.createHmac('sha256', config.webhook_secret);
-    const signature = hmac.update(JSON.stringify(testPayload)).digest('hex');
-    
+    const hmac = crypto.createHmac("sha256", config.webhook_secret);
+    const signature = hmac.update(JSON.stringify(testPayload)).digest("hex");
+
     const response = await axios.post(config.webhook_url, testPayload, {
       headers: {
-        'Content-Type': 'application/json',
-        'x-heyflow-signature': signature
+        "Content-Type": "application/json",
+        "x-heyflow-signature": signature,
       },
-      timeout: 5000
+      timeout: 5000,
     });
-    
+
     if (response.status === 200) {
-      console.log('✅ Webhook endpoint is responsive!');
-      console.log('Response:', response.data);
+      console.log("✅ Webhook endpoint is responsive!");
+      console.log("Response:", response.data);
     }
   } catch (error) {
-    console.log('❌ Webhook test failed:', error.message);
-    console.log('Make sure your backend is running on the correct port.');
+    console.log("❌ Webhook test failed:", error.message);
+    console.log("Make sure your backend is running on the correct port.");
   }
 }
 
@@ -214,9 +220,12 @@ router.get('/monitor/:formId', async (req, res) => {
   });
 });
 `;
-  
-  console.log('\n📊 Add this monitoring endpoint to track webhooks:', monitorCode);
+
+  console.log(
+    "\n📊 Add this monitoring endpoint to track webhooks:",
+    monitorCode,
+  );
 }
 
 // Run the setup
-generateWebhookConfig().catch(console.error); 
+generateWebhookConfig().catch(console.error);

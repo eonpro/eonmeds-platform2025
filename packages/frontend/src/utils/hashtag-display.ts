@@ -3,11 +3,11 @@
  * Handles cases where hashtags might already have # prefix
  */
 export function formatHashtagDisplay(tag: string): string {
-  if (!tag) return '';
-  
+  if (!tag) return "";
+
   // Remove any leading # symbols
-  const cleanTag = tag.replace(/^#+/, '');
-  
+  const cleanTag = tag.replace(/^#+/, "");
+
   // Return with single #
   return `#${cleanTag}`;
 }

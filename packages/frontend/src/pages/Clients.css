@@ -15,14 +15,14 @@
   font-weight: 600;
   color: #1a1a1a;
   margin: 0 0 8px 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .clients-header .subtitle {
   font-size: 16px;
   color: #6b7280;
   margin: 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 /* Controls Section */
@@ -249,7 +249,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .empty-state h3 {
@@ -274,14 +276,14 @@
   font-weight: 600;
   color: #1a1a1a;
   margin: 0 0 16px 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .empty-state p {
   font-size: 16px;
   color: #6b7280;
   margin: 0 0 8px 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 /* Patient Table Styles */
@@ -329,28 +331,28 @@
 .patient-id {
   font-weight: var(--font-weight-semibold);
   color: #14a97b;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-  font-size: 13.5px;  /* Increased from 12px */
+  font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+  font-size: 13.5px; /* Increased from 12px */
 }
 
 /* Patient Name - Updated */
 .patient-name {
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-900);
-  font-size: 14.5px;  /* Increased from 13px */
+  font-size: 14.5px; /* Increased from 13px */
 }
 
 /* Patient Email - Updated */
 .patient-email {
   color: var(--color-gray-600);
-  font-size: 14.5px;  /* Increased from 13px */
+  font-size: 14.5px; /* Increased from 13px */
 }
 
 /* Patient Phone - Updated with Poppins */
 .patient-phone {
   color: var(--color-gray-600);
-  font-family: 'Poppins', sans-serif;
-  font-size: 14.5px;  /* Increased from 13px */
+  font-family: "Poppins", sans-serif;
+  font-size: 14.5px; /* Increased from 13px */
 }
 
 /* Patient Status - Updated Button Style */
@@ -409,8 +411,8 @@
 /* Patient Created Date - Updated with Poppins */
 .patient-created {
   color: var(--color-gray-500);
-  font-size: 14.5px;  /* Increased from 13px */
-  font-family: 'Poppins', sans-serif;
+  font-size: 14.5px; /* Increased from 13px */
+  font-family: "Poppins", sans-serif;
 }
 
 /* Patient Actions Column */
@@ -443,7 +445,9 @@
   border-radius: 12px;
   padding: 32px;
   text-align: center;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .delete-modal h2 {
@@ -600,4 +604,4 @@
   padding: 60px 20px;
   color: #6b7280;
   font-size: 16px;
-} 
+}

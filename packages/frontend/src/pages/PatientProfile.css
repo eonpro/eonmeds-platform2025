@@ -35,7 +35,7 @@
   font-size: 14px;
   width: 100%;
   outline: none;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   background-color: #fafafa;
 }
 
@@ -68,7 +68,7 @@
   padding: 12px 16px;
   color: #6b7280;
   font-size: 14px;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .search-result-item {
@@ -90,13 +90,13 @@
   font-size: 14px;
   font-weight: 500;
   color: #111827;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .search-result-id {
   font-size: 12px;
   color: #14a97b;
-  font-family: 'SF Mono', Monaco, monospace;
+  font-family: "SF Mono", Monaco, monospace;
   margin-top: 2px;
 }
 
@@ -110,7 +110,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -524,7 +524,7 @@
   color: #6b7280;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -555,7 +555,7 @@
 /* Tab Content */
 .tab-content {
   padding: 30px;
-} 
+}
 
 /* Intake Form Section */
 .intake-form-section {
@@ -587,10 +587,8 @@
   font-size: 20px;
   font-weight: 600;
   color: #14a97b;
-  font-family: 'SF Mono', Monaco, monospace;
+  font-family: "SF Mono", Monaco, monospace;
 }
-
-
 
 /* Basic Info Section */
 .basic-info-section {
@@ -891,8 +889,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .patient-profile-error p {
@@ -919,7 +921,7 @@
   .profile-main-content {
     flex-direction: column;
   }
-  
+
   .timeline-section {
     width: 100%;
     position: static;
@@ -931,26 +933,26 @@
   .info-row {
     grid-template-columns: 1fr;
   }
-  
+
   .patient-header {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .patient-avatar {
     margin-right: 0;
     margin-bottom: 15px;
   }
-  
+
   .profile-tabs {
     overflow-x: scroll;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .profile-actions {
     margin-top: 15px;
   }
-  
+
   .header-tag-input-wrapper {
     position: fixed;
     top: auto;
@@ -959,20 +961,20 @@
     left: 20px;
     margin-top: 0;
   }
-  
+
   .profile-header-bar {
     padding: 15px;
   }
-  
+
   .header-center-section {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .search-bar-wrapper {
     width: 100%;
   }
-} 
+}
 
 /* Special Intake Form Note in Timeline */
 .intake-form-note {
@@ -1006,7 +1008,7 @@
   font-size: 18px;
   font-weight: 700;
   color: #000000;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .intake-form-note .note-subtitle {
@@ -1014,7 +1016,7 @@
   font-size: 14px;
   font-weight: 400;
   color: #666666; /* Gray color for subtitle */
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .intake-form-note .view-form-btn {
@@ -1027,7 +1029,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   text-transform: none;
   letter-spacing: normal;
 }
@@ -1067,7 +1069,7 @@
   font-size: 18px;
   font-weight: 700;
   color: #000000;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .view-soap-note-btn {
@@ -1080,7 +1082,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   text-transform: none;
   letter-spacing: normal;
 }
@@ -1119,7 +1121,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   text-transform: none;
   letter-spacing: normal;
 }
@@ -1225,7 +1227,7 @@
 }
 
 .intake-form-card .form-id {
-  font-family: 'SF Mono', Monaco, monospace;
+  font-family: "SF Mono", Monaco, monospace;
   color: #14a97b;
   font-size: 14px;
   margin-top: 10px;
@@ -1262,7 +1264,7 @@
   color: #14a97b;
   flex-shrink: 0;
   margin-top: 2px;
-} 
+}
 
 /* Status Dropdown Section */
 .status-dropdown-section {
@@ -1282,7 +1284,7 @@
   color: white;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   text-align: center;
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -1304,7 +1306,7 @@
   background-color: white;
   color: #333;
   padding: 8px;
-} 
+}
 
 .additional-info-textarea {
   width: 100%;
@@ -1333,7 +1335,7 @@
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .save-additional-info-btn:hover:not(:disabled) {
@@ -1344,7 +1346,7 @@
   opacity: 0.5;
   cursor: not-allowed;
   background-color: #9ca3af;
-} 
+}
 
 /* Intake Form Styles */
 .intake-form-content {
@@ -1383,7 +1385,7 @@
   font-weight: 600;
   color: #1a1a1a;
   margin: 0 0 20px 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .info-grid {
@@ -1414,14 +1416,14 @@
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .info-item p {
   font-size: 14px;
   color: #1a1a1a;
   margin: 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   line-height: 1.5;
 }
 
@@ -1451,31 +1453,31 @@
   align-items: center;
   min-height: 400px;
   color: #6b7280;
-  font-family: 'Poppins', sans-serif;
-} 
+  font-family: "Poppins", sans-serif;
+}
 
 /* Responsive Design for Basic Info */
 @media (max-width: 1024px) {
   .info-grid {
     display: block;
   }
-  
+
   .info-row {
     display: block;
     margin-bottom: 24px;
   }
-  
+
   .info-item {
     display: block;
     width: 100%;
     padding-right: 0;
     margin-bottom: 16px;
   }
-  
+
   .info-item:last-child {
     margin-bottom: 0;
   }
-  
+
   .additional-info {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -1486,30 +1488,30 @@
   .basic-info-section {
     padding: 20px;
   }
-  
+
   .basic-info-section h3 {
     font-size: 20px;
     margin-bottom: 24px;
   }
-  
+
   .info-grid {
     gap: 24px;
   }
-  
+
   .info-item label {
     font-size: 11px;
   }
-  
+
   .info-item p {
     font-size: 15px;
   }
-  
+
   .additional-info-box {
     padding: 16px;
   }
-} 
+}
 
-/* Hashtags Section */ 
+/* Hashtags Section */
 
 .view-pdf-btn {
   display: inline-flex;
@@ -1556,4 +1558,4 @@
   border-color: #d1d5db;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-} 
+}

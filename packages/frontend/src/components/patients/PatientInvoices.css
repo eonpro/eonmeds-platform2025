@@ -366,33 +366,33 @@
     align-items: flex-start;
     gap: 16px;
   }
-  
+
   .invoice-summary-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .invoice-actions {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
-  
+
   .invoice-actions-left,
   .invoice-actions-right {
     justify-content: space-between;
   }
-  
+
   .invoices-table {
     font-size: 13px;
   }
-  
+
   .invoices-table th,
   .invoices-table td {
     padding: 12px;
   }
-  
+
   .action-btn {
     padding: 4px 8px;
     font-size: 11px;
   }
-} 
+}

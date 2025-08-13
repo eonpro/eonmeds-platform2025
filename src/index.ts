@@ -1,5 +1,5 @@
-import app from './app';
-import pool from './config/database';
+import app from "./app";
+import pool from "./config/database";
 
 const PORT = process.env.PORT || 3000;
 
@@ -18,31 +18,31 @@ const server = app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 async function shutdown() {
-  console.log('\n🛑 Shutting down gracefully...');
-  
+  console.log("\n🛑 Shutting down gracefully...");
+
   server.close(() => {
-    console.log('HTTP server closed');
+    console.log("HTTP server closed");
   });
-  
+
   // Close database connection
   await pool.end();
-  console.log('Database connection closed');
-  
+  console.log("Database connection closed");
+
   process.exit(0);
 }
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
   shutdown();
 });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
   shutdown();
-}); 
+});

@@ -65,7 +65,7 @@
 }
 
 .becca-text {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 18px;
   font-weight: 450;
   color: #333;
@@ -73,7 +73,7 @@
 }
 
 .ai-text {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 18px;
   font-weight: 550;
   color: #333;
@@ -238,7 +238,7 @@
   border: 1px solid #e9ecef;
   border-radius: 8px;
   padding: 20px;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   font-size: 14px;
   line-height: 1.6;
   white-space: pre-wrap;
@@ -262,14 +262,14 @@
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .generate-soap-btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .soap-note-header {
     flex-direction: column;
     gap: 12px;
   }
-} 
+}
