@@ -298,9 +298,6 @@ app.use((err: any, req: express.Request, res: express.Response, _next: express.N
   res.status(err.status || 500).json(responseBody);
 });
 
-  });
-});
-
 // Graceful shutdown
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received: closing HTTP server");
