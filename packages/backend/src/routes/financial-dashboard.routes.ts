@@ -5,17 +5,23 @@ const router = Router();
 
 // Middleware to check for admin role
 const checkAdminAccess = (req: Request, res: Response, next: any) => {
-  // In a real app, this would check the JWT token for admin role
-  // For now, we'll add a simple check that can be enhanced later
-  const userRole = (req as any).user?.role || req.headers['x-user-role'];
+  // Check for roles in the JWT token (Auth0 sends roles as an array)
+  const user = (req as any).user;
+  const roles = user?.['https://eonmeds.com/roles'] || user?.roles || [];
   
-  if (userRole !== 'admin' && userRole !== 'superadmin') {
+  // Check if user has admin or superadmin role
+  const hasAdminRole = Array.isArray(roles) && 
+    (roles.includes('admin') || roles.includes('superadmin'));
+  
+  if (!hasAdminRole) {
+    console.log('Access denied - User roles:', roles);
     return res.status(403).json({ 
       error: "Access denied",
       message: "This resource is restricted to administrators only"
     });
   }
   
+  console.log('Admin access granted for user with roles:', roles);
   next();
 };
 
