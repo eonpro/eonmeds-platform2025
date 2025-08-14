@@ -17,6 +17,7 @@ import { TestAuth } from './pages/TestAuth';
 import { DebugAuth } from './components/auth/DebugAuth';
 import { Auth0Callback } from './components/auth/Auth0Callback';
 import { FinancialDashboard } from './pages/FinancialDashboard';
+import { DebugDashboard } from './pages/DebugDashboard';
 import './i18n'; // Initialize i18n
 import './App.css';
 
@@ -86,6 +87,14 @@ function App() {
                         element={
                           <ProtectedRoute requiredRoles={['admin', 'superadmin']}>
                             <FinancialDashboard />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/debug-dashboard"
+                        element={
+                          <ProtectedRoute>
+                            <DebugDashboard />
                           </ProtectedRoute>
                         }
                       />
