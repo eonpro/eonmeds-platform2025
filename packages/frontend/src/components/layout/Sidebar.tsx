@@ -18,9 +18,14 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const { logout } = useAuth0();
-  const { user } = useAuth();
+  const { user, isAdmin: checkIsAdmin, roles } = useAuth();
 
-  const isAdmin = user?.app_metadata?.roles?.includes('admin') || false;
+  // Use the isAdmin function from useAuth hook which checks both admin and superadmin roles
+  const isAdmin = checkIsAdmin();
+  
+  // Debug logging
+  console.log('Sidebar - User roles:', roles);
+  console.log('Sidebar - Is Admin?:', isAdmin);
 
   const menuItems: SidebarItem[] = [
     {
