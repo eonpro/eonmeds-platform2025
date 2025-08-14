@@ -14,10 +14,10 @@ export const Auth0ProviderWithNavigate = ({ children }: Auth0ProviderWithNavigat
   const audience = process.env.REACT_APP_AUTH0_AUDIENCE!;
 
   // Use the correct redirect URI based on environment
-  const redirectUri =
-    process.env.NODE_ENV === 'production'
-      ? 'https://intuitive-learning-production.up.railway.app/callback'
-      : 'http://localhost:3000/callback';
+  const redirectUri = process.env.REACT_APP_AUTH0_REDIRECT_URI || 
+    (process.env.NODE_ENV === 'production'
+      ? window.location.origin + '/callback'
+      : 'http://localhost:3000/callback');
 
   if (!domain || !clientId || !audience) {
     throw new Error('Auth0 configuration is missing. Please check your environment variables.');
