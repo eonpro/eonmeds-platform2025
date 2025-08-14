@@ -101,6 +101,10 @@ app.use('/api/v1/payments/invoices', invoiceRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/ai', aiRoutes);
 
+// Payment methods routes (Phase 2)
+const paymentMethodsRoutes = require('./routes/payment-methods.routes').default;
+app.use('/api/v1/payment-methods', paymentMethodsRoutes);
+
 // Stripe test routes (only in development)
 if (process.env.NODE_ENV !== 'production') {
   const stripeTestRoutes = require('./routes/stripe-test.routes').default;

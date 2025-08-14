@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../config/database";
-
-// Placeholder payment controller - to be implemented with new payment provider
+import { stripeService } from "../services/stripe.service";
 
 // Create a payment intent
 export const createPaymentIntent = async (
@@ -14,31 +13,130 @@ export const createPaymentIntent = async (
   });
 };
 
-// Charge an invoice
+// Charge an invoice with a saved payment method
 export const chargeInvoice = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
   try {
-    const { invoiceId } = req.body;
+    const { invoiceId, paymentMethodId } = req.body;
 
-    // For now, just mark invoice as paid in database
+    if (!invoiceId) {
+      res.status(400).json({ error: "Invoice ID is required" });
+      return;
+    }
+
+    // Get invoice details
+    const invoiceResult = await pool.query(
+      `SELECT i.*, p.stripe_customer_id 
+       FROM invoices i
+       JOIN patients p ON i.patient_id = p.patient_id
+       WHERE i.id = $1`,
+      [invoiceId]
+    );
+
+    if (invoiceResult.rows.length === 0) {
+      res.status(404).json({ error: "Invoice not found" });
+      return;
+    }
+
+    const invoice = invoiceResult.rows[0];
+
+    if (invoice.status === 'paid') {
+      res.status(400).json({ error: "Invoice is already paid" });
+      return;
+    }
+
+    if (!invoice.stripe_customer_id) {
+      res.status(400).json({ 
+        error: "Patient does not have a Stripe customer",
+        message: "Please contact support to set up payment processing"
+      });
+      return;
+    }
+
+    // If no payment method specified, try to use default
+    let finalPaymentMethodId = paymentMethodId;
+    if (!finalPaymentMethodId) {
+      const customer = await stripeService.getCustomer(invoice.stripe_customer_id);
+      finalPaymentMethodId = customer?.invoice_settings?.default_payment_method as string;
+      
+      if (!finalPaymentMethodId) {
+        res.status(400).json({ 
+          error: "No payment method provided and no default payment method on file",
+          needs_payment_method: true
+        });
+        return;
+      }
+    }
+
+    // Charge the payment method
+    const paymentIntent = await stripeService.chargePaymentMethod({
+      amount: Number(invoice.total_amount),
+      customerId: invoice.stripe_customer_id,
+      paymentMethodId: finalPaymentMethodId,
+      description: `Invoice ${invoice.invoice_number}`,
+      metadata: {
+        invoice_id: invoiceId,
+        invoice_number: invoice.invoice_number,
+        patient_id: invoice.patient_id,
+      },
+    });
+
+    // Update invoice in database
     await pool.query(
       `UPDATE invoices 
        SET status = 'paid', 
            payment_date = NOW(),
+           stripe_payment_intent_id = $2,
            updated_at = NOW()
        WHERE id = $1`,
-      [invoiceId]
+      [invoiceId, paymentIntent.id]
+    );
+
+    // Record payment in invoice_payments table
+    await pool.query(
+      `INSERT INTO invoice_payments (
+        invoice_id, amount, payment_method, payment_date,
+        stripe_payment_intent_id, status
+      ) VALUES ($1, $2, $3, NOW(), $4, $5)`,
+      [
+        invoiceId,
+        invoice.total_amount,
+        'card',
+        paymentIntent.id,
+        'succeeded'
+      ]
     );
 
     res.json({ 
       success: true, 
-      message: "Invoice marked as paid (payment processing pending implementation)" 
+      payment_intent_id: paymentIntent.id,
+      amount_charged: Number(invoice.total_amount),
+      message: "Invoice charged successfully" 
     });
-  } catch (error) {
-    console.error("Error updating invoice:", error);
-    res.status(500).json({ error: "Failed to update invoice" });
+  } catch (error: any) {
+    console.error("Error charging invoice:", error);
+    
+    // Handle specific Stripe errors
+    if (error.code === 'card_declined') {
+      res.status(402).json({ 
+        error: "Card was declined",
+        decline_code: error.decline_code,
+        message: "Please try a different payment method"
+      });
+    } else if (error.code === 'authentication_required') {
+      res.status(402).json({ 
+        error: "Card requires authentication",
+        payment_intent_id: error.payment_intent?.id,
+        message: "Additional verification required"
+      });
+    } else {
+      res.status(500).json({ 
+        error: "Failed to charge invoice",
+        message: error.message 
+      });
+    }
   }
 };
 
