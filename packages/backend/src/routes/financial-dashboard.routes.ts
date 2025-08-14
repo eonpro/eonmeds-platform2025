@@ -67,7 +67,7 @@ router.get("/payments", async (req: Request, res: Response) => {
     const { status, limit = 50 } = req.query;
     
     // Fetch payments with optional status filter
-    const paymentIntents = await financialDashboardService['stripe'].paymentIntents.list({
+    const paymentIntents = await financialDashboardService.getStripeClient().paymentIntents.list({
       limit: Number(limit),
       expand: ['data.customer', 'data.payment_method'],
     });
@@ -123,7 +123,7 @@ router.get("/customers", async (req: Request, res: Response) => {
     const { limit = 50, hasPaymentMethod } = req.query;
     
     // Fetch customers
-    const customers = await financialDashboardService['stripe'].customers.list({
+    const customers = await financialDashboardService.getStripeClient().customers.list({
       limit: Number(limit),
       expand: ['data.default_source'],
     });
@@ -134,13 +134,13 @@ router.get("/customers", async (req: Request, res: Response) => {
         .filter(c => !(c as any).deleted)
         .map(async (customer) => {
           // Get payment methods for this customer
-          const paymentMethods = await financialDashboardService['stripe'].paymentMethods.list({
+          const paymentMethods = await financialDashboardService.getStripeClient().paymentMethods.list({
             customer: customer.id,
             limit: 5,
           });
 
           // Get lifetime value (total spent)
-          const charges = await financialDashboardService['stripe'].charges.list({
+          const charges = await financialDashboardService.getStripeClient().charges.list({
             customer: customer.id,
             limit: 100,
           });
@@ -199,7 +199,7 @@ router.get("/subscriptions", async (req: Request, res: Response) => {
     const metrics = await financialDashboardService.getSubscriptionMetrics();
     
     // Get detailed subscription list
-    const subscriptions = await financialDashboardService['stripe'].subscriptions.list({
+    const subscriptions = await financialDashboardService.getStripeClient().subscriptions.list({
       limit: 100,
       expand: ['data.customer', 'data.default_payment_method'],
     });
@@ -212,8 +212,8 @@ router.get("/subscriptions", async (req: Request, res: Response) => {
         name: (sub.customer as any)?.name || null,
       },
       status: sub.status,
-      current_period_start: new Date(sub.current_period_start * 1000),
-      current_period_end: new Date(sub.current_period_end * 1000),
+      current_period_start: new Date((sub as any).current_period_start * 1000),
+      current_period_end: new Date((sub as any).current_period_end * 1000),
       items: sub.items.data.map(item => ({
         product_name: (item.price.product as any)?.name || 'Unknown',
         amount: (item.price.unit_amount || 0) / 100,
@@ -250,7 +250,7 @@ router.get("/revenue-chart", async (req: Request, res: Response) => {
     const startDate = new Date(endDate.getTime() - Number(days) * 24 * 60 * 60 * 1000);
 
     // Fetch all charges in the date range
-    const charges = await financialDashboardService['stripe'].charges.list({
+    const charges = await financialDashboardService.getStripeClient().charges.list({
       limit: 100,
       created: {
         gte: Math.floor(startDate.getTime() / 1000),
@@ -304,9 +304,5 @@ router.get("/revenue-chart", async (req: Request, res: Response) => {
     });
   }
 });
-
-// Make stripe accessible for route methods (temporary solution)
-(financialDashboardService as any).stripe = (financialDashboardService as any).stripe || 
-  require("../config/stripe.config").getStripeClient();
 
 export default router;

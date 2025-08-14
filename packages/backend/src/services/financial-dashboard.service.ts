@@ -56,6 +56,11 @@ export class FinancialDashboardService {
     this.stripe = getStripeClient();
   }
 
+  // Expose stripe client for routes (temporary solution for direct API calls)
+  public getStripeClient(): Stripe {
+    return this.stripe;
+  }
+
   /**
    * Get comprehensive financial dashboard data
    */
