@@ -110,9 +110,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     try {
       setProcessing(true);
 
-      // Use the charge-manual endpoint for new cards
+      // Use the charge endpoint for processing payments
       const response = await apiClient.post(
-        `/api/v1/payments/invoices/${invoice.id}/charge-manual`,
+        `/api/v1/payments/invoices/${invoice.id}/charge`,
         {
           payment_method_id: paymentMethodId,
         }
