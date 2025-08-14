@@ -1,11 +1,13 @@
 # Complete Stripe Integration Setup Checklist
 
 ## 🔍 Overview
+
 This document provides a comprehensive checklist to ensure your Stripe integration is properly configured to handle all payment scenarios, especially external payments via link/QR code.
 
 ## ✅ Required Environment Variables
 
 ### Backend (.env)
+
 ```bash
 # Core Stripe Configuration
 STRIPE_SECRET_KEY=sk_live_YOUR_LIVE_KEY  # Or sk_test_ for testing
@@ -26,6 +28,7 @@ STRIPE_PRICE_TESTOSTERONE_QUARTERLY=price_xxx
 ```
 
 ### Frontend (.env)
+
 ```bash
 REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_live_YOUR_KEY  # Or pk_test_ for testing
 REACT_APP_API_URL=https://your-backend-url.com
@@ -34,11 +37,13 @@ REACT_APP_API_URL=https://your-backend-url.com
 ## 🔐 Stripe Dashboard Configuration
 
 ### 1. Webhook Endpoint Setup
+
 1. Go to Stripe Dashboard → Developers → Webhooks
 2. Add endpoint: `https://your-domain.com/api/v1/payments/webhook/stripe`
 3. Select events to listen for:
 
 #### Required Events:
+
 - [ ] `checkout.session.completed` - For payment link/QR completions
 - [ ] `charge.succeeded` - For direct charges
 - [ ] `payment_intent.succeeded` - For payment intents
@@ -53,6 +58,7 @@ REACT_APP_API_URL=https://your-backend-url.com
 - [ ] `invoice.payment_failed` - Failed payments
 
 ### 2. Payment Links Configuration
+
 1. Create payment links for your services
 2. Add metadata to each payment link:
    ```json
@@ -64,6 +70,7 @@ REACT_APP_API_URL=https://your-backend-url.com
    ```
 
 ### 3. Customer Portal Configuration
+
 1. Enable Customer Portal in Stripe Dashboard
 2. Configure allowed actions:
    - [ ] Update payment methods
@@ -74,13 +81,14 @@ REACT_APP_API_URL=https://your-backend-url.com
 ## 📊 Database Tables Required
 
 ### Verify these tables exist:
+
 ```sql
 -- Check tables
-SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public'
 AND table_name IN (
   'patients',
-  'invoices', 
+  'invoices',
   'invoice_items',
   'invoice_payments',
   'webhook_events',
@@ -89,10 +97,11 @@ AND table_name IN (
 ```
 
 ### Required Patient Columns:
+
 ```sql
 -- Check patient columns
-SELECT column_name FROM information_schema.columns 
-WHERE table_name = 'patients' 
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'patients'
 AND column_name IN (
   'stripe_customer_id',
   'subscription_id',
@@ -104,6 +113,7 @@ AND column_name IN (
 ## 🧪 Testing Checklist
 
 ### 1. Test External Payment Flow
+
 ```bash
 # Test with Stripe CLI
 stripe listen --forward-to localhost:3002/api/v1/payments/webhook/stripe
@@ -113,63 +123,76 @@ stripe trigger checkout.session.completed
 ```
 
 ### 2. Test Card Numbers
+
 - Success: `4242 4242 4242 4242`
 - Decline: `4000 0000 0000 0002`
 - 3D Secure: `4000 0025 0000 3155`
 
 ### 3. Verify Patient Creation
+
 1. Make external payment via Stripe link
 2. Check database:
+
 ```sql
 -- Find latest patient
 SELECT patient_id, email, status, membership_hashtags, stripe_customer_id
-FROM patients 
+FROM patients
 WHERE form_type = 'external_stripe'
-ORDER BY created_at DESC 
+ORDER BY created_at DESC
 LIMIT 1;
 ```
 
 ### 4. Verify Invoice Creation
+
 ```sql
 -- Check invoice was created
-SELECT * FROM invoices 
-WHERE stripe_customer_id IS NOT NULL 
-ORDER BY created_at DESC 
+SELECT * FROM invoices
+WHERE stripe_customer_id IS NOT NULL
+ORDER BY created_at DESC
 LIMIT 1;
 ```
 
 ## 🚨 Common Issues & Solutions
 
 ### 1. Webhook Signature Verification Failing
+
 **Solution**: Ensure you're using the raw body:
+
 ```javascript
 // Correct
-app.post('/webhook', express.raw({type: 'application/json'}), handler);
+app.post("/webhook", express.raw({ type: "application/json" }), handler);
 
 // Incorrect
-app.post('/webhook', express.json(), handler);
+app.post("/webhook", express.json(), handler);
 ```
 
 ### 2. Patients Not Moving to Subscriptions
+
 **Check**:
+
 - Patient status update logic in webhook handler
 - Hashtag array operations
 - Database permissions
 
 ### 3. Missing Customer Email
+
 **Solution**: Ensure payment links collect email:
+
 - Enable "Collect customer email" in payment link settings
 - Add fallback email generation for anonymous payments
 
 ## 🔄 Production Deployment
 
 ### Railway Environment Variables
+
 Add all variables from `.env` to Railway:
+
 1. Go to Railway Dashboard → Your Project → Variables
 2. Add each variable (bulk import available)
 3. Deploy and verify webhook endpoint
 
 ### Verify Webhook URL
+
 ```bash
 # Test production webhook
 curl -X POST https://your-domain.railway.app/api/v1/payments/webhook/stripe \
@@ -180,32 +203,34 @@ curl -X POST https://your-domain.railway.app/api/v1/payments/webhook/stripe \
 ## 📈 Monitoring & Logging
 
 ### 1. Check Webhook Events
+
 ```sql
 -- Recent webhook events
-SELECT event_type, processed, error_message, created_at 
-FROM webhook_events 
-WHERE source = 'stripe' 
-ORDER BY created_at DESC 
+SELECT event_type, processed, error_message, created_at
+FROM webhook_events
+WHERE source = 'stripe'
+ORDER BY created_at DESC
 LIMIT 20;
 
 -- Failed events
-SELECT * FROM webhook_events 
-WHERE source = 'stripe' 
+SELECT * FROM webhook_events
+WHERE source = 'stripe'
 AND (processed = false OR error_message IS NOT NULL)
 ORDER BY created_at DESC;
 ```
 
 ### 2. Patient Status Distribution
+
 ```sql
 -- Check patient distribution
-SELECT status, COUNT(*) as count 
-FROM patients 
+SELECT status, COUNT(*) as count
+FROM patients
 GROUP BY status;
 
 -- Check hashtag distribution
-SELECT membership_hashtags, COUNT(*) as count 
-FROM patients 
-WHERE membership_hashtags IS NOT NULL 
+SELECT membership_hashtags, COUNT(*) as count
+FROM patients
+WHERE membership_hashtags IS NOT NULL
 GROUP BY membership_hashtags;
 ```
 
@@ -237,4 +262,4 @@ GROUP BY membership_hashtags;
 ---
 
 Last Updated: July 2025
-Version: 1.0 
+Version: 1.0

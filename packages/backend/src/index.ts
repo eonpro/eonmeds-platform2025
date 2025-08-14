@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -16,8 +17,6 @@ import paymentRoutes from './routes/payment.routes';
 import packageRoutes from './routes/package.routes';
 import aiRoutes from './routes/ai.routes';
 import invoiceRoutes from './routes/invoice.routes';
-import billingRoutes from './routes/billing.routes';
-import billingReportsRoutes from './routes/billing.reports';
 
 // Force redeployment - Auth0 configuration update
 const app = express();
@@ -28,26 +27,24 @@ dotenv.config();
 const PORT = Number(process.env.PORT) || 3000;
 
 // CORS must be before all routes
-const corsOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+const corsOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://intuitive-learning-production.up.railway.app',
-      'https://eonmeds-platform2025-production.up.railway.app',
-    ];
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'https://intuitive-learning-production.up.railway.app',
+    'https://eonmeds-platform2025-production.up.railway.app'
+  ];
 
-console.log('🔒 CORS Origins configured:', corsOrigins);
+console.log("🔒 CORS Origins configured:", corsOrigins);
 
-app.use(
-  cors({
-    origin: corsOrigins,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    exposedHeaders: ['X-Total-Count'],
-  })
-);
+app.use(cors({
+  origin: corsOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['X-Total-Count']
+}));
 
 // Request logging middleware (before body parsing)
 app.use((req, _res, next) => {
@@ -57,16 +54,15 @@ app.use((req, _res, next) => {
 
 // IMPORTANT: Stripe webhook endpoints MUST be registered before body parsing middleware
 // This is because Stripe requires the raw body for signature verification
-
-// Existing Stripe webhook endpoint (legacy)
-app.post(
-  '/api/v1/payments/webhook/stripe',
-  express.raw({ type: 'application/json' }),
+app.post('/api/v1/payments/webhook/stripe', 
+  express.raw({ type: 'application/json' }), 
   (req, res) => {
     // Import and use the webhook handler directly
-    const { handleStripeWebhook } = require('./controllers/stripe-webhook.controller');
+    const {
+      handleStripeWebhook,
+    } = require("./controllers/stripe-webhook.controller");
     handleStripeWebhook(req, res);
-  }
+  },
 );
 
 // New Stripe webhook endpoint with improved handling
@@ -77,21 +73,21 @@ app.post('/api/v1/stripe/webhook', express.raw({ type: 'application/json' }), (r
 });
 
 // NOW we can add body parsing middleware for all other routes
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
-  res.json({
-    status: 'ok',
+  res.json({ 
+    status: 'ok', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
 // API version endpoint
 app.get('/api/v1', (_req, res) => {
-  res.json({
+  res.json({ 
     version: '1.0.0',
     endpoints: {
       webhooks: '/api/v1/webhooks',
@@ -102,54 +98,34 @@ app.get('/api/v1', (_req, res) => {
       documents: '/api/v1/documents',
       audit: '/api/v1/audit',
       payments: '/api/v1/payments',
-      packages: '/api/v1/packages',
-    },
+      packages: '/api/v1/packages'
+    }
   });
 });
 
 // Webhook routes (always available - no auth required)
 // IMPORTANT: This must be before any auth middleware
-app.use('/api/v1/webhooks', webhookRoutes);
-console.log('✅ Webhook routes loaded (always available - no auth required)');
+app.use("/api/v1/webhooks", webhookRoutes);
+console.log("✅ Webhook routes loaded (always available - no auth required)");
 
 // Register all routes (with database check inside each route)
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/patients', patientRoutes);
-app.use('/api/v1/practitioners', practitionerRoutes);
-app.use('/api/v1/appointments', appointmentRoutes);
-app.use('/api/v1/documents', documentRoutes);
-app.use('/api/v1/audit', auditRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/patients", patientRoutes);
+app.use("/api/v1/practitioners", practitionerRoutes);
+app.use("/api/v1/appointments", appointmentRoutes);
+app.use("/api/v1/documents", documentRoutes);
+app.use("/api/v1/audit", auditRoutes);
 // Payment routes - but webhook is already registered above
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/payments/invoices', invoiceRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/ai', aiRoutes);
-app.use('/api/v1/billing', billingRoutes);
-app.use('/api/v1/billing', billingReportsRoutes);
 console.log('✅ All routes registered (database check happens per route)');
 
-// Generic error handler (must be last)
-app.use((err: any, req: any, res: any, next: any) => {
-  // Log error but don't expose internals
-  console.error('Server error:', err);
-
-  // Check if response was already sent
-  if (res.headersSent) {
-    return next(err);
-  }
-
-  // Default error response
-  res.status(err.status || 500).json({
-    ok: false,
-    error: err.message || 'Internal server error',
-  });
-});
-
 // Start server
-app.listen(PORT, '0.0.0.0', async () => {
-  console.log('API on', PORT);
+app.listen(PORT, async () => {
   console.log('🚀 Server is running!');
-  console.log(`📡 Listening on port ${PORT} on all interfaces`);
+  console.log(`📡 Listening on port ${PORT}`);
   console.log('🏥 EONMeds Backend API');
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Database Host: ${process.env.DB_HOST ? '✓ Configured' : '✗ Missing'}`);
@@ -166,19 +142,19 @@ let databaseConnected = false;
 
 async function initializeDatabase() {
   console.log('Attempting database connection...');
-
+  
   try {
     const isConnected = await testDatabaseConnection();
 
     if (isConnected) {
-      console.log('✅ Database connected successfully');
+      console.log("✅ Database connected successfully");
       databaseConnected = true;
 
       // Ensure critical tables exist
       try {
         // Import pool for direct queries
         const { pool } = await import('./config/database');
-
+        
         // SOAP notes table is now handled by database.ts with correct schema
 
         // Create invoice_payments table if it doesn't exist
@@ -273,18 +249,23 @@ async function initializeDatabase() {
         `);
 
         // Call ensureSOAPNotesTable to create the table with correct schema
-        const { ensureSOAPNotesTable } = await import('./config/database');
+        const { ensureSOAPNotesTable } = await import("./config/database");
         await ensureSOAPNotesTable();
-
+        
         console.log('✅ Database tables verified/created');
       } catch (tableError) {
-        console.log('Note: Could not verify/create tables:', (tableError as Error).message);
+        console.log(
+          "Note: Could not verify/create tables:",
+          (tableError as Error).message,
+        );
       }
     } else {
-      console.log('⚠️  Database connection failed - some functionality may be limited');
+      console.log(
+        "⚠️  Database connection failed - some functionality may be limited",
+      );
     }
   } catch (error) {
-    console.error('❌ Error during database initialization:', error);
+    console.error("❌ Error during database initialization:", error);
   }
 }
 
@@ -296,25 +277,25 @@ export { databaseConnected };
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({
+  res.status(404).json({ 
     error: 'Not Found',
     message: `Route ${req.method} ${req.path} not found`,
-    database: databaseConnected ? 'connected' : 'not connected',
+    database: databaseConnected ? 'connected' : 'not connected'
   });
 });
 
 // Error handling middleware
-app.use((err: any, _req: express.Request, res: express.Response) => {
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
+process.on("SIGTERM", () => {
+  console.log("SIGTERM signal received: closing HTTP server");
   process.exit(0);
 });
 

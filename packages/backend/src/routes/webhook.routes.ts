@@ -1,7 +1,11 @@
-import { Router } from 'express';
-import { handleHeyFlowWebhook, webhookHealthCheck } from '../controllers/webhook.controller';
-import { pool } from '../config/database';
-import { bypassAuth } from '../middleware/bypass-auth';
+import { Router } from "express";
+import {
+  handleHeyFlowWebhook,
+  webhookHealthCheck,
+} from "../controllers/webhook.controller";
+import { handleStripeWebhook } from "../controllers/stripe-webhook.controller";
+import { pool } from "../config/database";
+import { bypassAuth } from "../middleware/bypass-auth";
 
 const router = Router();
 
@@ -9,28 +13,31 @@ const router = Router();
 router.use(bypassAuth);
 
 // HeyFlow webhook endpoint
-router.post('/heyflow', handleHeyFlowWebhook);
+router.post("/heyflow", handleHeyFlowWebhook);
+
+// Stripe webhook endpoint
+router.post("/stripe", handleStripeWebhook);
 
 // Webhook health check
-router.get('/health', webhookHealthCheck);
+router.get("/health", webhookHealthCheck);
 
 // Test webhook endpoint
-router.get('/test', (_req, res) => {
+router.get("/test", (_req, res) => {
   res.json({
-    message: 'Webhook endpoint is working',
+    message: "Webhook endpoint is working",
     timestamp: new Date().toISOString(),
     auth: {
       hasAuthHeader: !!_req.headers.authorization,
       hasAuthProperty: !!(_req as any).auth,
       hasUserProperty: !!(_req as any).user,
-      auth0Domain: process.env.AUTH0_DOMAIN || 'NOT_SET',
-      auth0Audience: process.env.AUTH0_AUDIENCE || 'NOT_SET',
+      auth0Domain: process.env.AUTH0_DOMAIN || "NOT_SET",
+      auth0Audience: process.env.AUTH0_AUDIENCE || "NOT_SET",
     },
   });
 });
 
 // Diagnostic endpoint to check environment
-router.get('/debug/env', (_req, res) => {
+router.get("/debug/env", (_req, res) => {
   res.json({
     hasDatabaseUrl: !!process.env.DATABASE_URL,
     databaseUrlLength: process.env.DATABASE_URL?.length || 0,
@@ -42,7 +49,7 @@ router.get('/debug/env', (_req, res) => {
 });
 
 // Get recent webhook events for debugging
-router.get('/recent', async (_req, res) => {
+router.get("/recent", async (_req, res) => {
   try {
     const client = await pool.connect();
 
@@ -70,10 +77,10 @@ router.get('/recent', async (_req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error fetching recent webhooks:', error);
+    console.error("Error fetching recent webhooks:", error);
     res.status(500).json({
-      error: 'Failed to fetch webhook events',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      error: "Failed to fetch webhook events",
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });

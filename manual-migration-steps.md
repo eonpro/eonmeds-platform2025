@@ -1,9 +1,11 @@
 # Repository Migration Guide: Lights-On-Creative → eonpro
 
 ## Overview
+
 Migrating 4 private repositories to analyze and reuse features for the EONMeds platform.
 
 ## Repositories to Migrate
+
 1. **ehr-portal** (TypeScript) - Electronic Health Records Portal
 2. **master-service** (Java) - Main backend service
 3. **api-gateway** (Java) - API Gateway for microservices
@@ -14,6 +16,7 @@ Migrating 4 private repositories to analyze and reuse features for the EONMeds p
 ### For Each Repository:
 
 #### Step 1: Clone the Repository Locally
+
 ```bash
 # Example for ehr-portal
 git clone https://github.com/Lights-On-Creative/ehr-portal.git
@@ -21,6 +24,7 @@ cd ehr-portal
 ```
 
 #### Step 2: Create New Repository on eonpro
+
 1. Go to https://github.com/eonpro
 2. Click "New repository"
 3. Name it exactly the same (e.g., `ehr-portal`)
@@ -29,6 +33,7 @@ cd ehr-portal
 6. Click "Create repository"
 
 #### Step 3: Change Remote Origin
+
 ```bash
 # Remove old origin
 git remote remove origin
@@ -41,6 +46,7 @@ git remote -v
 ```
 
 #### Step 4: Push to New Repository
+
 ```bash
 # Push all branches
 git push -u origin --all
@@ -121,24 +127,28 @@ done
 Once migrated, we can analyze each repository for:
 
 ### 1. EHR Portal (TypeScript)
+
 - UI components that match EONMeds requirements
 - Patient management interfaces
 - Authentication flows
 - API integration patterns
 
 ### 2. Master Service (Java)
+
 - Business logic for medical workflows
 - Database schemas and models
 - Service architecture patterns
 - Security implementations
 
 ### 3. API Gateway (Java)
+
 - Request routing logic
 - Authentication/authorization middleware
 - Rate limiting implementations
 - API versioning strategies
 
 ### 4. Service Discovery (Java)
+
 - Microservice registration patterns
 - Health check implementations
 - Load balancing configurations
@@ -146,7 +156,7 @@ Once migrated, we can analyze each repository for:
 ## Next Steps After Migration
 
 1. **Review Code Structure**: Analyze each repository's architecture
-2. **Identify Reusable Components**: 
+2. **Identify Reusable Components**:
    - Frontend components from ehr-portal
    - Backend services from Java repositories
    - Security implementations
@@ -159,4 +169,4 @@ Once migrated, we can analyze each repository for:
 - **Licensing**: Ensure you have the rights to copy/modify the code
 - **Dependencies**: Check for any proprietary dependencies
 - **Secrets**: Don't copy any hardcoded secrets or credentials
-- **Documentation**: Look for any existing documentation to understand the codebase 
+- **Documentation**: Look for any existing documentation to understand the codebase

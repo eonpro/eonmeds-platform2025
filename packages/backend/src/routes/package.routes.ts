@@ -1,10 +1,10 @@
-import { Router, Request, Response } from 'express';
-import { pool } from '../config/database';
+import { Router, Request, Response } from "express";
+import { pool } from "../config/database";
 
 const router = Router();
 
 // Get all packages
-router.get('/', async (_req: Request, res: Response): Promise<Response> => {
+router.get("/", async (_req: Request, res: Response): Promise<Response> => {
   try {
     const query = `
       SELECT * FROM service_packages 
@@ -18,23 +18,33 @@ router.get('/', async (_req: Request, res: Response): Promise<Response> => {
       packages: result.rows,
     });
   } catch (error) {
+<<<<<<< HEAD
     console.error('Error fetching packages:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch packages',
+=======
+    console.error("Error fetching packages:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to fetch packages",
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     });
   }
 });
 
 // Get active packages (for invoice creation)
-router.get('/active', async (_req: Request, res: Response): Promise<Response> => {
-  try {
-    const query = `
+router.get(
+  "/active",
+  async (_req: Request, res: Response): Promise<Response> => {
+    try {
+      const query = `
       SELECT * FROM service_packages 
       WHERE is_active = true
       ORDER BY category, billing_period, price
     `;
 
+<<<<<<< HEAD
     const result = await pool.query(query);
 
     return res.json({
@@ -56,11 +66,38 @@ router.get('/category/:category', async (req: Request, res: Response): Promise<R
     const { category } = req.params;
 
     const query = `
+=======
+      const result = await pool.query(query);
+
+      return res.json({
+        success: true,
+        packages: result.rows,
+      });
+    } catch (error) {
+      console.error("Error fetching active packages:", error);
+      return res.status(500).json({
+        success: false,
+        error: "Failed to fetch active packages",
+      });
+    }
+  },
+);
+
+// Get packages by category
+router.get(
+  "/category/:category",
+  async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { category } = req.params;
+
+      const query = `
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       SELECT * FROM service_packages 
       WHERE category = $1 AND is_active = true
       ORDER BY billing_period, price
     `;
 
+<<<<<<< HEAD
     const result = await pool.query(query, [category]);
 
     return res.json({
@@ -75,19 +112,44 @@ router.get('/category/:category', async (req: Request, res: Response): Promise<R
     });
   }
 });
+=======
+      const result = await pool.query(query, [category]);
+
+      return res.json({
+        success: true,
+        packages: result.rows,
+      });
+    } catch (error) {
+      console.error("Error fetching packages by category:", error);
+      return res.status(500).json({
+        success: false,
+        error: "Failed to fetch packages",
+      });
+    }
+  },
+);
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
 // Get a single package by ID
-router.get('/:id', async (req: Request, res: Response): Promise<Response> => {
+router.get("/:id", async (req: Request, res: Response): Promise<Response> => {
   try {
     const { id } = req.params;
 
+<<<<<<< HEAD
     const query = 'SELECT * FROM service_packages WHERE id = $1';
+=======
+    const query = "SELECT * FROM service_packages WHERE id = $1";
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     const result = await pool.query(query, [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
+<<<<<<< HEAD
         error: 'Package not found',
+=======
+        error: "Package not found",
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       });
     }
 
@@ -96,16 +158,23 @@ router.get('/:id', async (req: Request, res: Response): Promise<Response> => {
       package: result.rows[0],
     });
   } catch (error) {
+<<<<<<< HEAD
     console.error('Error fetching package:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch package',
+=======
+    console.error("Error fetching package:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to fetch package",
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     });
   }
 });
 
 // Create a new package (admin only)
-router.post('/', async (req: Request, res: Response): Promise<Response> => {
+router.post("/", async (req: Request, res: Response): Promise<Response> => {
   try {
     const {
       package_id,
@@ -148,16 +217,23 @@ router.post('/', async (req: Request, res: Response): Promise<Response> => {
       package: result.rows[0],
     });
   } catch (error) {
+<<<<<<< HEAD
     console.error('Error creating package:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to create package',
+=======
+    console.error("Error creating package:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to create package",
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     });
   }
 });
 
 // Update a package (admin only)
-router.put('/:id', async (req: Request, res: Response): Promise<Response> => {
+router.put("/:id", async (req: Request, res: Response): Promise<Response> => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -165,7 +241,13 @@ router.put('/:id', async (req: Request, res: Response): Promise<Response> => {
     // Build dynamic update query
     const fields = Object.keys(updates);
     const values = Object.values(updates);
+<<<<<<< HEAD
     const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
+=======
+    const setClause = fields
+      .map((field, index) => `${field} = $${index + 2}`)
+      .join(", ");
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
     const query = `
       UPDATE service_packages 
@@ -179,7 +261,11 @@ router.put('/:id', async (req: Request, res: Response): Promise<Response> => {
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
+<<<<<<< HEAD
         error: 'Package not found',
+=======
+        error: "Package not found",
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       });
     }
 
@@ -188,26 +274,44 @@ router.put('/:id', async (req: Request, res: Response): Promise<Response> => {
       package: result.rows[0],
     });
   } catch (error) {
+<<<<<<< HEAD
     console.error('Error updating package:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to update package',
+=======
+    console.error("Error updating package:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to update package",
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     });
   }
 });
 
 // Deactivate a package (soft delete)
+<<<<<<< HEAD
 router.delete('/:id', async (req: Request, res: Response): Promise<Response> => {
   try {
     const { id } = req.params;
 
     const query = `
+=======
+router.delete(
+  "/:id",
+  async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { id } = req.params;
+
+      const query = `
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       UPDATE service_packages 
       SET is_active = false, updated_at = NOW()
       WHERE id = $1
       RETURNING *
     `;
 
+<<<<<<< HEAD
     const result = await pool.query(query, [id]);
 
     if (result.rows.length === 0) {
@@ -230,5 +334,30 @@ router.delete('/:id', async (req: Request, res: Response): Promise<Response> => 
     });
   }
 });
+=======
+      const result = await pool.query(query, [id]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: "Package not found",
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: "Package deactivated successfully",
+        package: result.rows[0],
+      });
+    } catch (error) {
+      console.error("Error deactivating package:", error);
+      return res.status(500).json({
+        success: false,
+        error: "Failed to deactivate package",
+      });
+    }
+  },
+);
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
 export default router;

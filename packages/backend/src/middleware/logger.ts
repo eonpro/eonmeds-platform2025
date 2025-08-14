@@ -1,6 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 
-export const requestLogger = (req: Request, _res: Response, next: NextFunction) => {
+export const requestLogger = (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) => {
   const timestamp = new Date().toISOString();
   const method = req.method;
   const url = req.url;

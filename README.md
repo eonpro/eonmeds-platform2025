@@ -20,17 +20,20 @@ HIPAA-compliant telehealth platform backend for the Hispanic community.
 ## Setup
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Set up environment variables:**
+
    ```bash
    cp env.example .env
    # Edit .env with your configuration
    ```
 
 3. **Set up the database:**
+
    ```bash
    # Create database
    createdb eonmeds
@@ -55,6 +58,7 @@ HIPAA-compliant telehealth platform backend for the Hispanic community.
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/v1/auth/register` - Register new user
 - `POST /api/v1/auth/login` - Login user
 - `POST /api/v1/auth/refresh-token` - Refresh access token
@@ -83,6 +87,7 @@ HIPAA-compliant telehealth platform backend for the Hispanic community.
 ## Database Schema
 
 Key tables:
+
 - `users` - User accounts with RBAC
 - `roles` - User roles and permissions
 - `patients` - Patient records with hashtags
@@ -92,6 +97,7 @@ Key tables:
 ## Development
 
 ### Project Structure
+
 ```
 src/
 ├── config/         # Database and app configuration
@@ -104,6 +110,7 @@ src/
 ```
 
 ### Testing API
+
 ```bash
 # Register a new user
 curl -X POST http://localhost:3000/api/v1/auth/register \
@@ -126,4 +133,4 @@ curl -X POST http://localhost:3000/api/v1/auth/login \
 
 ## License
 
-Copyright © 2024 EONMeds. All rights reserved. 
+Copyright © 2024 EONMeds. All rights reserved.

@@ -1,10 +1,14 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 
 /**
  * Middleware to bypass authentication for webhook endpoints
  * This ensures webhooks can always be received regardless of Auth0 configuration
  */
-export const bypassAuth = (req: Request, _res: Response, next: NextFunction) => {
+export const bypassAuth = (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) => {
   // Remove any auth headers that might trigger authentication
   delete req.headers.authorization;
   delete req.headers.Authorization;

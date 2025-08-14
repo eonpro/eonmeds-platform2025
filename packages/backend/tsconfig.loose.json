@@ -22,6 +22,11 @@
     "removeComments": true,
     "sourceMap": true,
     "allowJs": true,
+    "types": [],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
     "checkJs": false
   },
   "include": ["src/**/*"],

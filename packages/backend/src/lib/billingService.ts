@@ -234,6 +234,8 @@ export async function createInvoiceAndPay({
   email_invoice?: boolean;
   idempotencyKey?: string;
 }): Promise<{
+  invoice: any;
+  payment: any;
   invoiceId: string;
   status: string;
   paymentIntentId?: string;

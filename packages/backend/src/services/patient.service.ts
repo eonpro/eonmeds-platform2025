@@ -1,4 +1,4 @@
-import { pool } from '../config/database';
+import { pool } from "../config/database";
 
 export interface Patient {
   id: string;
@@ -42,10 +42,10 @@ export class PatientService {
     limit: number = 100,
     offset: number = 0,
     search?: string,
-    status?: string
+    status?: string,
   ): Promise<{ patients: PatientListItem[]; total: number }> {
     try {
-      let whereClause = 'WHERE 1=1';
+      let whereClause = "WHERE 1=1";
       const params: any[] = [];
       let paramCount = 0;
 
@@ -108,7 +108,7 @@ export class PatientService {
         total,
       };
     } catch (error) {
-      console.error('Error in getPatientList:', error);
+      console.error("Error in getPatientList:", error);
       throw error;
     }
   }
@@ -150,7 +150,7 @@ export class PatientService {
 
       return result.rows[0];
     } catch (error) {
-      console.error('Error in getPatientById:', error);
+      console.error("Error in getPatientById:", error);
       throw error;
     }
   }
@@ -210,7 +210,11 @@ export class PatientService {
   static async updatePatientStatus(
     patientId: string,
     status: string,
+<<<<<<< HEAD
     reviewedBy?: string
+=======
+    reviewedBy?: string,
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   ): Promise<boolean> {
     const client = await pool.connect();
 

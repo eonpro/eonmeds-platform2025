@@ -3,12 +3,14 @@
 ## Pre-Deployment Verification
 
 ### 1. Auth0 Configuration Fixed ✅
+
 - Domain: `dev-dvouayl22wlz8zwq.us.auth0.com` (NOT eonmeds.us.auth0.com)
 - Client ID: `VPA89aq0Y7N05GvX5KqkDm5JLXPknG0L`
 - Audience: `https://api.eonmeds.com`
 - All callback URLs configured in Auth0 dashboard
 
 ### 2. Backend Fixes Applied ✅
+
 - Auth0 middleware updated to use correct domain
 - Temporary bypass token mechanism in place
 - Invoice tables creation added to startup
@@ -16,11 +18,13 @@
 - Payment controller exists and properly imported
 
 ### 3. Frontend Fixes Applied ✅
+
 - useApi hook updated to use environment variables
 - Bypass token logic added for auth failures
 - Auth0 configuration uses correct domain
 
 ### 4. Railway Environment Variables ✅
+
 All documented in RAILWAY_ENV_COMPLETE.md
 
 ## Deployment Steps
@@ -28,6 +32,7 @@ All documented in RAILWAY_ENV_COMPLETE.md
 ### Backend Service (eonmeds-platform2025)
 
 1. Verify environment variables in Railway:
+
    ```
    AUTH0_DOMAIN=dev-dvouayl22wlz8zwq.us.auth0.com
    AUTH0_AUDIENCE=https://api.eonmeds.com
@@ -41,6 +46,7 @@ All documented in RAILWAY_ENV_COMPLETE.md
 ### Frontend Service (intuitive-learning)
 
 1. Verify environment variables in Railway:
+
    ```
    REACT_APP_AUTH0_DOMAIN=dev-dvouayl22wlz8zwq.us.auth0.com
    REACT_APP_AUTH0_CLIENT_ID=VPA89aq0Y7N05GvX5KqkDm5JLXPknG0L
@@ -76,6 +82,7 @@ All documented in RAILWAY_ENV_COMPLETE.md
 ## Temporary Access
 
 If Auth0 issues persist, use bypass token:
+
 - Token: `temporary-bypass-token-12345`
 - Automatically used by frontend when Auth0 fails
 
@@ -92,4 +99,4 @@ If Auth0 issues persist, use bypass token:
 
 - Auth0 Config: AUTH0_CORRECT_CONFIG.md
 - Railway Env: RAILWAY_ENV_COMPLETE.md
-- All credentials saved and will never change 
+- All credentials saved and will never change

@@ -136,7 +136,12 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
       onSuccess();
       onClose();
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to create invoice');
+      // Handle specific error cases
+      if (error.response?.data?.need_payment_method) {
+        setError('This customer has no default payment method. Add a card or choose "Email invoice".');
+      } else {
+        setError(error.response?.data?.error || error.response?.data?.message || 'Failed to create invoice');
+      }
     } finally {
       setCreating(false);
     }

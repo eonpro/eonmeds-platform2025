@@ -12,6 +12,11 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "allowJs": true,
+    "types": [],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

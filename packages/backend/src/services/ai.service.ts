@@ -1,5 +1,5 @@
-import OpenAI from 'openai';
-import { pool } from '../config/database';
+import OpenAI from "openai";
+import { pool } from "../config/database";
 
 export class AIService {
   private static openai: OpenAI | null = null;
@@ -12,7 +12,7 @@ export class AIService {
       const apiKey = process.env.OPENAI_API_KEY;
 
       if (!apiKey) {
-        throw new Error('OPENAI_API_KEY is not configured');
+        throw new Error("OPENAI_API_KEY is not configured");
       }
 
       this.openai = new OpenAI({
@@ -27,19 +27,27 @@ export class AIService {
    * Generate SOAP note from patient intake data
    */
   static async generateSOAPNote(
+<<<<<<< HEAD
     patientId: string
+=======
+    patientId: string,
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   ): Promise<{ success: boolean; soapNote?: any; error?: string }> {
     try {
       // Debug log to confirm new code is deployed
       console.log(
+<<<<<<< HEAD
         `AI Service: Generating SOAP note for patient ${patientId} (VARCHAR format fixed)`
+=======
+        `AI Service: Generating SOAP note for patient ${patientId} (VARCHAR format fixed)`,
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       );
 
       // Fetch patient information
       const patientData = await this.getPatientData(patientId);
 
       if (!patientData) {
-        throw new Error('Patient not found');
+        throw new Error("Patient not found");
       }
 
       // Prepare the prompt
@@ -53,15 +61,24 @@ export class AIService {
       const client = this.getClient();
       try {
         completion = await client.chat.completions.create({
-          model: 'gpt-4',
+          model: "gpt-4",
           messages: [
             {
+<<<<<<< HEAD
               role: 'system',
               content:
                 'You are a medical professional creating SOAP notes from patient intake forms. Create clear, professional, and concise SOAP notes following standard medical documentation practices.',
             },
             {
               role: 'user',
+=======
+              role: "system",
+              content:
+                "You are a medical professional creating SOAP notes from patient intake forms. Create clear, professional, and concise SOAP notes following standard medical documentation practices.",
+            },
+            {
+              role: "user",
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
               content: prompt,
             },
           ],
@@ -70,18 +87,27 @@ export class AIService {
         });
       } catch (error: any) {
         // If quota exceeded, try with GPT-3.5
-        if (error.status === 429 || error.message?.includes('quota')) {
-          console.log('GPT-4 quota exceeded, falling back to GPT-3.5-turbo');
+        if (error.status === 429 || error.message?.includes("quota")) {
+          console.log("GPT-4 quota exceeded, falling back to GPT-3.5-turbo");
           completion = await client.chat.completions.create({
-            model: 'gpt-3.5-turbo',
+            model: "gpt-3.5-turbo",
             messages: [
               {
+<<<<<<< HEAD
                 role: 'system',
                 content:
                   'You are a medical professional creating SOAP notes from patient intake forms. Create clear, professional, and concise SOAP notes following standard medical documentation practices.',
               },
               {
                 role: 'user',
+=======
+                role: "system",
+                content:
+                  "You are a medical professional creating SOAP notes from patient intake forms. Create clear, professional, and concise SOAP notes following standard medical documentation practices.",
+              },
+              {
+                role: "user",
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
                 content: prompt,
               },
             ],
@@ -95,7 +121,7 @@ export class AIService {
 
       const soapNote = completion.choices[0]?.message?.content;
       const responseTime = Date.now() - startTime;
-      const modelUsed = completion.model || 'gpt-4';
+      const modelUsed = completion.model || "gpt-4";
 
       // Save to database and get the saved note
       if (soapNote) {
@@ -117,10 +143,14 @@ export class AIService {
         soapNote: null,
       };
     } catch (error) {
-      console.error('Error generating SOAP note:', error);
+      console.error("Error generating SOAP note:", error);
       return {
         success: false,
+<<<<<<< HEAD
         error: error instanceof Error ? error.message : 'Unknown error',
+=======
+        error: error instanceof Error ? error.message : "Unknown error",
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       };
     }
   }
@@ -164,6 +194,7 @@ export class AIService {
     // Format height
     const feet = fields.feet || fields.FEET || 0;
     const inches = fields.inches || fields.INCHES || 0;
+<<<<<<< HEAD
     const heightDisplay = feet && inches ? `${feet}'${inches}"` : 'Not provided';
 
     // Get weight data
@@ -236,6 +267,88 @@ export class AIService {
       month: '2-digit',
       day: '2-digit',
       year: 'numeric',
+=======
+    const heightDisplay =
+      feet && inches ? `${feet}'${inches}"` : "Not provided";
+
+    // Get weight data
+    const currentWeight =
+      fields["starting weight"] ||
+      fields["STARTING WEIGHT"] ||
+      fields.starting_weight ||
+      fields.weight ||
+      patientData.weight_lbs ||
+      "Not provided";
+    const targetWeight =
+      fields.idealweight ||
+      fields.IDEALWEIGHT ||
+      fields["ideal weight"] ||
+      fields["IDEAL WEIGHT"] ||
+      patientData.target_weight_lbs ||
+      "Not provided";
+    const bmi = fields.BMI || fields.bmi || patientData.bmi || "Not calculated";
+
+    // Get medical history
+    const glp1History =
+      fields[
+        "Are you currently taking, or have you ever taken, a GLP-1 medication?"
+      ] ||
+      fields["GLP-1 medication history"] ||
+      "Not provided";
+    const sideEffects =
+      fields[
+        "Do you usually present side effects when starting a new medication?"
+      ] ||
+      fields["medication side effects"] ||
+      "Not provided";
+    const allergies =
+      fields["medication allergies"] || fields.allergies || "None reported";
+    const pregnantStatus =
+      fields["Are you pregnant or breast feeding?"] ||
+      fields.pregnant_breastfeeding ||
+      "Not pregnant or breastfeeding";
+
+    // Get goals and motivation
+    const commitment =
+      fields["HOW COMMITTED ARE YOU TO STARTING TREATMENT? (SCALE 1-5)"] ||
+      fields["commitment level"] ||
+      fields.commitment_level ||
+      "Not provided";
+    const lifeChange =
+      fields["HOW WOULD YOUR LIFE CHANGE BY LOSING WEIGHT?"] ||
+      fields["Life Change"] ||
+      "Not provided";
+
+    // Get location info
+    const city = patientData.city || fields.city || "Not provided";
+    const state = patientData.state || fields.state || "Not provided";
+
+    // Determine encounter type based on state
+    const telehealthStates = [
+      "AR",
+      "Arkansas",
+      "GA",
+      "Georgia",
+      "MS",
+      "Mississippi",
+      "NC",
+      "North Carolina",
+      "RI",
+      "Rhode Island",
+      "TX",
+      "Texas",
+    ];
+    const encounterType = telehealthStates.includes(state)
+      ? "Telehealth"
+      : "Asynchronous";
+
+    // Format DOB to remove time
+    const dobDate = new Date(patientData.date_of_birth);
+    const formattedDOB = dobDate.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     });
 
     const prompt = `Generate a professional SOAP note for a weight loss clinic using the following patient data and format exactly:
@@ -351,16 +464,27 @@ Provider`;
   private static async saveSOAPNote(
     patientId: string,
     content: string,
-    metadata: any
+    metadata: any,
   ): Promise<any> {
     const client = await pool.connect();
 
     try {
       // Debug: Log the values being inserted
+<<<<<<< HEAD
       console.log('Inserting SOAP note with values:');
       console.log('  patient_id:', patientId, `(length: ${patientId.length})`);
       console.log('  ai_model:', metadata.model, `(length: ${metadata.model?.length || 0})`);
       console.log('  content length:', content.length);
+=======
+      console.log("Inserting SOAP note with values:");
+      console.log("  patient_id:", patientId, `(length: ${patientId.length})`);
+      console.log(
+        "  ai_model:",
+        metadata.model,
+        `(length: ${metadata.model?.length || 0})`,
+      );
+      console.log("  content length:", content.length);
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
       const result = await client.query(
         `
@@ -385,7 +509,11 @@ Provider`;
           metadata.usage?.prompt_tokens,
           metadata.usage?.completion_tokens,
           metadata.usage?.total_tokens,
+<<<<<<< HEAD
         ]
+=======
+        ],
+>>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       );
 
       return result.rows[0];
