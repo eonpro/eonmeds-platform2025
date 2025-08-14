@@ -11384,3 +11384,242 @@ We've been assuming the issue is with browser caching or session persistence, bu
 1. Increase access token lifetime to reduce refresh needs
 2. Implement automatic re-login when token expires
 3. Use Auth0's built-in session management without refresh tokens
+
+## NEW LESSON: Command Structure for Optimal AI Performance
+
+To help the AI assistant perform at its best and avoid confusion:
+
+### Best Command Format:
+```
+[MODE]: [SPECIFIC TASK]
+
+Context:
+- [Current state/what was just completed]
+- [Any constraints or requirements]
+
+Goal:
+- [Clear, specific outcome desired]
+
+Success Criteria:
+- [ ] [Measurable criterion 1]
+- [ ] [Measurable criterion 2]
+```
+
+### Examples:
+- ✅ GOOD: "Executor mode: Install Stripe package and create config file"
+- ❌ BAD: "fix stripe"
+
+### Key Points:
+1. Always specify mode (Planner/Executor)
+2. One task at a time
+3. Include relevant file paths
+4. Define what "done" looks like
+5. Provide error messages if debugging
+
+See `.cursor/COMMAND_STRUCTURE_GUIDE.md` for comprehensive examples and templates.
+
+## PLANNER MODE — EONMeds Platform Analysis & Stripe Integration Plan
+
+### Project Overview
+
+**EONMeds** is a HIPAA-compliant telehealth platform for the Hispanic community that offers:
+
+1. **Medical Services**:
+   - Weight loss programs (Semaglutide, Tirzepatide)
+   - Hormone replacement therapy (Testosterone)
+   - Mental health medications (Modafinil)
+   - Peptide therapies (CJC/Ipamorelin, BPC-157)
+   - Lab work and consultations
+
+2. **Key Features**:
+   - Patient intake via HeyFlow webhooks
+   - JWT-based Auth0 authentication
+   - Role-based access (superadmin, admin, provider, sales_rep, patient)
+   - Invoice management system
+   - Payment processing (previously Stripe)
+   - PostgreSQL database with comprehensive schema
+
+### Current State
+
+1. **Working Components**:
+   - ✅ HeyFlow webhook integration for patient intake
+   - ✅ Auth0 authentication 
+   - ✅ Basic invoice creation (database only)
+   - ✅ Patient management system
+   - ✅ Frontend with React + TypeScript
+
+2. **Removed Components**:
+   - ❌ ALL Stripe integration code
+   - ❌ Payment processing
+   - ❌ Webhook handlers for Stripe
+   - ❌ Customer creation/management
+
+3. **Database Schema**:
+   - Still has Stripe columns (stripe_customer_id, stripe_payment_intent_id, etc.)
+   - Tables: patients, invoices, invoice_items, invoice_payments, service_packages
+
+### Billing Flow Analysis
+
+From code analysis, the intended flow is:
+
+1. **Patient Onboarding**:
+   - Patient fills HeyFlow form → Webhook creates patient record
+   - Patient gets assigned a unique ID (P0001, P0002, etc.)
+
+2. **Invoice Creation**:
+   - Provider creates invoice for patient services
+   - Can include multiple line items (medications, consultations)
+   - Two main endpoints:
+     - `/api/v1/payments/invoices/create` - Simple database invoice
+     - `/api/v1/billing/invoice/create-and-pay` - Was Stripe integrated
+
+3. **Payment Collection**:
+   - Previously supported immediate charge or email invoice
+   - Stored payment methods for recurring billing
+   - Tracked payments in invoice_payments table
+
+### Stripe Integration Plan
+
+#### Phase 1: Foundation (Minimal Viable Integration)
+**Goal**: Basic invoice payment capability
+
+1. **Install & Configure**:
+   - Install stripe package
+   - Create stripe.config.ts with env validation
+   - Add STRIPE_SECRET_KEY to Railway
+
+2. **Customer Management**:
+   - Create Stripe customer when patient is created
+   - Store stripe_customer_id in patients table
+   - Sync patient email/name with Stripe
+
+3. **Basic Payment**:
+   - Create payment intent for invoices
+   - Handle successful payments
+   - Update invoice status to 'paid'
+
+**Success Criteria**:
+- [ ] Patients have Stripe customers
+- [ ] Can create payment intents
+- [ ] Can mark invoices as paid
+
+#### Phase 2: Payment Methods
+**Goal**: Save and reuse payment methods
+
+1. **Setup Intent**:
+   - Create setup intent for adding cards
+   - Store payment methods
+   - Set default payment method
+
+2. **Charge Saved Cards**:
+   - List patient payment methods
+   - Charge using saved card
+   - Handle failures gracefully
+
+**Success Criteria**:
+- [ ] Can save cards
+- [ ] Can view saved cards
+- [ ] Can charge saved cards
+
+#### Phase 3: Recurring Billing
+**Goal**: Support subscription services
+
+1. **Products & Prices**:
+   - Create Stripe products for services
+   - Map to service_packages table
+   - Support monthly/quarterly billing
+
+2. **Subscriptions**:
+   - Create subscriptions for recurring services
+   - Handle subscription lifecycle
+   - Update patient_packages table
+
+**Success Criteria**:
+- [ ] Products created in Stripe
+- [ ] Can create subscriptions
+- [ ] Automatic recurring charges work
+
+#### Phase 4: Webhooks & Automation
+**Goal**: Handle async events
+
+1. **Webhook Handler**:
+   - Verify webhook signatures
+   - Handle payment success/failure
+   - Handle subscription events
+
+2. **Email Notifications**:
+   - Send receipts
+   - Payment failure alerts
+   - Upcoming charge notices
+
+**Success Criteria**:
+- [ ] Webhooks verified and processed
+- [ ] Email notifications sent
+- [ ] Async events handled
+
+#### Phase 5: Portal & Self-Service
+**Goal**: Patient self-service
+
+1. **Customer Portal**:
+   - View invoices & receipts
+   - Manage payment methods
+   - Update billing info
+
+2. **Subscription Management**:
+   - Pause/resume subscriptions
+   - Change plans
+   - View billing history
+
+**Success Criteria**:
+- [ ] Portal link generation works
+- [ ] Patients can self-manage
+- [ ] Reduces admin burden
+
+### Technical Considerations
+
+1. **Database**:
+   - **PostgreSQL on AWS RDS** (not local)
+   - Connection via DATABASE_URL env var
+   - Ensure proper SSL/TLS for RDS connections
+   - Consider connection pooling for AWS RDS
+
+2. **Security**:
+   - NEVER store card details
+   - Use Stripe Elements on frontend
+   - Implement PCI compliance
+   - Secure RDS connection (SSL required)
+
+3. **Error Handling**:
+   - Graceful failures
+   - Clear error messages
+   - Retry logic for transient failures
+   - RDS connection error handling
+
+4. **Testing**:
+   - Use Stripe test mode first
+   - Test with Stripe CLI locally
+   - Verify webhook signatures
+   - Test RDS connectivity from local env
+
+5. **Compliance**:
+   - HIPAA considerations
+   - Audit trails for payments
+   - Secure data transmission
+   - AWS RDS encryption at rest
+
+### Recommended First Steps
+
+1. Start with Phase 1 only
+2. Test thoroughly in development
+3. Use Stripe test keys
+4. Deploy to staging first
+5. Monitor closely in production
+
+The key is to build incrementally, test each phase thoroughly, and ensure the basic flow works before adding complexity.
+
+### Development Environment Notes
+
+- VS Code Stripe extension installed (provides syntax highlighting and IntelliSense)
+- Still need to install the actual Stripe npm package for the backend
+- Database is PostgreSQL on AWS RDS (not local)
+- Use Railway for deployment and environment variables

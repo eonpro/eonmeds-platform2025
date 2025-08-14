@@ -11,7 +11,6 @@
     "lint": "eslint . --fix",
     "format": "prettier --write .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "migrate": "ts-node src/scripts/run-migrations.ts",
     "migrate": "ts-node src/scripts/run-migrations.ts"
   },
   "engines": {
@@ -40,7 +39,7 @@
     "openai": "^5.10.1",
     "pdfkit": "^0.17.1",
     "pg": "^8.16.3",
-
+    "stripe": "^18.4.0",
     "uuid": "^11.1.0",
     "zod": "^3.22.4"
   },

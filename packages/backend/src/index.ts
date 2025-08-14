@@ -100,6 +100,14 @@ app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/payments/invoices', invoiceRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/ai', aiRoutes);
+
+// Stripe test routes (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  const stripeTestRoutes = require('./routes/stripe-test.routes').default;
+  app.use('/api/v1/stripe-test', stripeTestRoutes);
+  console.log('✅ Stripe test routes loaded (development only)');
+}
+
 console.log('✅ All routes registered (database check happens per route)');
 
 // Start server
