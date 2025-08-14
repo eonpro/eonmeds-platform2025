@@ -34,8 +34,8 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
   const loadCards = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get(`/api/v1/payments/patients/${patientId}/cards`);
-      setCards(response.data.cards || []);
+      const response = await apiClient.get(`/api/v1/payment-methods/patient/${patientId}`);
+      setCards(response.data.payment_methods || response.data.cards || []);
     } catch (err) {
       console.error('Error loading cards:', err);
       setError('Failed to load saved cards');
@@ -49,8 +49,9 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
     setSaving(true);
 
     try {
-      await apiClient.post(`/api/v1/payments/patients/${patientId}/cards`, {
+      await apiClient.post(`/api/v1/payment-methods/attach`, {
         payment_method_id: paymentMethodId,
+        patient_id: patientId,
         set_as_default: cards.length === 0, // Set as default if it's the first card
       });
 
@@ -70,7 +71,7 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
     }
 
     try {
-      await apiClient.delete(`/api/v1/payments/cards/${cardId}`);
+      await apiClient.delete(`/api/v1/payment-methods/${cardId}`);
       await loadCards();
     } catch (err) {
       console.error('Error deleting card:', err);

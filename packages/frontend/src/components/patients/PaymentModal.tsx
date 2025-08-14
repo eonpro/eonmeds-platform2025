@@ -37,8 +37,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     try {
       setLoadingCards(true);
       // Try to load saved cards, but don't fail if the endpoint doesn't exist
-      const response = await apiClient.get(`/api/v1/payments/patients/${invoice.patient_id}/cards`);
-      const cards = response.data.cards || response.data || [];
+      const response = await apiClient.get(`/api/v1/payment-methods/patient/${invoice.patient_id}`);
+      const cards = response.data.payment_methods || response.data.cards || response.data || [];
       setSavedCards(Array.isArray(cards) ? cards : []);
 
       if (cards.length > 0) {
