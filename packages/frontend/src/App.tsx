@@ -16,6 +16,7 @@ import { UserProfile } from './components/auth/UserProfile';
 import { TestAuth } from './pages/TestAuth';
 import { DebugAuth } from './components/auth/DebugAuth';
 import { Auth0Callback } from './components/auth/Auth0Callback';
+import { FinancialDashboard } from './pages/FinancialDashboard';
 import './i18n'; // Initialize i18n
 import './App.css';
 
@@ -77,6 +78,14 @@ function App() {
                         element={
                           <ProtectedRoute requiredRoles={['admin']}>
                             <Packages />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/financial-dashboard"
+                        element={
+                          <ProtectedRoute requiredRoles={['admin', 'superadmin']}>
+                            <FinancialDashboard />
                           </ProtectedRoute>
                         }
                       />

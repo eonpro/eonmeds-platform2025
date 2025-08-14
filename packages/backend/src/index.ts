@@ -105,6 +105,10 @@ app.use('/api/v1/ai', aiRoutes);
 const paymentMethodsRoutes = require('./routes/payment-methods.routes').default;
 app.use('/api/v1/payment-methods', paymentMethodsRoutes);
 
+// Financial dashboard routes (Admin only)
+const financialDashboardRoutes = require('./routes/financial-dashboard.routes').default;
+app.use('/api/v1/financial-dashboard', financialDashboardRoutes);
+
 // Stripe test routes (only in development)
 if (process.env.NODE_ENV !== 'production') {
   const stripeTestRoutes = require('./routes/stripe-test.routes').default;
