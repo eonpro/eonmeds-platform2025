@@ -1,16 +1,72 @@
 # EONPRO 2025 - Complete Codebase Restoration Plan
 
-## PLANNER MODE — Stripe Integration Analysis in EONPRO August India
+## PLANNER MODE — Should We Delete Stripe Integration and Start Over?
 
-### Background and Intent
-- Analyze ONLY the EONPRO August India folder on desktop for Stripe integration
-- Search thoroughly for any Stripe-related code, configuration, or documentation
-- Identify the complete Stripe implementation if it exists
-- Create a plan based on findings
+### Current Situation
+- Invoice creation still returning 500 error after fixes
+- Multiple Stripe-related files with merge conflicts
+- Webhook endpoints exist but configuration is complex
+- Customer creation logic added but still failing
 
-### Analysis Results: EONPRO August India Folder
+### Analysis of Current Problems
+1. **Multiple conflicting implementations**
+   - Different webhook endpoints registered in different places
+   - Merge conflicts in critical files (stripe.service.ts had many)
+   - Inconsistent error handling
 
-After thorough analysis of the EONPRO August India folder, I found:
+2. **Configuration issues**
+   - Stripe keys may not be properly set in Railway
+   - Database schema might be missing required columns
+   - Complex middleware ordering issues
+
+3. **Testing challenges**
+   - Can't see actual error messages in logs
+   - Multiple deployment environments causing confusion
+   - Hard to debug without proper error logging
+
+### Recommendation: Yes, Start Fresh with Clean Implementation
+
+After careful analysis, I recommend **starting over with a clean Stripe integration** for these reasons:
+
+1. **Too many conflicting implementations**
+   - Multiple webhook endpoints in different files
+   - Merge conflicts throughout the codebase
+   - Unclear which code is actually being used
+
+2. **Working reference available**
+   - We have a complete, working Stripe implementation in `/Users/italopignano/Desktop/EONPRO SOFTWARE CURSOR/heyflow-intakeq-integration/`
+   - This implementation is tested and production-ready
+   - Clear, simple architecture we can follow
+
+3. **Current approach is not sustainable**
+   - Fixing one error reveals another
+   - Can't properly debug due to deployment complexity
+   - Time spent debugging exceeds time to rebuild
+
+### Proposed Clean Implementation Plan
+
+#### Phase 1: Remove Current Stripe Code
+1. Delete all existing Stripe-related files
+2. Remove Stripe webhook endpoints from index.ts
+3. Clean up database tables
+4. Create fresh branch for new implementation
+
+#### Phase 2: Port Working Implementation
+1. Copy the working StripeClient from heyflow-intakeq-integration
+2. Create simple, single webhook endpoint
+3. Implement basic invoice creation with proper error handling
+4. Add comprehensive logging
+
+#### Phase 3: Test and Deploy
+1. Test locally first with Stripe CLI
+2. Deploy with minimal features
+3. Add features incrementally once basic flow works
+
+### Benefits of Starting Fresh
+- Clean, understandable codebase
+- No merge conflicts or legacy issues  
+- Faster to implement than debug current mess
+- Can follow proven patterns from working implementation
 
 1. **NO Stripe Integration** - The project uses Square for payments, not Stripe
 2. **Square Integration Details**:

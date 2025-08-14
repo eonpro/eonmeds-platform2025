@@ -52,25 +52,19 @@ app.use((req, _res, next) => {
   next();
 });
 
-// IMPORTANT: Stripe webhook endpoints MUST be registered before body parsing middleware
-// This is because Stripe requires the raw body for signature verification
-app.post('/api/v1/payments/webhook/stripe', 
+// Stripe webhook endpoint - MUST be before body parsing middleware
+app.post('/api/v1/stripe/webhook', 
   express.raw({ type: 'application/json' }), 
-  (req, res) => {
-    // Import and use the webhook handler directly
-    const {
-      handleStripeWebhook,
-    } = require("./controllers/stripe-webhook.controller");
-    handleStripeWebhook(req, res);
-  },
+  async (req, res) => {
+    try {
+      const { handleStripeWebhook } = await import('./controllers/stripe-webhook.controller');
+      await handleStripeWebhook(req, res);
+    } catch (error) {
+      console.error('Error loading webhook handler:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
 );
-
-// New Stripe webhook endpoint with improved handling
-app.post('/api/v1/stripe/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-  // Import and use the new webhook handler
-  const { handleStripeWebhook } = require('./routes/stripe.webhook');
-  handleStripeWebhook(req, res);
-});
 
 // NOW we can add body parsing middleware for all other routes
 app.use(express.json({ limit: "10mb" }));
