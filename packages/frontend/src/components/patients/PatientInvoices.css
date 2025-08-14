@@ -237,6 +237,24 @@
   background: #f3f4f6;
 }
 
+.pay-invoice-btn {
+  padding: 6px 16px;
+  background-color: #14a97b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.pay-invoice-btn:hover {
+  background-color: #0f8a63;
+  transform: translateY(-1px);
+}
+
 .delete-invoice-btn {
   background: none;
   border: none;

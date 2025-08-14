@@ -1,0 +1,270 @@
+/* Edit Invoice Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.edit-invoice-modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+/* Form Section */
+.form-section {
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row:last-child {
+  margin-bottom: 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #14a97b;
+  box-shadow: 0 0 0 3px rgba(20, 169, 123, 0.1);
+}
+
+/* Invoice Items Section */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.add-item-btn {
+  background-color: #14a97b;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-item-btn:hover {
+  background-color: #0f8a63;
+}
+
+.items-list {
+  margin-bottom: 20px;
+}
+
+.invoice-item {
+  margin-bottom: 12px;
+}
+
+.item-row {
+  display: grid;
+  grid-template-columns: 3fr 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.item-description input {
+  width: 100%;
+}
+
+.item-quantity input,
+.item-price input {
+  width: 100%;
+  text-align: center;
+}
+
+.item-total {
+  font-weight: 600;
+  color: #111827;
+  text-align: right;
+}
+
+.remove-item-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.remove-item-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Invoice Total */
+.invoice-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.total-amount {
+  color: #14a97b;
+}
+
+/* Error Message */
+.error-message {
+  background-color: #fee;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin: 16px 24px;
+  font-size: 14px;
+}
+
+/* Modal Footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 24px;
+  background-color: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  border-radius: 0 0 12px 12px;
+}
+
+.secondary-btn,
+.primary-btn {
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.secondary-btn {
+  background-color: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.secondary-btn:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.primary-btn {
+  background-color: #14a97b;
+  color: white;
+}
+
+.primary-btn:hover {
+  background-color: #0f8a63;
+}
+
+.primary-btn:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}

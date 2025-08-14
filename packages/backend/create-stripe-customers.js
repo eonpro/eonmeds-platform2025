@@ -28,10 +28,8 @@ async function createStripeCustomersForPatients() {
         p.last_name,
         p.email,
         p.phone,
-        p.stripe_customer_id,
-        u.email as user_email
+        p.stripe_customer_id
       FROM patients p
-      LEFT JOIN users u ON p.user_id = u.id
       WHERE p.stripe_customer_id IS NULL OR p.stripe_customer_id = ''
     `);
 
@@ -55,7 +53,7 @@ async function createStripeCustomersForPatients() {
     for (const patient of patients) {
       try {
         // Prepare customer data
-        const email = patient.email || patient.user_email;
+        const email = patient.email;
         const name = `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || 'Unknown Patient';
 
         // Skip if no email available

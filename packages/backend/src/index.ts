@@ -281,11 +281,23 @@ app.use((req, res) => {
 });
 
 // Error handling middleware
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Error:', err);
-  res.status(err.status || 500).json({
+
+  // Always include useful debugging info in output
+  const responseBody: any = {
     error: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    // Only include stack trace in development
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    // Always include status and path for debugging
+    status: err.status || 500,
+    path: req.path,
+    method: req.method
+  };
+
+  res.status(err.status || 500).json(responseBody);
+});
+
   });
 });
 

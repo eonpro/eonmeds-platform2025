@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
-import './CreateInvoiceModal.css'; // Reuse the same styles
+import './EditInvoiceModal.css';
 
 interface EditInvoiceModalProps {
   invoice: any;
@@ -79,7 +79,7 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="create-invoice-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="edit-invoice-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Edit Invoice #{invoice.invoice_number}</h2>
           <button className="close-btn" onClick={onClose}>×</button>

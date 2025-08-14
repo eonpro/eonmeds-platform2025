@@ -30,9 +30,12 @@
 #### Railway Backend Environment Variables
 Navigate to Railway dashboard → Backend service → Variables tab and add:
 
-```bash
-STRIPE_SECRET_KEY=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
-STRIPE_WEBHOOK_SECRET=whsec_3l3mCp3g2kd50an0PpgQJuBqUfNKGGYv
+# ⚠️ SECURITY WARNING: Do NOT commit real secret keys to version control. 
+# Instead, add these variables directly in the Railway dashboard under the Backend service → Variables tab.
+# For local development, use a `.env` file (which should be gitignored).
+
+STRIPE_SECRET_KEY=<your-live-stripe-secret-key>
+STRIPE_WEBHOOK_SECRET=<your-stripe-webhook-secret>
 STRIPE_TRIAL_DAYS=0
 INVOICE_DUE_DAYS=30
 JWT_SECRET=<generate with: openssl rand -base64 32>

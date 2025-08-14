@@ -299,10 +299,10 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
                                 setSelectedInvoice(invoice);
                                 setShowPaymentModal(true);
                               }}
-                              className="action-btn"
-                              title="Charge Invoice"
+                              className="pay-invoice-btn"
+                              title="Pay Invoice"
                             >
-                              Charge
+                              Pay
                             </button>
                             <button
                               onClick={() => {

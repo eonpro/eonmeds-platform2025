@@ -7,10 +7,13 @@
 - **`STRIPE_SECRET_KEY`** (Required)
   - Your Stripe API secret key.
   - Format: `sk_test_xxx` (for test mode) or `sk_live_xxx` (for production).
-  - **Security Note:** This key should never be committed to your repository or shared publicly. Store it in a `.env` file or a secure secrets manager. For more information, see [Stripe's key safety guide](https://stripe.com/docs/keys#safe-keys).
+  - **Security Warning:** Never commit this key to your repository or share it publicly. Store it securely in a `.env` file or a secrets manager. See [Stripe's key safety guide](https://stripe.com/docs/keys#safe-keys) for best practices.
   - Get from: Stripe Dashboard → Developers → API keys
 
 - **`STRIPE_WEBHOOK_SECRET`** (Required for webhooks)
+  - Secret used to verify Stripe webhook signatures.
+  - Format: `whsec_xxx`
+  - Get from: Stripe Dashboard → Developers → Webhooks → Your endpoint → Signing secret
   - Secret used to verify Stripe webhook signatures.
   - Format: `whsec_xxx`
   - Get from: Stripe Dashboard → Developers → Webhooks → Your endpoint → Signing secret
