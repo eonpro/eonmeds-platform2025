@@ -12,12 +12,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "migrate": "ts-node src/scripts/run-migrations.ts",
-    "migrate:stripe": "ts-node src/db/migrations/run-migration.ts",
-    "backfill-payments": "ts-node --transpile-only -P tsconfig.loose.json src/scripts/backfill-stripe-payments.ts",
-    "sync-stripe": "node sync-stripe-customers.js",
-    "stripe:login": "stripe login",
-    "stripe:listen": "stripe listen --forward-to localhost:3000/api/v1/stripe/webhook",
-    "stripe:check": "ts-node src/tools/stripeSelfCheck.ts"
+    "migrate": "ts-node src/scripts/run-migrations.ts"
   },
   "engines": {
     "node": ">=18 <=22"
@@ -45,7 +40,7 @@
     "openai": "^5.10.1",
     "pdfkit": "^0.17.1",
     "pg": "^8.16.3",
-    "stripe": "^18.3.0",
+
     "uuid": "^11.1.0",
     "zod": "^3.22.4"
   },

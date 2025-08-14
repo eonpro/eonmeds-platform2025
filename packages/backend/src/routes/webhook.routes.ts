@@ -3,7 +3,6 @@ import {
   handleHeyFlowWebhook,
   webhookHealthCheck,
 } from "../controllers/webhook.controller";
-import { handleStripeWebhook } from "../controllers/stripe-webhook.controller";
 import { pool } from "../config/database";
 import { bypassAuth } from "../middleware/bypass-auth";
 
@@ -14,9 +13,6 @@ router.use(bypassAuth);
 
 // HeyFlow webhook endpoint
 router.post("/heyflow", handleHeyFlowWebhook);
-
-// Stripe webhook endpoint
-router.post("/stripe", handleStripeWebhook);
 
 // Webhook health check
 router.get("/health", webhookHealthCheck);

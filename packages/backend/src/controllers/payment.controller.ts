@@ -1,39 +1,17 @@
 import { Request, Response } from "express";
 import { pool } from "../config/database";
-import Stripe from "stripe";
 
-const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2025-06-30.basil",
-    })
-  : null;
+// Placeholder payment controller - to be implemented with new payment provider
 
 // Create a payment intent
 export const createPaymentIntent = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
-    if (!stripe) {
-      res.status(500).json({ error: "Stripe not configured" });
-      return;
-    }
-
-    const { amount, patientId } = req.body;
-
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount * 100, // Convert to cents
-      currency: "usd",
-      metadata: { patientId },
-    });
-
-    res.json({
-      clientSecret: paymentIntent.client_secret,
-    });
-  } catch (error) {
-    console.error("Error creating payment intent:", error);
-    res.status(500).json({ error: "Failed to create payment intent" });
-  }
+  res.status(501).json({ 
+    error: "Payment processing not implemented",
+    message: "Payment system is being rebuilt" 
+  });
 };
 
 // Charge an invoice
@@ -42,49 +20,46 @@ export const chargeInvoice = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const { invoiceId, amount } = req.body;
+    const { invoiceId } = req.body;
 
-    // Update invoice status
+    // For now, just mark invoice as paid in database
     await pool.query(
       `UPDATE invoices 
        SET status = 'paid', 
-           paid_at = NOW(), 
-           payment_method = 'card',
-           amount_paid = $2
+           payment_date = NOW(),
+           updated_at = NOW()
        WHERE id = $1`,
-      [invoiceId, amount],
+      [invoiceId]
     );
 
-    res.json({ success: true });
+    res.json({ 
+      success: true, 
+      message: "Invoice marked as paid (payment processing pending implementation)" 
+    });
   } catch (error) {
-    console.error("Error charging invoice:", error);
-    res.status(500).json({ error: "Failed to charge invoice" });
+    console.error("Error updating invoice:", error);
+    res.status(500).json({ error: "Failed to update invoice" });
   }
 };
 
 // Get payment methods for a patient
 export const getPaymentMethods = async (
-  _req: Request,
+  req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
-    // For now, return empty array
-    res.json({ paymentMethods: [] });
-  } catch (error) {
-    console.error("Error fetching payment methods:", error);
-    res.status(500).json({ error: "Failed to fetch payment methods" });
-  }
+  res.json({ 
+    paymentMethods: [],
+    message: "Payment methods not available (payment system being rebuilt)"
+  });
 };
 
 // Detach a payment method
 export const detachPaymentMethod = async (
-  _req: Request,
+  req: Request,
   res: Response,
 ): Promise<void> => {
-  try {
-    res.json({ success: true });
-  } catch (error) {
-    console.error("Error detaching payment method:", error);
-    res.status(500).json({ error: "Failed to detach payment method" });
-  }
+  res.json({ 
+    success: true,
+    message: "Payment method removed (payment system being rebuilt)"
+  });
 };

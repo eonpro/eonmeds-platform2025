@@ -18,7 +18,7 @@ router.post("/create", createInvoice);
 // Delete an invoice
 router.delete("/:invoiceId", deleteInvoice);
 
-// Charge an invoice with Stripe
+// Charge an invoice
 router.post("/:invoiceId/charge", chargeInvoice);
 
 // Manually mark invoice as paid
