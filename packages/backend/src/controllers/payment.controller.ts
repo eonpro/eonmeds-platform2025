@@ -179,7 +179,7 @@ export const getPaymentMethods = async (
       last4: pm.card?.last4 || '****',
       exp_month: pm.card?.exp_month,
       exp_year: pm.card?.exp_year,
-      is_default: pm.id === pm.customer?.default_source
+      is_default: false // We'll handle default payment method separately
     }));
     
     res.json({ 
