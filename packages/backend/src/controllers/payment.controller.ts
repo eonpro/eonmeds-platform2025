@@ -145,10 +145,54 @@ export const getPaymentMethods = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  res.json({ 
-    paymentMethods: [],
-    message: "Payment methods not available (payment system being rebuilt)"
-  });
+  try {
+    const { patientId } = req.params;
+    
+    // Get patient's Stripe customer ID
+    const result = await pool.query(
+      'SELECT stripe_customer_id FROM patients WHERE patient_id = $1',
+      [patientId]
+    );
+    
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: "Patient not found" });
+      return;
+    }
+    
+    const stripeCustomerId = result.rows[0].stripe_customer_id;
+    
+    if (!stripeCustomerId) {
+      res.json({ 
+        cards: [],
+        message: "No payment methods on file" 
+      });
+      return;
+    }
+    
+    // Get payment methods from Stripe
+    const paymentMethods = await stripeService.listPaymentMethods(stripeCustomerId);
+    
+    // Format for frontend
+    const cards = paymentMethods.map(pm => ({
+      id: pm.id,
+      brand: pm.card?.brand || 'card',
+      last4: pm.card?.last4 || '****',
+      exp_month: pm.card?.exp_month,
+      exp_year: pm.card?.exp_year,
+      is_default: pm.id === pm.customer?.default_source
+    }));
+    
+    res.json({ 
+      cards,
+      stripeCustomerId 
+    });
+  } catch (error: any) {
+    console.error("Error getting payment methods:", error);
+    res.status(500).json({ 
+      error: "Failed to retrieve payment methods",
+      message: error.message 
+    });
+  }
 };
 
 // Detach a payment method
