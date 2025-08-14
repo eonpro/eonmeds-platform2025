@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { CreateInvoiceModal } from './CreateInvoiceModal';
 import { InvoiceDetailsModal } from './InvoiceDetailsModal';
+import { EditInvoiceModal } from './EditInvoiceModal';
 import { PaymentModal } from './PaymentModal';
 import { MarkAsPaidModal } from './MarkAsPaidModal';
 import { ConfirmDialog } from '../common/ConfirmDialog';
@@ -46,6 +47,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [summaryData, setSummaryData] = useState({
     outstanding: 0,
     uninvoiced: 0,
@@ -345,11 +347,13 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
       )}
 
       {/* Invoice Details Modal */}
-      {selectedInvoice && !showPaymentModal && (
+      {selectedInvoice && !showPaymentModal && !showEditModal && (
         <InvoiceDetailsModal
           invoice={selectedInvoice}
           onClose={() => setSelectedInvoice(null)}
           onCharge={() => setShowPaymentModal(true)}
+          onEdit={() => setShowEditModal(true)}
+          onDelete={() => handleDeleteInvoice(selectedInvoice)}
         />
       )}
 
@@ -382,6 +386,29 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
             setShowMarkPaidModal(false);
             setSelectedInvoice(null);
             loadInvoices();
+          }}
+        />
+      )}
+
+      {/* Edit Invoice Modal */}
+      {showEditModal && selectedInvoice && (
+        <EditInvoiceModal
+          invoice={selectedInvoice}
+          patientId={patientId}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedInvoice(null);
+          }}
+          onSuccess={() => {
+            loadInvoices();
+            setShowEditModal(false);
+            setSelectedInvoice(null);
+            setAlertDialog({
+              isOpen: true,
+              type: 'success',
+              title: 'Success',
+              message: 'Invoice updated successfully',
+            });
           }}
         />
       )}

@@ -214,3 +214,36 @@
 .primary-btn.charge:hover {
   background-color: #2563eb;
 }
+
+/* Action Buttons */
+.modal-footer .action-btn {
+  background-color: #3b82f6;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.modal-footer .action-btn:hover {
+  background-color: #2563eb;
+}
+
+.modal-footer .delete-btn {
+  background-color: #ef4444;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.modal-footer .delete-btn:hover {
+  background-color: #dc2626;
+}

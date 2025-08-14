@@ -5,12 +5,16 @@ interface InvoiceDetailsModalProps {
   invoice: any;
   onClose: () => void;
   onCharge: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
   invoice,
   onClose,
   onCharge,
+  onEdit,
+  onDelete,
 }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -132,9 +136,27 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
             Close
           </button>
           {invoice.status === 'open' && (
-            <button className="primary-btn charge" onClick={onCharge}>
-              💳 Charge Invoice
-            </button>
+            <>
+              <button className="action-btn" onClick={onEdit}>
+                ✏️ Edit
+              </button>
+              <button className="delete-btn" onClick={onDelete}>
+                🗑️ Delete
+              </button>
+              <button className="primary-btn charge" onClick={onCharge}>
+                💳 Charge Invoice
+              </button>
+            </>
+          )}
+          {invoice.status === 'draft' && (
+            <>
+              <button className="action-btn" onClick={onEdit}>
+                ✏️ Edit
+              </button>
+              <button className="delete-btn" onClick={onDelete}>
+                🗑️ Delete
+              </button>
+            </>
           )}
         </div>
       </div>
