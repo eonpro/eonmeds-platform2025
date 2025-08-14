@@ -1,13 +1,20 @@
 import { Router, Request, Response } from "express";
 import { financialDashboardService } from "../services/financial-dashboard.service";
+import { checkJwt } from "../middleware/auth0";
 
 const router = Router();
 
+// Apply Auth0 JWT validation to all routes
+router.use(checkJwt);
+
 // Middleware to check for admin role
 const checkAdminAccess = (req: Request, res: Response, next: any) => {
-  // Check for roles in the JWT token (Auth0 sends roles as an array)
-  const user = (req as any).user;
-  const roles = user?.['https://eonmeds.com/roles'] || user?.roles || [];
+  // Auth0 middleware puts the decoded token in req.auth
+  const auth = (req as any).auth;
+  const roles = auth?.['https://eonmeds.com/roles'] || [];
+  
+  console.log('Auth0 token data:', auth);
+  console.log('Roles from token:', roles);
   
   // Check if user has admin or superadmin role
   const hasAdminRole = Array.isArray(roles) && 
