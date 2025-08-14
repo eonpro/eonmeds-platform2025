@@ -33,19 +33,11 @@ const dbService = new DatabaseService(pool);
 // CORS configuration
 app.use(
   cors({
-<<<<<<< HEAD
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  })
-=======
     origin: process.env.CORS_ORIGIN || "http://localhost:3001",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   }),
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 );
 
 app.use(express.json({ limit: "10mb" }));
@@ -57,13 +49,8 @@ app.get("/health", (_req: Request, res: Response) => {
   res.json({
     status: "healthy",
     timestamp: new Date().toISOString(),
-<<<<<<< HEAD
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0',
-=======
     environment: process.env.NODE_ENV || "development",
     version: process.env.npm_package_version || "1.0.0",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   });
 });
 
@@ -91,24 +78,15 @@ app.use(errorHandler);
 // 404 handler
 app.use((_req: Request, res: Response) => {
   res.status(404).json({
-<<<<<<< HEAD
-    error: 'Not Found',
-    message: 'The requested resource was not found',
-=======
     error: "Not Found",
     message: "The requested resource was not found",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   });
 });
 
 // Initialize application
 async function initializeApp() {
   try {
-<<<<<<< HEAD
-    console.log('🚀 Starting EONMeds Backend...');
-=======
     console.log("🚀 Starting EONMeds Backend...");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
     // Test database connection
     const isConnected = await testDatabaseConnection();
@@ -116,11 +94,7 @@ async function initializeApp() {
       throw new Error("Failed to connect to database");
     }
 
-<<<<<<< HEAD
-    console.log('✅ Database connected successfully');
-=======
     console.log("✅ Database connected successfully");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
     // Initialize database schema
     await dbService.initializeDatabase();
@@ -132,11 +106,7 @@ async function initializeApp() {
       throw new Error("Database integrity check failed");
     }
 
-<<<<<<< HEAD
-    console.log('✅ Database integrity verified');
-=======
     console.log("✅ Database integrity verified");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
     // Migrate existing data if needed
     await dbService.migrateExistingData();

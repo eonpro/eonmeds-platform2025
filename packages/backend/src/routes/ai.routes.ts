@@ -10,11 +10,7 @@ const router = Router();
  * POST /api/v1/ai/generate-soap/:patientId
  */
 router.post(
-<<<<<<< HEAD
-  '/generate-soap/:patientId',
-=======
   "/generate-soap/:patientId",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   checkJwt,
   checkRole(["admin", "doctor", "representative"]),
   async (req: Request, res: Response): Promise<Response> => {
@@ -25,12 +21,8 @@ router.post(
       if (!process.env.OPENAI_API_KEY) {
         console.error("OPENAI_API_KEY is not configured");
         return res.status(503).json({
-<<<<<<< HEAD
-          error: 'AI service not configured. Please add OPENAI_API_KEY to environment variables.',
-=======
           error:
             "AI service not configured. Please add OPENAI_API_KEY to environment variables.",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         });
       }
 
@@ -39,11 +31,7 @@ router.post(
 
       if (!result.success) {
         return res.status(500).json({
-<<<<<<< HEAD
-          error: result.error || 'Failed to generate SOAP note',
-=======
           error: result.error || "Failed to generate SOAP note",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         });
       }
 
@@ -51,13 +39,8 @@ router.post(
     } catch (error) {
       console.error("Error generating SOAP note:", error);
       return res.status(500).json({
-<<<<<<< HEAD
-        error: 'Failed to generate SOAP note',
-        details: error instanceof Error ? error.message : 'Unknown error',
-=======
         error: "Failed to generate SOAP note",
         details: error instanceof Error ? error.message : "Unknown error",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       });
     }
   },
@@ -68,11 +51,7 @@ router.post(
  * GET /api/v1/ai/soap-notes/:patientId
  */
 router.get(
-<<<<<<< HEAD
-  '/soap-notes/:patientId',
-=======
   "/soap-notes/:patientId",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   checkJwt,
   checkRole(["admin", "doctor", "representative"]),
   async (req: Request, res: Response): Promise<Response> => {
@@ -81,17 +60,11 @@ router.get(
       const { status } = req.query;
 
       // Debug log to confirm new code is deployed
-<<<<<<< HEAD
-      console.log(`Fetching SOAP notes for patient: ${patientId} (VARCHAR format)`);
-
-      let query = 'SELECT * FROM soap_notes WHERE patient_id = $1';
-=======
       console.log(
         `Fetching SOAP notes for patient: ${patientId} (VARCHAR format)`,
       );
 
       let query = "SELECT * FROM soap_notes WHERE patient_id = $1";
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       const params: any[] = [patientId];
 
       if (status) {
@@ -99,11 +72,7 @@ router.get(
         params.push(status);
       }
 
-<<<<<<< HEAD
-      query += ' ORDER BY created_at DESC';
-=======
       query += " ORDER BY created_at DESC";
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
       const result = await pool.query(query, params);
 
@@ -114,11 +83,7 @@ router.get(
     } catch (error) {
       console.error("Error fetching SOAP notes:", error);
       return res.status(500).json({
-<<<<<<< HEAD
-        error: 'Failed to fetch SOAP notes',
-=======
         error: "Failed to fetch SOAP notes",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       });
     }
   },
@@ -129,11 +94,7 @@ router.get(
  * PUT /api/v1/ai/soap-notes/:soapNoteId/status
  */
 router.put(
-<<<<<<< HEAD
-  '/soap-notes/:soapNoteId/status',
-=======
   "/soap-notes/:soapNoteId/status",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   checkJwt,
   checkRole(["doctor"]),
   async (req: Request, res: Response): Promise<Response> => {
@@ -153,11 +114,7 @@ router.put(
       const client = await pool.connect();
 
       try {
-<<<<<<< HEAD
-        await client.query('BEGIN');
-=======
         await client.query("BEGIN");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
         // Get user details
         const userResult = await client.query(
@@ -183,9 +140,6 @@ router.put(
                updated_at = NOW()
            WHERE id = $5
            RETURNING *`,
-<<<<<<< HEAD
-          [status, content, user.id, `${user.first_name} ${user.last_name}`, soapNoteId]
-=======
           [
             status,
             content,
@@ -193,7 +147,6 @@ router.put(
             `${user.first_name} ${user.last_name}`,
             soapNoteId,
           ],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         );
 
         if (updateResult.rows.length === 0) {
@@ -213,17 +166,10 @@ router.put(
             "doctor",
             updateResult.rows[0].patient_id,
             JSON.stringify({ soap_note_id: soapNoteId, status }),
-<<<<<<< HEAD
-          ]
-        );
-
-        await client.query('COMMIT');
-=======
           ],
         );
 
         await client.query("COMMIT");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
         return res.json({
           success: true,
@@ -238,11 +184,7 @@ router.put(
     } catch (error) {
       console.error("Error updating SOAP note status:", error);
       return res.status(500).json({
-<<<<<<< HEAD
-        error: 'Failed to update SOAP note status',
-=======
         error: "Failed to update SOAP note status",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       });
     }
   },
@@ -253,11 +195,7 @@ router.put(
  * DELETE /api/v1/ai/soap-notes/:soapNoteId
  */
 router.delete(
-<<<<<<< HEAD
-  '/soap-notes/:soapNoteId',
-=======
   "/soap-notes/:soapNoteId",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   checkJwt,
   checkRole(["admin", "doctor", "superadmin"]),
   async (req: Request, res: Response): Promise<Response> => {
@@ -265,56 +203,32 @@ router.delete(
       const { soapNoteId } = req.params;
 
       // First check if the note exists and is not approved
-<<<<<<< HEAD
-      const checkResult = await pool.query('SELECT status FROM soap_notes WHERE id = $1', [
-        soapNoteId,
-      ]);
-=======
       const checkResult = await pool.query(
         "SELECT status FROM soap_notes WHERE id = $1",
         [soapNoteId],
       );
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
       if (checkResult.rows.length === 0) {
         return res.status(404).json({ error: "SOAP note not found" });
       }
 
-<<<<<<< HEAD
-      if (checkResult.rows[0].status === 'approved') {
-        return res.status(403).json({
-          error: 'Cannot delete approved SOAP notes',
-=======
       if (checkResult.rows[0].status === "approved") {
         return res.status(403).json({
           error: "Cannot delete approved SOAP notes",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         });
       }
 
       // Delete the SOAP note
-<<<<<<< HEAD
-      await pool.query('DELETE FROM soap_notes WHERE id = $1', [soapNoteId]);
-
-      return res.json({
-        success: true,
-        message: 'SOAP note deleted successfully',
-=======
       await pool.query("DELETE FROM soap_notes WHERE id = $1", [soapNoteId]);
 
       return res.json({
         success: true,
         message: "SOAP note deleted successfully",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       });
     } catch (error) {
       console.error("Error deleting SOAP note:", error);
       return res.status(500).json({
-<<<<<<< HEAD
-        error: 'Failed to delete SOAP note',
-=======
         error: "Failed to delete SOAP note",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       });
     }
   },

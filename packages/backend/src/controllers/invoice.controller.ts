@@ -146,7 +146,6 @@ export const deleteInvoice = async (
   try {
     const { invoiceId } = req.params;
 
-<<<<<<< HEAD
     const result = await pool.query('DELETE FROM invoices WHERE id = $1 RETURNING *', [invoiceId]);
     const result = await pool.query(
       "DELETE FROM invoices WHERE id = $1 RETURNING *",

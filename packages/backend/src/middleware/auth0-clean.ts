@@ -21,14 +21,6 @@ export const checkJwt =
         // Validate the audience and the issuer
         audience: AUTH0_AUDIENCE,
         issuer: `https://${AUTH0_DOMAIN}/`,
-<<<<<<< HEAD
-        algorithms: ['RS256'],
-      })
-    : (_req: Request, res: Response, _next: NextFunction) => {
-        res.status(503).json({
-          error: 'Service Unavailable',
-          message: 'Authentication service is not configured. Please contact system administrator.',
-=======
         algorithms: ["RS256"],
       })
     : (_req: Request, res: Response, _next: NextFunction) => {
@@ -36,7 +28,6 @@ export const checkJwt =
           error: "Service Unavailable",
           message:
             "Authentication service is not configured. Please contact system administrator.",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         });
       };
 
@@ -53,11 +44,7 @@ export const checkPermission = (permission: string) => {
     const permissions = auth.permissions || [];
     if (!permissions.includes(permission)) {
       return res.status(403).json({
-<<<<<<< HEAD
-        error: 'Forbidden',
-=======
         error: "Forbidden",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         message: `Missing required permission: ${permission}`,
       });
     }
@@ -78,22 +65,13 @@ export const checkRole = (role: string | string[]) => {
     }
 
     // Check if user has at least one of the required roles
-<<<<<<< HEAD
-    const userRoles = auth.roles || auth['https://eonmeds.com/roles'] || [];
-=======
     const userRoles = auth.roles || auth["https://eonmeds.com/roles"] || [];
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     const hasRole = roles.some((r) => userRoles.includes(r));
 
     if (!hasRole) {
       return res.status(403).json({
-<<<<<<< HEAD
-        error: 'Forbidden',
-        message: `Missing required role: ${roles.join(' or ')}`,
-=======
         error: "Forbidden",
         message: `Missing required role: ${roles.join(" or ")}`,
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       });
     }
 
@@ -117,13 +95,8 @@ export const handleAuthError = (
 ) => {
   if (err.name === "UnauthorizedError") {
     return res.status(401).json({
-<<<<<<< HEAD
-      error: 'Unauthorized',
-      message: err.message || 'Invalid token',
-=======
       error: "Unauthorized",
       message: err.message || "Invalid token",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     });
   }
   next(err);

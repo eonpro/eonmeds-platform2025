@@ -20,11 +20,6 @@ export class Auth0Service {
       audience: process.env.AUTH0_AUDIENCE!,
     };
 
-<<<<<<< HEAD
-    if (!this.config.domain || !this.config.clientId || !this.config.clientSecret) {
-      throw new Error(
-        'Auth0 configuration is incomplete. Please set all required environment variables.'
-=======
     if (
       !this.config.domain ||
       !this.config.clientId ||
@@ -32,7 +27,6 @@ export class Auth0Service {
     ) {
       throw new Error(
         "Auth0 configuration is incomplete. Please set all required environment variables.",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       );
     }
 
@@ -70,11 +64,7 @@ export class Auth0Service {
     try {
       const user = await this.management.users.create({
         ...userData,
-<<<<<<< HEAD
-        connection: userData.connection || 'Username-Password-Authentication',
-=======
         connection: userData.connection || "Username-Password-Authentication",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       });
 
       return user;
@@ -141,11 +131,7 @@ export class Auth0Service {
     return {
       id: auth.sub,
       email: auth.email,
-<<<<<<< HEAD
-      roles: auth['https://eonmeds.com/roles'] || auth.roles || [],
-=======
       roles: auth["https://eonmeds.com/roles"] || auth.roles || [],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       permissions: auth.permissions || [],
     };
   }
@@ -181,16 +167,10 @@ export class Auth0Service {
   }) {
     try {
       // Check if user already exists
-<<<<<<< HEAD
-      const existingUsersResponse = await this.management.usersByEmail.getByEmail({
-        email: patientData.email,
-      });
-=======
       const existingUsersResponse =
         await this.management.usersByEmail.getByEmail({
           email: patientData.email,
         });
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       const existingUsers = existingUsersResponse.data || [];
 
       if (existingUsers.length > 0) {
@@ -215,11 +195,7 @@ export class Auth0Service {
           last_name: patientData.lastName,
         },
         app_metadata: {
-<<<<<<< HEAD
-          role: 'patient',
-=======
           role: "patient",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         },
       });
 

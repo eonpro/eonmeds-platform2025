@@ -38,11 +38,7 @@ export const generateToken = (user: any): string => {
     throw new Error("JWT_SECRET is not defined");
   }
 
-<<<<<<< HEAD
-  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
-=======
   const expiresIn = process.env.JWT_EXPIRES_IN || "7d";
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   const options: jwt.SignOptions = {
     expiresIn: expiresIn as any, // Type assertion to handle the StringValue type
   };
@@ -57,11 +53,7 @@ export const generateRefreshToken = (userId: string): string => {
     throw new Error("JWT_SECRET is not defined");
   }
 
-<<<<<<< HEAD
-  const expiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || '30d';
-=======
   const expiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || "30d";
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   const options: jwt.SignOptions = {
     expiresIn: expiresIn as any, // Type assertion to handle the StringValue type
   };
@@ -154,14 +146,10 @@ export const authorize = (resource: string, action: string) => {
     }
 
     // Check specific permission
-<<<<<<< HEAD
-    if (userPermissions[resource]?.includes(action) || userPermissions[resource]?.includes('*')) {
-=======
     if (
       userPermissions[resource]?.includes(action) ||
       userPermissions[resource]?.includes("*")
     ) {
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       return next();
     }
 
@@ -203,11 +191,7 @@ export const requireRole = (allowedRoles: string[]) => {
 
     if (!allowedRoles.includes(userRole)) {
       return res.status(403).json({
-<<<<<<< HEAD
-        error: 'Forbidden - Insufficient permissions',
-=======
         error: "Forbidden - Insufficient permissions",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         required: allowedRoles,
         current: userRole,
       });

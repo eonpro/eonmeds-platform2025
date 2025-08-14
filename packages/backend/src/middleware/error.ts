@@ -40,10 +40,6 @@ export const errorHandler = (
   res.status(status).json({
     error: err.name || "Error",
     message,
-<<<<<<< HEAD
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-=======
     ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   });
 };

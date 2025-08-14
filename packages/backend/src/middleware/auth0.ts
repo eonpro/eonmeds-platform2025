@@ -9,11 +9,7 @@ const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE;
 // Log warning but don't throw at build time
 if (!AUTH0_DOMAIN || !AUTH0_AUDIENCE) {
   console.warn(
-<<<<<<< HEAD
-    '⚠️  Auth0 configuration missing. Please set AUTH0_DOMAIN and AUTH0_AUDIENCE environment variables.'
-=======
     "⚠️  Auth0 configuration missing. Please set AUTH0_DOMAIN and AUTH0_AUDIENCE environment variables.",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   );
 }
 
@@ -32,14 +28,6 @@ export const checkJwt =
         // Validate the audience and the issuer
         audience: AUTH0_AUDIENCE,
         issuer: `https://${AUTH0_DOMAIN}/`,
-<<<<<<< HEAD
-        algorithms: ['RS256'],
-      })
-    : (_req: Request, res: any, _next: any) => {
-        res.status(503).json({
-          error: 'Service Unavailable',
-          message: 'Authentication service is not configured. Please contact system administrator.',
-=======
         algorithms: ["RS256"],
       })
     : (_req: Request, res: any, _next: any) => {
@@ -47,7 +35,6 @@ export const checkJwt =
           error: "Service Unavailable",
           message:
             "Authentication service is not configured. Please contact system administrator.",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         });
         return;
       };
@@ -66,11 +53,7 @@ export const checkPermission = (permission: string) => {
     const permissions = req.auth.permissions || [];
     if (!permissions.includes(permission)) {
       res.status(403).json({
-<<<<<<< HEAD
-        error: 'Forbidden',
-=======
         error: "Forbidden",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         message: `Missing required permission: ${permission}`,
       });
       return;
@@ -95,24 +78,15 @@ export const checkRole = (role: string | string[]) => {
     // Get user roles from Auth0 token
     // Check multiple possible locations where roles might be stored
     const userRoles =
-<<<<<<< HEAD
-      req.auth['https://eonmeds.com/roles'] ||
-=======
       req.auth["https://eonmeds.com/roles"] ||
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       req.auth[`https://${AUTH0_DOMAIN}/roles`] ||
       req.auth.roles ||
       [];
 
     // For now, allow all authenticated users to access AI features
     // TODO: Implement proper role checking once Auth0 roles are configured
-<<<<<<< HEAD
-    console.log('User roles:', userRoles);
-    console.log('Required roles:', roles);
-=======
     console.log("User roles:", userRoles);
     console.log("Required roles:", roles);
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
     // Temporarily allow all authenticated users
     next();
@@ -151,13 +125,8 @@ export const handleAuthError = (
 ) => {
   if (err.name === "UnauthorizedError") {
     res.status(401).json({
-<<<<<<< HEAD
-      error: 'Unauthorized',
-      message: err.message || 'Invalid token',
-=======
       error: "Unauthorized",
       message: err.message || "Invalid token",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     });
     return;
   }

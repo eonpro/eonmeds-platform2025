@@ -12,13 +12,8 @@ export const verifyHeyFlowSignature = (
   signature: string,
   secret: string,
 ): boolean => {
-<<<<<<< HEAD
-  const hmac = crypto.createHmac('sha256', secret);
-  const digest = hmac.update(payload).digest('hex');
-=======
   const hmac = crypto.createHmac("sha256", secret);
   const digest = hmac.update(payload).digest("hex");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
   // Timing-safe comparison to prevent timing attacks
   return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
@@ -35,48 +30,28 @@ export const handleHeyFlowWebhook = async (
   delete req.headers.authorization;
   delete req.headers.Authorization;
 
-<<<<<<< HEAD
-  const requestId = crypto.randomBytes(8).toString('hex');
-  console.log(`\n=== HeyFlow Webhook Received [${requestId}] ===`);
-  console.log('Timestamp:', new Date().toISOString());
-  console.log('Headers:', JSON.stringify(req.headers, null, 2));
-  console.log('Body:', JSON.stringify(req.body, null, 2));
-=======
   const requestId = crypto.randomBytes(8).toString("hex");
   console.log(`\n=== HeyFlow Webhook Received [${requestId}] ===`);
   console.log("Timestamp:", new Date().toISOString());
   console.log("Headers:", JSON.stringify(req.headers, null, 2));
   console.log("Body:", JSON.stringify(req.body, null, 2));
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
   try {
     // 1. Verify webhook signature for security
     const webhookSecret = process.env.HEYFLOW_WEBHOOK_SECRET;
 
-<<<<<<< HEAD
-    if (webhookSecret && webhookSecret !== 'SKIP') {
-      console.log(`[${requestId}] Webhook secret configured, verifying signature...`);
-      const signature = req.headers['x-heyflow-signature'] as string;
-=======
     if (webhookSecret && webhookSecret !== "SKIP") {
       console.log(
         `[${requestId}] Webhook secret configured, verifying signature...`,
       );
       const signature = req.headers["x-heyflow-signature"] as string;
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
       if (!signature) {
         console.error(`[${requestId}] Missing signature header`);
         console.log(
-<<<<<<< HEAD
-          `[${requestId}] To skip signature verification, set HEYFLOW_WEBHOOK_SECRET=SKIP`
-        );
-        res.status(401).json({ error: 'Missing signature' });
-=======
           `[${requestId}] To skip signature verification, set HEYFLOW_WEBHOOK_SECRET=SKIP`,
         );
         res.status(401).json({ error: "Missing signature" });
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         return;
       }
 
@@ -90,15 +65,6 @@ export const handleHeyFlowWebhook = async (
       }
       console.log(`[${requestId}] Signature verified successfully`);
     } else {
-<<<<<<< HEAD
-      if (webhookSecret === 'SKIP') {
-        console.warn(
-          `[${requestId}] ⚠️  WEBHOOK SIGNATURE VERIFICATION SKIPPED (HEYFLOW_WEBHOOK_SECRET=SKIP)`
-        );
-      } else {
-        console.warn(
-          `[${requestId}] ⚠️  WEBHOOK SECRET NOT SET - Bypassing signature verification`
-=======
       if (webhookSecret === "SKIP") {
         console.warn(
           `[${requestId}] ⚠️  WEBHOOK SIGNATURE VERIFICATION SKIPPED (HEYFLOW_WEBHOOK_SECRET=SKIP)`,
@@ -106,7 +72,6 @@ export const handleHeyFlowWebhook = async (
       } else {
         console.warn(
           `[${requestId}] ⚠️  WEBHOOK SECRET NOT SET - Bypassing signature verification`,
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         );
       }
     }
@@ -122,14 +87,6 @@ export const handleHeyFlowWebhook = async (
       // Process the webhook if database is available
       await processHeyFlowSubmission(webhookEventId, req.body);
 
-<<<<<<< HEAD
-      console.log('✅ Webhook processed and stored in database');
-    } catch (dbError) {
-      // Database not available - log to console instead
-      console.error('Database error in webhook:', dbError);
-      console.warn('⚠️  Database not available - logging webhook data to console');
-      console.log('=== WEBHOOK DATA TO PROCESS LATER ===');
-=======
       console.log("✅ Webhook processed and stored in database");
     } catch (dbError) {
       // Database not available - log to console instead
@@ -138,7 +95,6 @@ export const handleHeyFlowWebhook = async (
         "⚠️  Database not available - logging webhook data to console",
       );
       console.log("=== WEBHOOK DATA TO PROCESS LATER ===");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       console.log(
         JSON.stringify(
           {
@@ -146,17 +102,10 @@ export const handleHeyFlowWebhook = async (
             webhook: req.body,
           },
           null,
-<<<<<<< HEAD
-          2
-        )
-      );
-      console.log('=== END WEBHOOK DATA ===');
-=======
           2,
         ),
       );
       console.log("=== END WEBHOOK DATA ===");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     }
 
     // 4. Always acknowledge receipt quickly (< 200ms requirement)
@@ -164,13 +113,8 @@ export const handleHeyFlowWebhook = async (
       received: true,
       eventId: webhookEventId,
       message: webhookEventId
-<<<<<<< HEAD
-        ? 'Webhook processed successfully'
-        : 'Webhook received (database offline)',
-=======
         ? "Webhook processed successfully"
         : "Webhook received (database offline)",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     });
   } catch (error) {
     console.error("Webhook processing error:", error);
@@ -203,11 +147,7 @@ async function storeWebhookEvent(payload: any) {
         payload,
         payload.signature || null,
         false,
-<<<<<<< HEAD
-      ]
-=======
       ],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     );
 
     return result.rows[0];
@@ -227,18 +167,6 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
   const client = await pool.connect();
 
   try {
-<<<<<<< HEAD
-    await client.query('BEGIN');
-
-    // Debug: Log the payload structure
-    console.log(`[${requestId}] Analyzing payload structure:`);
-    console.log(`[${requestId}] - Has fields array?`, Array.isArray(payload.fields));
-    console.log(
-      `[${requestId}] - Has fields object?`,
-      typeof payload.fields === 'object' && !Array.isArray(payload.fields)
-    );
-    console.log(`[${requestId}] - Has data object?`, typeof payload.data === 'object');
-=======
     await client.query("BEGIN");
 
     // Debug: Log the payload structure
@@ -255,7 +183,6 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       `[${requestId}] - Has data object?`,
       typeof payload.data === "object",
     );
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     console.log(`[${requestId}] - Payload keys:`, Object.keys(payload));
 
     // Helper function to get field value by variable name
@@ -287,19 +214,12 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     // Format 2: Fields object (current HeyFlow format - July 2025)
     else if (
       payload.fields &&
-<<<<<<< HEAD
-      typeof payload.fields === 'object' &&
-      !Array.isArray(payload.fields)
-    ) {
-      console.log(`[${requestId}] Using Format 2: Fields object (current format)`);
-=======
       typeof payload.fields === "object" &&
       !Array.isArray(payload.fields)
     ) {
       console.log(
         `[${requestId}] Using Format 2: Fields object (current format)`,
       );
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       extractedData = payload.fields;
     }
     // Format 3: Fields array (older format)
@@ -339,15 +259,6 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       throw new Error("Unable to extract data from webhook payload");
     }
 
-<<<<<<< HEAD
-    console.log('Extracted data:', JSON.stringify(extractedData, null, 2));
-
-    // Map HeyFlow fields to patient data with multiple possible field names
-    const rawFirstName =
-      extractedData.firstname || extractedData.first_name || extractedData.firstName || null;
-    const rawLastName =
-      extractedData.lastname || extractedData.last_name || extractedData.lastName || null;
-=======
     console.log("Extracted data:", JSON.stringify(extractedData, null, 2));
 
     // Map HeyFlow fields to patient data with multiple possible field names
@@ -361,16 +272,10 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       extractedData.last_name ||
       extractedData.lastName ||
       null;
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
     const patientData = {
       first_name: normalizeName(rawFirstName),
       last_name: normalizeName(rawLastName),
-<<<<<<< HEAD
-      email: extractedData.email || extractedData.Email || extractedData.email_address || null,
-      phone:
-        extractedData['Phone Number'] ||
-=======
       email:
         extractedData.email ||
         extractedData.Email ||
@@ -378,7 +283,6 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         null,
       phone:
         extractedData["Phone Number"] ||
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         extractedData.PhoneNumber ||
         extractedData.phone ||
         extractedData.phone_number ||
@@ -390,11 +294,6 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         extractedData.dateOfBirth ||
         extractedData.birthdate ||
         null,
-<<<<<<< HEAD
-      gender: extractedData.gender || extractedData.Gender || extractedData.sex || null,
-      height_feet: parseInt(extractedData.feet || extractedData.height_feet || 0),
-      height_inches: parseInt(extractedData.inches || extractedData.height_inches || 0),
-=======
       gender:
         extractedData.gender ||
         extractedData.Gender ||
@@ -406,44 +305,18 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       height_inches: parseInt(
         extractedData.inches || extractedData.height_inches || 0,
       ),
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       weight_lbs: parseFloat(
         extractedData.starting_weight ||
           extractedData.weight ||
           extractedData.weight_lbs ||
           extractedData.current_weight ||
-<<<<<<< HEAD
-          0
-=======
           0,
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       ),
       target_weight_lbs: parseFloat(
         extractedData.idealweight ||
           extractedData.target_weight ||
           extractedData.target_weight_lbs ||
           extractedData.goal_weight ||
-<<<<<<< HEAD
-          0
-      ),
-      bmi: parseFloat(extractedData.BMI || extractedData.bmi || 0),
-      address: extractedData.address || extractedData.Address || null,
-      address_house: extractedData['address [house]'] || extractedData.address_house || null,
-      address_street: extractedData['address [street]'] || extractedData.address_street || null,
-      apartment_number:
-        extractedData['apartment#'] || extractedData.apartment_number || extractedData.apt || null,
-      city: extractedData['address [city]'] || extractedData.city || null,
-      state: extractedData['address [state]'] || extractedData.state || null,
-      zip: extractedData['address [zip]'] || extractedData.zip || null,
-      consent_treatment:
-        extractedData.consent_treatment === 'yes' ||
-        extractedData.consent_treatment === true ||
-        extractedData.consent_treatment === 'true',
-      consent_telehealth:
-        extractedData.consent_telehealth === 'yes' ||
-        extractedData.consent_telehealth === true ||
-        extractedData.consent_telehealth === 'true',
-=======
           0,
       ),
       bmi: parseFloat(extractedData.BMI || extractedData.bmi || 0),
@@ -470,7 +343,6 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         extractedData.consent_telehealth === "yes" ||
         extractedData.consent_telehealth === true ||
         extractedData.consent_telehealth === "true",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     };
 
     // Validate required fields
@@ -482,11 +354,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     let bmi = null;
     const totalHeightInches = calculateHeightInches(
       patientData.height_feet,
-<<<<<<< HEAD
-      patientData.height_inches
-=======
       patientData.height_inches,
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     );
     if (totalHeightInches > 0 && patientData.weight_lbs > 0) {
       bmi =
@@ -497,13 +365,6 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
 
     // Get form type from various possible locations
     const formType =
-<<<<<<< HEAD
-      payload.flowID || payload.formType || payload.form_type || payload.type || 'unknown';
-
-    // Extract rep information for Internal Espanol forms
-    const repName =
-      extractedData.repname || extractedData.rep_name || extractedData.representative || null;
-=======
       payload.flowID ||
       payload.formType ||
       payload.form_type ||
@@ -516,34 +377,20 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       extractedData.rep_name ||
       extractedData.representative ||
       null;
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
     // Determine hashtags based on form type and rep
     let hashtags = ["weightloss"]; // Base tag for all weight loss forms
     let isRepForm = false;
 
-<<<<<<< HEAD
-    // Log the form type for debugging
-    console.log(`📝 Form Type/Flow ID: ${formType}`);
-
-    // Check form type and assign appropriate hashtags
-    if (formType === 'Gb2YDWzoMnCcOAH17EYF') {
-=======
     // Check if this is the Internal Espanol form
     if (formType === "Gb2YDWzoMnCcOAH17EYF") {
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       // This is the Internal Espanol 2025 form
       isRepForm = true;
 
       if (repName) {
         // Format rep name for hashtag (remove spaces)
-<<<<<<< HEAD
-        const repHashtag = repName.replace(/\s+/g, '');
-        hashtags.push(repHashtag, 'internalrep');
-=======
         const repHashtag = repName.replace(/\s+/g, "");
         hashtags.push(repHashtag, "internalrep");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
         // Log rep assignment
         console.log(`📋 Rep-assisted form: ${repName}`);
@@ -569,13 +416,9 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     const stateAbbreviation = getStateAbbreviation(patientData.state);
 
     // Generate patient ID using database function
-<<<<<<< HEAD
-    const patientIdResult = await client.query('SELECT generate_patient_id() as patient_id');
-=======
     const patientIdResult = await client.query(
       "SELECT generate_patient_id() as patient_id",
     );
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     const patientId = patientIdResult.rows[0].patient_id;
 
     // Create or update patient record
@@ -672,11 +515,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         hashtags, // membership_hashtags - dynamically set based on form type
         repName, // assigned_rep
         isRepForm, // rep_form_submission
-<<<<<<< HEAD
-      ]
-=======
       ],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     );
 
     const patientRecordId = result.rows[0].id;
@@ -684,11 +523,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     // Handle form-specific data based on form type
     // Check if it's a weight loss form by flowID or form name
     if (
-<<<<<<< HEAD
-      formType.includes('weight') ||
-=======
       formType.includes("weight") ||
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       extractedData.target_weight_lbs ||
       patientData.target_weight_lbs
     ) {
@@ -716,16 +551,6 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       [eventId],
     );
 
-<<<<<<< HEAD
-    await client.query('COMMIT');
-
-    console.log(`Successfully processed HeyFlow submission for patient ${patientId}`);
-    console.log('Patient email:', patientData.email);
-
-    // TODO: Send notifications, trigger other workflows
-  } catch (error) {
-    await client.query('ROLLBACK');
-=======
     await client.query("COMMIT");
 
     console.log(
@@ -736,7 +561,6 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     // TODO: Send notifications, trigger other workflows
   } catch (error) {
     await client.query("ROLLBACK");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
     // Log error to webhook_events
     const errorMessage =
@@ -780,16 +604,10 @@ async function storeWeightLossIntakeData(
       formData.exercise_frequency,
       formData.diet_restrictions ? formData.diet_restrictions.split(",") : [],
       formData.diabetes_type,
-<<<<<<< HEAD
-      formData.thyroid_condition === true || formData.thyroid_condition === 'true',
-      formData.heart_conditions ? formData.heart_conditions.split(',') : [],
-    ]
-=======
       formData.thyroid_condition === true ||
         formData.thyroid_condition === "true",
       formData.heart_conditions ? formData.heart_conditions.split(",") : [],
     ],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   );
 }
 
@@ -797,13 +615,8 @@ async function storeWeightLossIntakeData(
  * Calculate total height in inches
  */
 function calculateHeightInches(feet: number, inches: number): number {
-<<<<<<< HEAD
-  const feetNum = parseInt(feet?.toString() || '0');
-  const inchesNum = parseInt(inches?.toString() || '0');
-=======
   const feetNum = parseInt(feet?.toString() || "0");
   const inchesNum = parseInt(inches?.toString() || "0");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   return feetNum * 12 + inchesNum;
 }
 
@@ -836,17 +649,10 @@ export const webhookHealthCheck = async (
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-<<<<<<< HEAD
-    console.error('Webhook health check error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Health check failed',
-=======
     console.error("Webhook health check error:", error);
     res.status(500).json({
       status: "error",
       message: "Health check failed",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     });
   }
 };

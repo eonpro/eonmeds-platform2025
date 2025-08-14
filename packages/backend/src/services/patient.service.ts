@@ -210,11 +210,7 @@ export class PatientService {
   static async updatePatientStatus(
     patientId: string,
     status: string,
-<<<<<<< HEAD
-    reviewedBy?: string
-=======
     reviewedBy?: string,
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   ): Promise<boolean> {
     const client = await pool.connect();
 

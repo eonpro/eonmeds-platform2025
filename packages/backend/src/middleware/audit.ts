@@ -28,11 +28,7 @@ export const createAuditLog = async (entry: AuditLogEntry): Promise<void> => {
         entry.details ? JSON.stringify(entry.details) : null,
         entry.ip_address || null,
         entry.user_agent || null,
-<<<<<<< HEAD
-      ]
-=======
       ],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     );
   } catch (error) {
     console.error("Failed to create audit log:", error);
@@ -71,20 +67,12 @@ export const audit = (action: string, resourceType: string) => {
           response_data: sanitizeResponse(responseData),
         },
         ip_address: getClientIp(req),
-<<<<<<< HEAD
-        user_agent: req.headers['user-agent'],
-=======
         user_agent: req.headers["user-agent"],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       };
 
       // Log to database asynchronously without blocking response
       createAuditLog(entry).catch((error) => {
-<<<<<<< HEAD
-        console.error('Failed to create audit log:', error);
-=======
         console.error("Failed to create audit log:", error);
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       });
 
       // Call original end with proper typing
@@ -110,11 +98,7 @@ export const auditAction = async (
     resource_id: resourceId,
     details: details,
     ip_address: getClientIp(req),
-<<<<<<< HEAD
-    user_agent: req.headers['user-agent'],
-=======
     user_agent: req.headers["user-agent"],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   };
 
   await createAuditLog(entry);
@@ -134,16 +118,12 @@ function sanitizeBody(body: any): any {
   if (!body) return null;
 
   const sanitized = { ...body };
-<<<<<<< HEAD
-  const sensitiveFields = ['password', 'password_confirmation', 'ssn', 'credit_card'];
-=======
   const sensitiveFields = [
     "password",
     "password_confirmation",
     "ssn",
     "credit_card",
   ];
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
   sensitiveFields.forEach((field) => {
     if (sanitized[field]) {
@@ -163,15 +143,9 @@ function sanitizeResponse(data: any): any {
     return { count: data.length, sample: data.slice(0, 3) };
   }
 
-<<<<<<< HEAD
-  if (typeof data === 'object') {
-    const sanitized = { ...data };
-    const sensitiveFields = ['password_hash', 'token', 'refresh_token'];
-=======
   if (typeof data === "object") {
     const sanitized = { ...data };
     const sensitiveFields = ["password_hash", "token", "refresh_token"];
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
     sensitiveFields.forEach((field) => {
       if (sanitized[field]) {
@@ -186,14 +160,6 @@ function sanitizeResponse(data: any): any {
 }
 
 // Middleware to log all PHI access
-<<<<<<< HEAD
-export const auditPHIAccess = async (req: AuthRequest, _res: Response, next: NextFunction) => {
-  // Log the access attempt
-  await auditAction(
-    req,
-    'PHI_ACCESS',
-    'patient_data',
-=======
 export const auditPHIAccess = async (
   req: AuthRequest,
   _res: Response,
@@ -204,18 +170,12 @@ export const auditPHIAccess = async (
     req,
     "PHI_ACCESS",
     "patient_data",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     req.params.patientId || (req.query.patientId as string),
     {
       endpoint: req.path,
       method: req.method,
-<<<<<<< HEAD
-      purpose: req.headers['x-access-purpose'] || 'treatment',
-    }
-=======
       purpose: req.headers["x-access-purpose"] || "treatment",
     },
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   );
 
   next();

@@ -14,28 +14,16 @@ export class DatabaseService {
    */
   async initializeDatabase(): Promise<void> {
     try {
-<<<<<<< HEAD
-      console.log('🔄 Initializing database schema...');
-
-      // Read the complete schema file
-      const schemaPath = path.join(__dirname, '../config/complete-schema.sql');
-      const schemaSQL = fs.readFileSync(schemaPath, 'utf-8');
-=======
       console.log("🔄 Initializing database schema...");
 
       // Read the complete schema file
       const schemaPath = path.join(__dirname, "../config/complete-schema.sql");
       const schemaSQL = fs.readFileSync(schemaPath, "utf-8");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
       // Execute the schema
       await this.pool.query(schemaSQL);
 
-<<<<<<< HEAD
-      console.log('✅ Database schema initialized successfully');
-=======
       console.log("✅ Database schema initialized successfully");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     } catch (error) {
       console.error("❌ Failed to initialize database schema:", error);
       throw error;
@@ -90,36 +78,18 @@ export class DatabaseService {
         issues.push("soap_notes missing foreign key for patient_id");
       } else {
         const fk = soapNotesFK.rows[0];
-<<<<<<< HEAD
-        if (fk.foreign_table_name !== 'patients' || fk.foreign_column_name !== 'patient_id') {
-          issues.push(
-            `soap_notes.patient_id has wrong foreign key reference: ${fk.foreign_table_name}.${fk.foreign_column_name}`
-=======
         if (
           fk.foreign_table_name !== "patients" ||
           fk.foreign_column_name !== "patient_id"
         ) {
           issues.push(
             `soap_notes.patient_id has wrong foreign key reference: ${fk.foreign_table_name}.${fk.foreign_column_name}`,
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
           );
         }
       }
 
       // Check all required tables exist
       const requiredTables = [
-<<<<<<< HEAD
-        'patients',
-        'practitioners',
-        'soap_notes',
-        'invoices',
-        'invoice_items',
-        'invoice_payments',
-        'service_packages',
-        'patient_packages',
-        'appointments',
-        'audit_logs',
-=======
         "patients",
         "practitioners",
         "soap_notes",
@@ -130,7 +100,6 @@ export class DatabaseService {
         "patient_packages",
         "appointments",
         "audit_logs",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       ];
 
       for (const table of requiredTables) {
@@ -141,11 +110,7 @@ export class DatabaseService {
             WHERE table_name = $1
           )
         `,
-<<<<<<< HEAD
-          [table]
-=======
           [table],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
         );
 
         if (!tableExists.rows[0].exists) {
@@ -170,11 +135,7 @@ export class DatabaseService {
     const client = await this.pool.connect();
 
     try {
-<<<<<<< HEAD
-      await client.query('BEGIN');
-=======
       await client.query("BEGIN");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
       // Add patient_id to existing patients if missing
       const hasPatientId = await client.query(`
@@ -200,13 +161,8 @@ export class DatabaseService {
         `);
       }
 
-<<<<<<< HEAD
-      await client.query('COMMIT');
-      console.log('✅ Data migration completed successfully');
-=======
       await client.query("COMMIT");
       console.log("✅ Data migration completed successfully");
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     } catch (error) {
       await client.query("ROLLBACK");
       console.error("❌ Data migration failed:", error);

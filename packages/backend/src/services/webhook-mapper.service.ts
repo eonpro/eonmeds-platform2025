@@ -92,14 +92,10 @@ export class WebhookMapperService {
 
     // Log unmatched fields for manual review
     const unmatchedFields = fields.filter(
-<<<<<<< HEAD
-      (f) => !detectedMappings.find((m) => m.heyflowField === (f.variable || f.name))
-=======
       (f) =>
         !detectedMappings.find(
           (m) => m.heyflowField === (f.variable || f.name),
         ),
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     );
 
     if (unmatchedFields.length > 0) {
@@ -134,17 +130,12 @@ export class WebhookMapperService {
     const mappedData: any = {};
 
     // Apply mappings
-<<<<<<< HEAD
-    for (const [heyflowField, dbField] of Object.entries(config.fieldMappings)) {
-      const field = fields.find((f) => (f.variable || f.name || f.id) === heyflowField);
-=======
     for (const [heyflowField, dbField] of Object.entries(
       config.fieldMappings,
     )) {
       const field = fields.find(
         (f) => (f.variable || f.name || f.id) === heyflowField,
       );
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
 
       if (field) {
         const value = this.extractFieldValue(field);
@@ -160,12 +151,8 @@ export class WebhookMapperService {
 
     // Calculate derived fields
     if (mappedData.height_feet && mappedData.height_inches) {
-<<<<<<< HEAD
-      mappedData.height_inches = mappedData.height_feet * 12 + mappedData.height_inches;
-=======
       mappedData.height_inches =
         mappedData.height_feet * 12 + mappedData.height_inches;
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     }
 
     if (mappedData.height_inches && mappedData.weight_lbs) {
@@ -258,14 +245,6 @@ export class WebhookMapperService {
 
     // Array fields
     if (
-<<<<<<< HEAD
-      dbField.includes('conditions') ||
-      dbField.includes('medications') ||
-      dbField.includes('allergies')
-    ) {
-      if (Array.isArray(value)) return value;
-      if (typeof value === 'string') return value.split(',').map((v) => v.trim());
-=======
       dbField.includes("conditions") ||
       dbField.includes("medications") ||
       dbField.includes("allergies")
@@ -273,7 +252,6 @@ export class WebhookMapperService {
       if (Array.isArray(value)) return value;
       if (typeof value === "string")
         return value.split(",").map((v) => v.trim());
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       return [];
     }
 
@@ -285,17 +263,6 @@ export class WebhookMapperService {
    */
   private getDatabaseFieldName(key: string): string {
     const mapping: { [key: string]: string } = {
-<<<<<<< HEAD
-      firstName: 'first_name',
-      lastName: 'last_name',
-      email: 'email',
-      phone: 'phone',
-      dateOfBirth: 'date_of_birth',
-      weight: 'weight_lbs',
-      height: 'height_inches',
-      gender: 'gender',
-      consent: 'consent_treatment',
-=======
       firstName: "first_name",
       lastName: "last_name",
       email: "email",
@@ -305,7 +272,6 @@ export class WebhookMapperService {
       height: "height_inches",
       gender: "gender",
       consent: "consent_treatment",
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     };
 
     return mapping[key] || key;
@@ -335,11 +301,7 @@ export class WebhookMapperService {
   private async createAutoConfiguration(
     formId: string,
     payload: any,
-<<<<<<< HEAD
-    mappings: FieldMapping[]
-=======
     mappings: FieldMapping[],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   ): Promise<FormConfiguration> {
     const config: FormConfiguration = {
       id: crypto.randomUUID(),
@@ -368,19 +330,11 @@ export class WebhookMapperService {
    * Detect form type from payload
    */
   private detectFormType(payload: any): string {
-<<<<<<< HEAD
-    const formName = (payload.form?.name || '').toLowerCase();
-    const formId = (payload.form?.id || '').toLowerCase();
-
-    if (formName.includes('weight') || formId.includes('weight')) {
-      return 'weight_loss';
-=======
     const formName = (payload.form?.name || "").toLowerCase();
     const formId = (payload.form?.id || "").toLowerCase();
 
     if (formName.includes("weight") || formId.includes("weight")) {
       return "weight_loss";
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
     }
     if (formName.includes("testosterone") || formId.includes("testosterone")) {
       return "testosterone";
@@ -389,11 +343,7 @@ export class WebhookMapperService {
       return "diabetes";
     }
 
-<<<<<<< HEAD
-    return 'general';
-=======
     return "general";
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   }
 
   /**
@@ -419,11 +369,7 @@ export class WebhookMapperService {
           config.formType,
           JSON.stringify(config.fieldMappings),
           config.autoDetected,
-<<<<<<< HEAD
-        ]
-=======
         ],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       );
     } catch (error) {
       console.error("Failed to save form configuration:", error);
@@ -451,11 +397,7 @@ export class WebhookMapperService {
             field: f.variable || f.name,
             sample: this.extractFieldValue(f),
           })),
-<<<<<<< HEAD
-        ]
-=======
         ],
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
       );
     } catch (error) {
       console.error("Failed to log unmapped fields:", error);
@@ -477,11 +419,7 @@ export class WebhookMapperService {
   async updateFieldMapping(
     formId: string,
     heyflowField: string,
-<<<<<<< HEAD
-    databaseField: string
-=======
     databaseField: string,
->>>>>>> 359f4b14e96ab063f3b7ea40b7d90ddb9502ca33
   ): Promise<void> {
     const config = this.formConfigs.get(formId);
     if (!config) {
