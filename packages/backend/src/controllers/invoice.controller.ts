@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { pool } from "../config/database";
-import { stripeService } from "../services/stripe.service";
 
 // Get all invoices for a patient
 export const getPatientInvoices = async (
@@ -87,64 +86,11 @@ export const createInvoice = async (
       return;
     }
 
-    // Get patient information
-    const patientResult = await pool.query(
-      `SELECT patient_id, first_name, last_name, email, phone, stripe_customer_id 
-       FROM patients WHERE patient_id = $1`,
-      [patient_id]
-    );
-
-    if (patientResult.rows.length === 0) {
-      console.error(`Patient not found: ${patient_id}`);
-      res.status(404).json({ error: "Patient not found" });
-      return;
-    }
-
-    const patient = patientResult.rows[0];
-    console.log("Found patient:", { 
-      patient_id: patient.patient_id, 
-      has_stripe_id: !!patient.stripe_customer_id 
-    });
-
-    // Create or get Stripe customer
-    let stripeCustomerId = patient.stripe_customer_id;
-    
-    if (!stripeCustomerId) {
-      console.log("Creating Stripe customer for patient:", patient_id);
-      
-      const customerResult = await stripeService.createOrGetCustomer({
-        patient_id: patient.patient_id,
-        email: patient.email,
-        first_name: patient.first_name,
-        last_name: patient.last_name,
-        phone: patient.phone
-      });
-
-      if (!customerResult.success || !customerResult.customer) {
-        console.error("Failed to create Stripe customer:", customerResult.error);
-        res.status(500).json({ 
-          error: "Failed to create payment customer", 
-          details: customerResult.error 
-        });
-        return;
-      }
-
-      stripeCustomerId = customerResult.customer.id;
-      console.log("Created Stripe customer:", stripeCustomerId);
-
-      // Update patient with Stripe customer ID
-      await pool.query(
-        `UPDATE patients SET stripe_customer_id = $1 WHERE patient_id = $2`,
-        [stripeCustomerId, patient_id]
-      );
-    }
-
     // Create the invoice
     const result = await pool.query(
       `INSERT INTO invoices (
         invoice_number,
         patient_id,
-        stripe_customer_id,
         subtotal,
         total_amount,
         description, 
@@ -154,9 +100,9 @@ export const createInvoice = async (
         created_at, 
         updated_at
       )
-       VALUES (generate_invoice_number(), $1, $2, $3, $3, $4, $5, $6, CURRENT_DATE, NOW(), NOW())
+       VALUES (generate_invoice_number(), $1, $2, $2, $3, $4, $5, CURRENT_DATE, NOW(), NOW())
        RETURNING *`,
-      [patient_id, stripeCustomerId, invoiceAmount, description, due_date, status],
+      [patient_id, invoiceAmount, description, due_date, status],
     );
 
     const invoice = result.rows[0];

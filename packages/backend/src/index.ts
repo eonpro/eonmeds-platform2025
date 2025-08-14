@@ -52,21 +52,7 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Stripe webhook endpoint - MUST be before body parsing middleware
-app.post('/api/v1/stripe/webhook', 
-  express.raw({ type: 'application/json' }), 
-  async (req, res) => {
-    try {
-      const { handleStripeWebhook } = await import('./controllers/stripe-webhook.controller');
-      await handleStripeWebhook(req, res);
-    } catch (error) {
-      console.error('Error loading webhook handler:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-);
-
-// NOW we can add body parsing middleware for all other routes
+// Body parsing middleware for all routes
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
