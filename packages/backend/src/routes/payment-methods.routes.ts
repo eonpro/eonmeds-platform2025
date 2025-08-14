@@ -1,8 +1,12 @@
 import { Router, Request, Response } from "express";
 import { stripeService } from "../services/stripe.service";
 import { pool } from "../config/database";
+import { checkJwt } from "../middleware/auth0";
 
 const router = Router();
+
+// Apply Auth0 authentication to all payment method routes
+router.use(checkJwt);
 
 /**
  * POST /api/v1/payment-methods/setup-intent

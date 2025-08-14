@@ -138,6 +138,63 @@ export const createInvoice = async (
   }
 };
 
+// Update an invoice
+export const updateInvoice = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { invoiceId } = req.params;
+    const { 
+      total_amount, 
+      status, 
+      due_date, 
+      items 
+    } = req.body;
+
+    // Update invoice main details
+    const updateResult = await pool.query(
+      `UPDATE invoices 
+       SET total_amount = COALESCE($1, total_amount),
+           status = COALESCE($2, status),
+           due_date = COALESCE($3, due_date),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $4
+       RETURNING *`,
+      [total_amount, status, due_date, invoiceId]
+    );
+
+    if (updateResult.rowCount === 0) {
+      res.status(404).json({ error: "Invoice not found" });
+      return;
+    }
+
+    // If items are provided, update them
+    if (items && Array.isArray(items)) {
+      // Delete existing items
+      await pool.query("DELETE FROM invoice_items WHERE invoice_id = $1", [invoiceId]);
+      
+      // Insert new items
+      for (const item of items) {
+        await pool.query(
+          `INSERT INTO invoice_items (invoice_id, description, quantity, unit_price, amount)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [invoiceId, item.description, item.quantity, item.unit_price, item.amount]
+        );
+      }
+    }
+
+    res.json({
+      success: true,
+      message: "Invoice updated successfully",
+      invoice: updateResult.rows[0]
+    });
+  } catch (error) {
+    console.error("Error updating invoice:", error);
+    res.status(500).json({ error: "Failed to update invoice" });
+  }
+};
+
 // Delete an invoice
 export const deleteInvoice = async (
   req: Request,
