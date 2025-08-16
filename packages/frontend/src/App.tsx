@@ -18,6 +18,10 @@ import { DebugAuth } from './components/auth/DebugAuth';
 import { Auth0Callback } from './components/auth/Auth0Callback';
 import { FinancialDashboard } from './pages/FinancialDashboard';
 import { DebugDashboard } from './pages/DebugDashboard';
+import { BillingTest } from './pages/BillingTest';
+import { EnterpriseBillingDemo } from './pages/EnterpriseBillingDemo';
+import { HealthcareBillingDashboard } from './components/billing/HealthcareBillingDashboard';
+import { PatientPaymentPortal } from './components/billing/PatientPaymentPortal';
 import './i18n'; // Initialize i18n
 import './App.css';
 
@@ -54,6 +58,8 @@ function App() {
             <Route path="/callback" element={<Auth0Callback />} />
             <Route path="/test-auth" element={<TestAuth />} />
             <Route path="/debug-auth" element={<DebugAuth />} />
+            <Route path="/billing-test" element={<BillingTest />} />
+            <Route path="/billing-demo" element={<EnterpriseBillingDemo />} />
             <Route
               path="/*"
               element={
@@ -61,6 +67,8 @@ function App() {
                   <AppLayout>
                     <Routes>
                       <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/billing" element={<HealthcareBillingDashboard />} />
+                      <Route path="/payment-portal" element={<PatientPaymentPortal />} />
                       <Route path="/clients" element={<Clients />} />
                       <Route path="/qualifications" element={<Qualifications />} />
                       <Route path="/clients/:id" element={<PatientProfile />} />

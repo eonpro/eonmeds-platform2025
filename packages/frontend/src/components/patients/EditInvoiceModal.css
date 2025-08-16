@@ -23,6 +23,11 @@
   position: relative;
 }
 
+/* Ensure form sections have proper background */
+.edit-invoice-modal form {
+  background: white;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;

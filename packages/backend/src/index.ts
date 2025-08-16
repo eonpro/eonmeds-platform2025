@@ -2,6 +2,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { testDatabaseConnection, ensureSOAPNotesTable } from './config/database';
 // Remove the audit middleware import for now since it's not used
 
@@ -17,6 +18,7 @@ import paymentRoutes from './routes/payment.routes';
 import packageRoutes from './routes/package.routes';
 import aiRoutes from './routes/ai.routes';
 import invoiceRoutes from './routes/invoice.routes';
+import invoicePaymentRoutes from './routes/invoice-payment.routes';
 
 // Force redeployment - Auth0 configuration update
 const app = express();
@@ -36,7 +38,7 @@ const corsOrigins = process.env.CORS_ORIGIN
     'https://eonmeds-platform2025-production.up.railway.app'
   ];
 
-console.log("🔒 CORS Origins configured:", corsOrigins);
+console.info("🔒 CORS Origins configured:", corsOrigins);
 
 app.use(cors({
   origin: corsOrigins,
@@ -48,7 +50,7 @@ app.use(cors({
 
 // Request logging middleware (before body parsing)
 app.use((req, _res, next) => {
-  console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
+  console.info(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
 });
 
@@ -86,7 +88,7 @@ app.get('/api/v1', (_req, res) => {
 // Webhook routes (always available - no auth required)
 // IMPORTANT: This must be before any auth middleware
 app.use("/api/v1/webhooks", webhookRoutes);
-console.log("✅ Webhook routes loaded (always available - no auth required)");
+console.info("✅ Webhook routes loaded (always available - no auth required)");
 
 // Register all routes (with database check inside each route)
 app.use("/api/v1/auth", authRoutes);
@@ -98,6 +100,7 @@ app.use("/api/v1/audit", auditRoutes);
 // Payment routes - but webhook is already registered above
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/payments/invoices', invoiceRoutes);
+app.use('/api/v1/payments', invoicePaymentRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/ai', aiRoutes);
 
@@ -109,25 +112,56 @@ app.use('/api/v1/payment-methods', paymentMethodsRoutes);
 const financialDashboardRoutes = require('./routes/financial-dashboard.routes').default;
 app.use('/api/v1/financial-dashboard', financialDashboardRoutes);
 
+// Billing routes
+const billingRoutes = require('./routes/billing.routes').default;
+app.use('/api/v1/billing', billingRoutes);
+
+// Billing metrics routes
+const billingMetricsRoutes = require('./routes/billing-metrics.routes').default;
+app.use('/api/v1', billingMetricsRoutes);
+
+// Comprehensive Billing System routes
+import { createBillingSystemRoutes } from './routes/billing-system.routes';
+import { BillingSystemService } from './services/billing-system.service';
+import { getStripeClient } from './config/stripe.config';
+import { pool } from './config/database';
+
+// Initialize billing system service
+const billingSystemService = new BillingSystemService(pool, getStripeClient());
+const billingSystemRoutes = createBillingSystemRoutes(billingSystemService);
+app.use('/api/v1/billing-system', billingSystemRoutes);
+console.info('✅ Comprehensive billing system routes loaded');
+
 // Stripe test routes (only in development)
 if (process.env.NODE_ENV !== 'production') {
   const stripeTestRoutes = require('./routes/stripe-test.routes').default;
   app.use('/api/v1/stripe-test', stripeTestRoutes);
-  console.log('✅ Stripe test routes loaded (development only)');
+  console.info('✅ Stripe test routes loaded (development only)');
 }
 
-console.log('✅ All routes registered (database check happens per route)');
+console.info('✅ All routes registered (database check happens per route)');
+
+// Serve static files from React build
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../public')));
+  
+  // Handle React routing, return all requests to React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public', 'index.html'));
+  });
+  console.info('✅ Serving frontend static files');
+}
 
 // Start server
 app.listen(PORT, async () => {
-  console.log('🚀 Server is running!');
-  console.log(`📡 Listening on port ${PORT}`);
-  console.log('🏥 EONMeds Backend API');
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Database Host: ${process.env.DB_HOST ? '✓ Configured' : '✗ Missing'}`);
-  console.log(`Database Name: ${process.env.DB_NAME ? '✓ Configured' : '✗ Missing'}`);
-  console.log(`JWT Secret: ${process.env.JWT_SECRET ? '✓ Configured' : '✗ Missing'}`);
-  console.log(`Port: ${PORT}`);
+  console.info('🚀 Server is running!');
+  console.info(`📡 Listening on port ${PORT}`);
+  console.info('🏥 EONMeds Backend API');
+  console.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.info(`Database Host: ${process.env.DB_HOST ? '✓ Configured' : '✗ Missing'}`);
+  console.info(`Database Name: ${process.env.DB_NAME ? '✓ Configured' : '✗ Missing'}`);
+  console.info(`JWT Secret: ${process.env.JWT_SECRET ? '✓ Configured' : '✗ Missing'}`);
+  console.info(`Port: ${PORT}`);
 
   await testDatabaseConnection();
   await ensureSOAPNotesTable();
@@ -137,13 +171,13 @@ app.listen(PORT, async () => {
 let databaseConnected = false;
 
 async function initializeDatabase() {
-  console.log('Attempting database connection...');
+  console.info('Attempting database connection...');
   
   try {
     const isConnected = await testDatabaseConnection();
 
     if (isConnected) {
-      console.log("✅ Database connected successfully");
+      console.info("✅ Database connected successfully");
       databaseConnected = true;
 
       // Ensure critical tables exist
@@ -248,15 +282,15 @@ async function initializeDatabase() {
         const { ensureSOAPNotesTable } = await import("./config/database");
         await ensureSOAPNotesTable();
         
-        console.log('✅ Database tables verified/created');
+        console.info('✅ Database tables verified/created');
       } catch (tableError) {
-        console.log(
+        console.info(
           "Note: Could not verify/create tables:",
           (tableError as Error).message,
         );
       }
     } else {
-      console.log(
+      console.info(
         "⚠️  Database connection failed - some functionality may be limited",
       );
     }
@@ -281,26 +315,29 @@ app.use((req, res) => {
 });
 
 // Error handling middleware
+// eslint-disable-next-line no-unused-vars
 app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Error:', err);
 
   // Always include useful debugging info in output
   const responseBody: any = {
-    error: err.message || 'Internal Server Error',
-    // Only include stack trace in development
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-    // Always include status and path for debugging
-    status: err.status || 500,
+    error: err && err.message ? err.message : 'Internal Server Error',
+    status: err && err.status ? err.status : 500,
     path: req.path,
-    method: req.method
+    method: req.method,
   };
 
-  res.status(err.status || 500).json(responseBody);
+  // Only include stack trace in development
+  if (process.env.NODE_ENV === 'development' && err && err.stack) {
+    responseBody.stack = err.stack;
+  }
+
+  res.status(responseBody.status).json(responseBody);
 });
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
-  console.log("SIGTERM signal received: closing HTTP server");
+  console.info("SIGTERM signal received: closing HTTP server");
   process.exit(0);
 });
 

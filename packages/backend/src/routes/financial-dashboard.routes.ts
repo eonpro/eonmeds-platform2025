@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { financialDashboardService } from "../services/financial-dashboard.service";
+import { optimizedFinancialDashboardService } from "../services/financial-dashboard-optimized.service";
 import { checkJwt } from "../middleware/auth0";
 
 const router = Router();
@@ -13,22 +14,22 @@ const checkAdminAccess = (req: Request, res: Response, next: any) => {
   const auth = (req as any).auth;
   const roles = auth?.['https://eonmeds.com/roles'] || [];
   
-  console.log('Auth0 token data:', auth);
-  console.log('Roles from token:', roles);
+  console.info('Auth0 token data:', auth);
+  console.info('Roles from token:', roles);
   
   // Check if user has admin or superadmin role
   const hasAdminRole = Array.isArray(roles) && 
     (roles.includes('admin') || roles.includes('superadmin'));
   
   if (!hasAdminRole) {
-    console.log('Access denied - User roles:', roles);
+    console.info('Access denied - User roles:', roles);
     return res.status(403).json({ 
       error: "Access denied",
       message: "This resource is restricted to administrators only"
     });
   }
   
-  console.log('Admin access granted for user with roles:', roles);
+  console.info('Admin access granted for user with roles:', roles);
   next();
 };
 
@@ -37,9 +38,51 @@ router.use(checkAdminAccess);
 
 /**
  * GET /api/v1/financial-dashboard/overview
- * Get comprehensive financial dashboard data
+ * Get comprehensive financial dashboard data (OPTIMIZED)
  */
 router.get("/overview", async (req: Request, res: Response) => {
+  try {
+    // Parse date range from query params
+    const { startDate, endDate, forceRefresh } = req.query;
+    
+    let dateRange;
+    if (startDate && endDate) {
+      dateRange = {
+        start: new Date(startDate as string),
+        end: new Date(endDate as string),
+      };
+    }
+
+    // Use optimized service with caching
+    const metrics = await optimizedFinancialDashboardService.getDashboardMetrics(
+      dateRange, 
+      forceRefresh === 'true'
+    );
+
+    res.json({
+      success: true,
+      data: metrics,
+      period: {
+        start: dateRange?.start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        end: dateRange?.end || new Date(),
+      },
+      cached: !forceRefresh && metrics.lastUpdated && 
+        (new Date().getTime() - new Date(metrics.lastUpdated).getTime() < 300000)
+    });
+  } catch (error: any) {
+    console.error("Error fetching dashboard metrics:", error);
+    res.status(500).json({ 
+      error: "Failed to fetch financial dashboard data",
+      message: error.message 
+    });
+  }
+});
+
+/**
+ * GET /api/v1/financial-dashboard/overview-detailed
+ * Get detailed financial dashboard data (SLOW - use sparingly)
+ */
+router.get("/overview-detailed", async (req: Request, res: Response) => {
   try {
     // Parse date range from query params
     const { startDate, endDate } = req.query;

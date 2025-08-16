@@ -61,14 +61,22 @@ export const createInvoice = async (
   res: Response,
 ): Promise<void> => {
   try {
-    console.log("Invoice creation request body:", req.body);
+    console.info("Invoice creation request body:", req.body);
     
-    const { patient_id, amount, total_amount, description, due_date, status = "draft", items = [] } = req.body;
+    const { patient_id, amount, total_amount, description, due_date, status = "open", items = [] } = req.body;
     
     // Support both 'amount' and 'total_amount' for backwards compatibility
     const invoiceAmount = amount || total_amount;
     
-    console.log("Creating invoice with data:", { patient_id, amount, total_amount, invoiceAmount });
+    console.info("Creating invoice with data:", { 
+      patient_id, 
+      amount, 
+      total_amount, 
+      invoiceAmount, 
+      status,
+      requestedStatus: req.body.status,
+      defaultStatus: "open"
+    });
     
     // Validate required fields
     if (!patient_id) {
@@ -87,6 +95,7 @@ export const createInvoice = async (
     }
 
     // Create the invoice
+    console.info("Inserting invoice with status:", status);
     const result = await pool.query(
       `INSERT INTO invoices (
         invoice_number,

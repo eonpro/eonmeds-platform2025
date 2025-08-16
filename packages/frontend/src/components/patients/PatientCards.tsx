@@ -17,15 +17,18 @@ interface SavedCard {
 
 interface PatientCardsProps {
   patientId: string;
+  patientEmail?: string;
+  patientName?: string;
 }
 
-export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
+export const PatientCards: React.FC<PatientCardsProps> = ({ patientId, patientEmail, patientName }) => {
   const apiClient = useApi();
   const [cards, setCards] = useState<SavedCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddCard, setShowAddCard] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [setupIntentSecret, setSetupIntentSecret] = useState<string | null>(null);
 
   useEffect(() => {
     loadCards();
@@ -59,7 +62,7 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
       await loadCards();
     } catch (err: any) {
       console.error('Error adding card:', err);
-      setError(err.response?.data?.error || 'Failed to add card');
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to add card');
     } finally {
       setSaving(false);
     }
@@ -107,10 +110,14 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
           {error && <div className="error-message">{error}</div>}
 
           <StripePaymentForm
+            patientId={patientId}
+            patientEmail={patientEmail}
+            patientName={patientName}
             onPaymentMethodCreated={handleAddCard}
             onCancel={() => {
               setShowAddCard(false);
               setError(null);
+              setSetupIntentSecret(null);
             }}
             saveCard={true}
             processing={saving}

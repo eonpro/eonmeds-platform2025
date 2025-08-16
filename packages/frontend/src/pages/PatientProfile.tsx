@@ -1702,6 +1702,7 @@ export const PatientProfile: React.FC = () => {
                   <PatientInvoices
                     patientId={patient.patient_id}
                     patientName={`${patient.first_name} ${patient.last_name}`}
+                    patientEmail={patient.email}
                     stripeCustomerId={patient.stripe_customer_id}
                   />
                 </div>
@@ -1737,7 +1738,11 @@ export const PatientProfile: React.FC = () => {
 
               {activeTab === 'cards' && (
                 <div className="cards-tab">
-                  <PatientCards patientId={patient.patient_id} />
+                  <PatientCards 
+                    patientId={patient.patient_id} 
+                    patientEmail={patient.email}
+                    patientName={`${patient.first_name} ${patient.last_name}`}
+                  />
                 </div>
               )}
             </div>

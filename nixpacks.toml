@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ["nodejs-20_x", "npm-9_x"]
+
+[phases.install]
+dependsOn = ["setup"]
+cmds = ["npm install"]
+
+[phases.build]
+dependsOn = ["install"]
+cmds = [
+  "cd packages/frontend && npm install && npm run build",
+  "cd packages/backend && npm install && npm run build",
+  "cp -r packages/frontend/build packages/backend/public"
+]
+
+[start]
+cmd = "cd packages/backend && npm start"

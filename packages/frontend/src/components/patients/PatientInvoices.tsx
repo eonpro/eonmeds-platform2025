@@ -7,6 +7,8 @@ import { PaymentModal } from './PaymentModal';
 import { MarkAsPaidModal } from './MarkAsPaidModal';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { AlertDialog } from '../common/AlertDialog';
+import { QuickPayButton } from './QuickPayButton';
+import { InvoiceTest } from './InvoiceTest';
 import './PatientInvoices.css';
 
 interface Invoice {
@@ -32,12 +34,14 @@ interface InvoiceItem {
 interface PatientInvoicesProps {
   patientId: string;
   patientName: string;
+  patientEmail?: string;
   stripeCustomerId?: string;
 }
 
 export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
   patientId,
   patientName,
+  patientEmail,
   stripeCustomerId,
 }) => {
   const apiClient = useApi();
@@ -159,6 +163,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
 
   return (
     <div className="patient-invoices">
+      <InvoiceTest />
       {/* Header Section */}
       <div className="invoice-header">
         <h3>Invoices</h3>
@@ -292,7 +297,14 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
                         >
                           View
                         </button>
-                        {invoice.status === 'open' && (
+                        <QuickPayButton
+                          invoice={invoice}
+                          onPay={() => {
+                            setSelectedInvoice(invoice);
+                            setShowPaymentModal(true);
+                          }}
+                        />
+                        {invoice.status !== 'paid' && (
                           <>
                             <button
                               onClick={() => {
@@ -338,6 +350,7 @@ export const PatientInvoices: React.FC<PatientInvoicesProps> = ({
         <CreateInvoiceModal
           patientId={patientId}
           patientName={patientName}
+          patientEmail={patientEmail}
           onClose={() => setShowCreateModal(false)}
           onSuccess={() => {
             setShowCreateModal(false);

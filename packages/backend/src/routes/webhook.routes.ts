@@ -1,8 +1,10 @@
 import { Router } from "express";
+import express from "express";
 import {
   handleHeyFlowWebhook,
   webhookHealthCheck,
 } from "../controllers/webhook.controller";
+import { handleStripeWebhook } from "../controllers/stripe-webhook.controller";
 import { pool } from "../config/database";
 import { bypassAuth } from "../middleware/bypass-auth";
 
@@ -10,6 +12,14 @@ const router = Router();
 
 // Apply bypass auth to all webhook routes
 router.use(bypassAuth);
+
+// IMPORTANT: Stripe webhooks need raw body, not JSON parsed
+// This must come BEFORE the general body parser
+router.post(
+  "/stripe",
+  express.raw({ type: 'application/json' }), // Raw body for signature verification
+  handleStripeWebhook
+);
 
 // HeyFlow webhook endpoint
 router.post("/heyflow", handleHeyFlowWebhook);
