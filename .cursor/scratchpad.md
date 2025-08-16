@@ -12509,3 +12509,38 @@ Incorrect Node.js package names in nixpacks.toml files:
 
 ### Status:
 ✅ Fix pushed to main branch - Railway should now build successfully
+
+---
+
+## TypeScript Compilation Errors Fix - August 16, 2025 (Round 2)
+
+### Issue:
+Railway build was failing with 38 TypeScript compilation errors after the user reverted the previous fixes:
+- Missing dependency: `express-validator`
+- Stripe API type mismatches (invoice.subscription, current_period_start, etc.)
+- Return type issues in controller methods
+
+### Errors Fixed:
+1. **Controllers**: 
+   - billing.controller.ts - Fixed VERSION property and return type issues
+   - stripe-webhook.controller.ts - Fixed invoice.subscription properties
+
+2. **Services**:
+   - billing-system.service.ts - Fixed subscription period properties
+   - dunning-management.service.ts - Added missing interface properties
+   - tax-calculation.service.ts - Fixed taxRate properties
+   - usage-billing.service.ts - Fixed formula types and meter event issues
+   - webhook-processor.service.ts - Fixed all subscription/invoice properties
+
+3. **Dependencies**:
+   - Added missing express-validator package
+
+### Actions Taken:
+- Installed express-validator dependency
+- Applied type assertions for all Stripe API properties
+- Fixed all 38 TypeScript compilation errors
+- Committed and pushed to trigger deployment
+
+### Status:
+✅ All TypeScript errors resolved and pushed to main branch
+🚀 Railway deployment triggered - monitoring for successful build
