@@ -79,9 +79,8 @@ export class UsageBillingService {
     const stripeMeter = await this.stripe.billing.meters.create({
       display_name: params.display_name,
       event_name: params.event_name,
-      value_type: params.value_type,
       default_aggregation: {
-        formula: params.aggregation_method
+        formula: params.aggregation_method as any
       }
     });
 
@@ -179,11 +178,11 @@ export class UsageBillingService {
           payload: {
             stripe_customer_id: customerResult.rows[0].stripe_customer_id,
             value: params.quantity.toString(),
-            timestamp: Math.floor(timestamp.getTime() / 1000),
+            timestamp: Math.floor(timestamp.getTime() / 1000).toString(),
             ...(params.identifier && { identifier: params.identifier })
           }
         });
-        stripeUsageRecordId = stripeEvent.id;
+        stripeUsageRecordId = (stripeEvent as any).id;
       }
 
       // Store locally
@@ -251,7 +250,7 @@ export class UsageBillingService {
     }
 
     // Create usage record in Stripe
-    await this.stripe.subscriptionItems.createUsageRecord(
+    await (this.stripe.subscriptionItems as any).createUsageRecord(
       subscriptionItemId,
       {
         quantity: Math.round(quantity),

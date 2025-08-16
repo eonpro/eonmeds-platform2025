@@ -79,9 +79,10 @@ router.post("/payment-intent", async (req: Request, res: Response) => {
     }
 
     const paymentIntent = await stripeService.createPaymentIntent({
-      customerId,
+      customer: customerId,
       amount,
-      description: description || "Test payment",
+      currency: 'usd',
+      metadata: { description: description || "Test payment" }
     });
 
     res.json({

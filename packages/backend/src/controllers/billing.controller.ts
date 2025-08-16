@@ -512,7 +512,7 @@ export const getStripeDiagnostics = async (req: Request, res: Response): Promise
       // Make a simple API call to test connectivity
       const account = await stripe.accounts.retrieve();
       stripeConnected = true;
-      stripeVersion = stripe.VERSION;
+      stripeVersion = (stripe as any).VERSION;
       
       // Determine if using test or live keys
       const apiKey = process.env.STRIPE_SECRET_KEY || '';
@@ -579,13 +579,15 @@ export const listPaymentMethods = async (req: Request, res: Response): Promise<v
         [patientId]
       );
       if (!result.rows[0]?.stripe_customer_id) {
-        return res.json({ payment_methods: [] });
+        res.json({ payment_methods: [] });
+        return;
       }
       resolvedCustomerId = result.rows[0].stripe_customer_id;
     }
 
     if (!resolvedCustomerId) {
-      return res.status(400).json({ error: 'Either patientId or customerId required' });
+      res.status(400).json({ error: 'Either patientId or customerId required' });
+      return;
     }
 
     // Get from Stripe
@@ -597,7 +599,7 @@ export const listPaymentMethods = async (req: Request, res: Response): Promise<v
     // Get customer to check default
     const customer = await stripe.customers.retrieve(resolvedCustomerId);
     const defaultPmId = typeof customer !== 'string' ? 
-      customer.invoice_settings?.default_payment_method : null;
+      (customer as any).invoice_settings?.default_payment_method : null;
 
     // Update our cache
     for (const pm of paymentMethods.data) {

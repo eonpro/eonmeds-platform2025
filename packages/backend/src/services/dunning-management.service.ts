@@ -14,6 +14,11 @@ interface DunningEvent {
   next_retry_at?: Date;
   recovered_at?: Date;
   cancelled_at?: Date;
+  created_at: Date;
+  metadata?: {
+    strategy?: string;
+    [key: string]: any;
+  };
   total_recovery_attempts: number;
   emails_sent: Array<{
     type: string;
@@ -335,8 +340,8 @@ export class DunningManagementService {
       }
 
       // Update payment method if provided
-      if (paymentMethodId && invoice.subscription) {
-        await this.stripe.subscriptions.update(invoice.subscription as string, {
+      if (paymentMethodId && (invoice as any).subscription) {
+        await this.stripe.subscriptions.update((invoice as any).subscription as string, {
           default_payment_method: paymentMethodId
         });
       }

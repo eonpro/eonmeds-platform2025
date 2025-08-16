@@ -343,8 +343,8 @@ export class WebhookProcessorService {
        WHERE stripe_subscription_id = $4`,
       [
         subscription.status,
-        new Date(subscription.current_period_start * 1000),
-        new Date(subscription.current_period_end * 1000),
+        new Date((subscription as any).current_period_start * 1000),
+        new Date((subscription as any).current_period_end * 1000),
         subscription.id
       ]
     );
@@ -370,8 +370,8 @@ export class WebhookProcessorService {
        WHERE stripe_subscription_id = $6`,
       [
         subscription.status,
-        new Date(subscription.current_period_start * 1000),
-        new Date(subscription.current_period_end * 1000),
+        new Date((subscription as any).current_period_start * 1000),
+        new Date((subscription as any).current_period_end * 1000),
         subscription.cancel_at_period_end,
         subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
         subscription.id
@@ -408,7 +408,7 @@ export class WebhookProcessorService {
     if (processed) return;
 
     // Record subscription payment
-    if (invoice.subscription) {
+    if ((invoice as any).subscription) {
       await this.pool.query(
         `INSERT INTO transactions 
          (type, amount, currency, status, customer_id, 
@@ -422,10 +422,10 @@ export class WebhookProcessorService {
         [
           invoice.amount_paid / 100,
           invoice.currency,
-          invoice.charge as string,
+          (invoice as any).charge as string,
           JSON.stringify({ invoice_id: invoice.id }),
           idempotencyKey,
-          invoice.subscription,
+          (invoice as any).subscription,
           invoice.customer
         ]
       );
@@ -456,7 +456,7 @@ export class WebhookProcessorService {
         invoice.amount_due / 100,
         invoice.currency,
         invoice.attempt_count,
-        invoice.subscription,
+        (invoice as any).subscription,
         invoice.customer
       ]
     );

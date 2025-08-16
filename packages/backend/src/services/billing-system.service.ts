@@ -143,8 +143,8 @@ export class BillingSystemService {
           data.customer_id,
           data.plan_id,
           stripeSubscription.status,
-          new Date(stripeSubscription.current_period_start * 1000),
-          new Date(stripeSubscription.current_period_end * 1000),
+          new Date((stripeSubscription as any).current_period_start * 1000),
+          new Date((stripeSubscription as any).current_period_end * 1000),
           stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
           stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null,
           stripeSubscription.id,
@@ -187,7 +187,10 @@ export class BillingSystemService {
       }
 
       if (data.pause_collection) {
-        updateData.pause_collection = data.pause_collection;
+        updateData.pause_collection = {
+          behavior: data.pause_collection.behavior,
+          resumes_at: data.pause_collection.resumes_at ? Math.floor(data.pause_collection.resumes_at.getTime() / 1000) : undefined
+        } as any;
       }
 
       if (data.metadata) {

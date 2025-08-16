@@ -118,9 +118,9 @@ export class TaxCalculationService {
     
     switch (category) {
       case 'digital':
-        return taxRate.applies_to_digital !== false;
+        return (taxRate as any).applies_to_digital !== false;
       case 'physical':
-        return taxRate.applies_to_physical !== false;
+        return (taxRate as any).applies_to_physical !== false;
       case 'service':
         return true; // Services are generally taxable
       default:

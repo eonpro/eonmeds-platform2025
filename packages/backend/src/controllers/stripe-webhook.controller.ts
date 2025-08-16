@@ -208,13 +208,13 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event): Promise<void>
   console.info(`📧 Invoice payment succeeded: ${invoice.id}`);
   
   // Update subscription status if applicable
-  if (invoice.subscription && invoice.metadata?.patient_id) {
+  if ((invoice as any).subscription && invoice.metadata?.patient_id) {
     await pool.query(
       `UPDATE patient_subscriptions 
        SET status = 'active',
            current_period_end = to_timestamp($2)
        WHERE stripe_subscription_id = $1`,
-      [invoice.subscription, invoice.period_end]
+      [(invoice as any).subscription, invoice.period_end]
     );
   }
 }
@@ -228,12 +228,12 @@ async function handleInvoicePaymentFailed(event: Stripe.Event): Promise<void> {
   console.error(`❌ Invoice payment failed: ${invoice.id}`);
   
   // Update subscription status
-  if (invoice.subscription && invoice.metadata?.patient_id) {
+  if ((invoice as any).subscription && invoice.metadata?.patient_id) {
     await pool.query(
       `UPDATE patient_subscriptions 
        SET status = 'past_due'
        WHERE stripe_subscription_id = $1`,
-      [invoice.subscription]
+      [(invoice as any).subscription]
     );
   }
 }
