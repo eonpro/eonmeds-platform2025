@@ -287,13 +287,14 @@ export const createInvoice = async (req: Request, res: Response): Promise<void> 
         } catch (payError: any) {
           if (payError.code === 'invoice_payment_intent_requires_action' || 
               payError.code === 'card_declined') {
-            return res.status(402).json({ 
+            res.status(402).json({ 
               need_payment_method: true,
               invoice_id: invoice.id,
               hosted_url: hostedUrl,
               error: payError.message,
               requestId: payError.requestId
             });
+            return;
           }
           throw payError;
         }
@@ -356,12 +357,13 @@ export const payInvoice = async (req: Request, res: Response): Promise<void> => 
     const invoice = await stripe.invoices.retrieve(invoice_id);
 
     if (invoice.status === 'paid') {
-      return res.json({
+      res.json({
         paid: true,
         already_paid: true,
         hosted_invoice_url: invoice.hosted_invoice_url,
-        charge_id: invoice.charge
+        charge_id: (invoice as any).charge
       });
+      return;
     }
 
     // Handle payment method attachment if provided
@@ -387,11 +389,12 @@ export const payInvoice = async (req: Request, res: Response): Promise<void> => 
     } else if (use_saved_pm) {
       // Check if customer has a default payment method
       const customer = await stripe.customers.retrieve(invoice.customer as string);
-      if (typeof customer !== 'string' && !customer.invoice_settings?.default_payment_method) {
-        return res.status(402).json({ 
+      if (typeof customer !== 'string' && !(customer as any).invoice_settings?.default_payment_method) {
+        res.status(402).json({ 
           need_payment_method: true,
           error: 'No default payment method on file'
         });
+        return;
       }
     }
 
@@ -421,7 +424,7 @@ export const payInvoice = async (req: Request, res: Response): Promise<void> => 
     res.json({
       paid: true,
       hosted_invoice_url: paidInvoice.hosted_invoice_url,
-      charge_id: paidInvoice.charge,
+      charge_id: (paidInvoice as any).charge,
       amount_paid: paidInvoice.amount_paid / 100
     });
   } catch (error: any) {
@@ -443,10 +446,11 @@ export const deleteInvoice = async (req: Request, res: Response): Promise<void> 
     const invoice = await stripe.invoices.retrieve(id);
 
     if (invoice.status === 'paid') {
-      return res.status(400).json({ 
+      res.status(400).json({ 
         error: 'Cannot delete a paid invoice',
         requestId: 'n/a'
       });
+      return;
     }
 
     let deleted = false;
