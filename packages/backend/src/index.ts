@@ -21,6 +21,7 @@ import invoiceRoutes from './routes/invoice.routes';
 import invoicePaymentRoutes from './routes/invoice-payment.routes';
 
 // Force redeployment - Auth0 configuration update
+// Force Railway rebuild - TypeScript fixes applied - August 16, 2025
 const app = express();
 
 // Load environment variables

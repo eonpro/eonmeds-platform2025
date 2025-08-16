@@ -12544,3 +12544,51 @@ Railway build was failing with 38 TypeScript compilation errors after the user r
 ### Status:
 ✅ All TypeScript errors resolved and pushed to main branch
 🚀 Railway deployment triggered - monitoring for successful build
+
+---
+
+## Merge Conflict Files Fix - August 16, 2025
+
+### Issue:
+Railway build failed with "Merge conflict marker encountered" errors in:
+- src/index-clean.ts (18 merge conflict errors)
+- src/index-simple.ts (6 merge conflict errors)
+
+### Root Cause:
+Duplicate index files were created with unresolved git merge conflict markers (<<<<<<< HEAD, =======, >>>>>>> markers)
+
+### Fix Applied:
+Removed the problematic duplicate files:
+- `index-clean.ts`
+- `index-simple.ts` 
+- `index-billing-update.ts`
+
+Only `index.ts` should exist in the backend/src directory.
+
+### Status:
+✅ Duplicate files removed and pushed to main branch
+🚀 Railway deployment triggered - build should now succeed
+
+---
+
+## Billing Controller TypeScript Errors Fix (Round 3) - August 16, 2025
+
+### Issue:
+Railway build failed again with 7 TypeScript errors in billing.controller.ts that were previously fixed but somehow reverted:
+- Type 'Response<any, Record<string, any>>' is not assignable to type 'void' (4 occurrences)
+- Property 'charge' does not exist on type 'Response<Invoice>' (2 occurrences)
+- Property 'invoice_settings' does not exist on type 'Response<Customer | DeletedCustomer>' (1 occurrence)
+
+### Fix Applied:
+1. Separated return statements from response methods:
+   - Changed `return res.json(...)` to `res.json(...); return;`
+   - Changed `return res.status(...).json(...)` to `res.status(...).json(...); return;`
+
+2. Added type assertions for Stripe properties:
+   - `invoice.charge` → `(invoice as any).charge`
+   - `customer.invoice_settings` → `(customer as any).invoice_settings`
+   - `paidInvoice.charge` → `(paidInvoice as any).charge`
+
+### Status:
+✅ All 7 TypeScript errors in billing.controller.ts resolved
+🚀 Fix pushed to main branch - Railway deployment triggered
