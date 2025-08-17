@@ -124,3 +124,4 @@ export default App;
 // Updated: Sun Aug 17 15:16:14 EDT 2025
 
 // Updated: Sun Aug 17 17:26:57 EDT 2025
+// CRITICAL: SimpleBillingTest MUST be deployed Sun Aug 17 18:20:00 EDT 2025
