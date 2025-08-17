@@ -4,6 +4,7 @@ import { pool } from "../config/database";
 import { getStateAbbreviation } from "../utils/states";
 import { normalizeName } from "../utils/normalize-name";
 import { logger } from "../utils/logger";
+import { stripeService } from "../services/stripe.service";
 
 /**
  * Verify HeyFlow webhook signature
@@ -520,6 +521,28 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     );
 
     const patientRecordId = result.rows[0].id;
+
+    // Create Stripe customer for the new patient
+    try {
+      const stripeCustomer = await stripeService.createCustomer({
+        patientId: patientId,
+        email: patientData.email,
+        name: `${patientData.first_name} ${patientData.last_name}`,
+        phone: patientData.phone
+      });
+
+      // Update patient with Stripe customer ID
+      await client.query(
+        'UPDATE patients SET stripe_customer_id = $1 WHERE patient_id = $2',
+        [stripeCustomer.id, patientId]
+      );
+
+      logger.info(`Created Stripe customer ${stripeCustomer.id} for patient ${patientId}`);
+    } catch (stripeError) {
+      // Log error but don't fail the patient registration
+      logger.error('Failed to create Stripe customer:', stripeError);
+      // Continue with the rest of the flow
+    }
 
     // Handle form-specific data based on form type
     // Check if it's a weight loss form by flowID or form name

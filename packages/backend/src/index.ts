@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { testDatabaseConnection, ensureSOAPNotesTable } from './config/database';
 import { logger } from './utils/logger';
+import { applySecurityMiddleware, corsOptions } from './config/security.config';
 // Remove the audit middleware import for now since it's not used
 
 // Import routes
@@ -13,6 +14,7 @@ import practitionerRoutes from './routes/practitioner.routes';
 import appointmentRoutes from './routes/appointment.routes';
 import documentRoutes from './routes/document.routes';
 import webhookRoutes from './routes/webhook.routes';
+import stripeWebhookRoutes from './routes/stripe-webhook.routes';
 import auditRoutes from './routes/audit.routes';
 import paymentRoutes from './routes/payment.routes';
 import packageRoutes from './routes/package.routes';
@@ -27,31 +29,42 @@ dotenv.config();
 
 const PORT = Number(process.env.PORT) || 3000;
 
-// CORS must be before all routes
-const corsOrigins = process.env.CORS_ORIGIN 
-  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : [
-    'http://localhost:3000',
-    'http://localhost:3001', 
-    'https://intuitive-learning-production.up.railway.app',
-    'https://eonmeds-platform2025-production.up.railway.app'
-  ];
-
-logger.info("🔒 CORS Origins configured:", corsOrigins);
-
-app.use(cors({
-  origin: corsOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['X-Total-Count']
-}));
+// Apply security middleware (includes CORS, rate limiting, etc.)
+if (process.env.NODE_ENV === 'production') {
+  app.use(cors(corsOptions));
+  applySecurityMiddleware(app);
+} else {
+  // Development CORS settings
+  const corsOrigins = process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+    : [
+      'http://localhost:3000',
+      'http://localhost:3001', 
+      'https://intuitive-learning-production.up.railway.app',
+      'https://eonmeds-platform2025-production.up.railway.app'
+    ];
+  
+  logger.info("🔒 CORS Origins configured:", corsOrigins);
+  
+  app.use(cors({
+    origin: corsOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['X-Total-Count', 'X-Session-Expires-In']
+  }));
+}
 
 // Request logging middleware (before body parsing)
 app.use((req, _res, next) => {
   logger.info(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
 });
+
+// Stripe webhook route (must be before body parsing middleware)
+// Stripe requires raw body for webhook signature verification
+app.use("/api/v1/webhooks/stripe", stripeWebhookRoutes);
+logger.info("✅ Stripe webhook route loaded (requires raw body)");
 
 // Body parsing middleware for all routes
 app.use(express.json({ limit: "10mb" }));
