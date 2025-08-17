@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import dotenv from "dotenv";
+import { logger } from "../utils/logger";
 
 // Load environment variables
 dotenv.config();
@@ -14,22 +15,22 @@ export const stripeConfig = {
 // Validate Stripe configuration
 export function validateStripeConfig(): boolean {
   if (!stripeConfig.apiKey) {
-    console.error("❌ STRIPE_SECRET_KEY is not configured");
+    logger.error("❌ STRIPE_SECRET_KEY is not configured");
     return false;
   }
 
   // Webhook secret is optional for now (needed for Phase 4)
   if (!stripeConfig.webhookSecret) {
-    console.warn("⚠️  STRIPE_WEBHOOK_SECRET is not configured (needed for webhooks)");
+    logger.warn("⚠️  STRIPE_WEBHOOK_SECRET is not configured (needed for webhooks)");
   }
 
   // Check if using test keys (recommended for development)
   if (stripeConfig.apiKey.startsWith("sk_test_")) {
-    console.log("✅ Using Stripe TEST mode");
+    logger.info("✅ Using Stripe TEST mode");
   } else if (stripeConfig.apiKey.startsWith("sk_live_")) {
-    console.warn("⚠️  Using Stripe LIVE mode - be careful!");
+    logger.warn("⚠️  Using Stripe LIVE mode - be careful!");
   } else {
-    console.error("❌ Invalid Stripe API key format");
+    logger.error("❌ Invalid Stripe API key format");
     return false;
   }
 
@@ -55,7 +56,7 @@ export function getStripeClient(): Stripe {
       },
     });
 
-    console.log("✅ Stripe client initialized");
+    logger.info("✅ Stripe client initialized");
   }
 
   return stripeClient;

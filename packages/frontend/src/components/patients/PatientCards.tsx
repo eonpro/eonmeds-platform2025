@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { CardIcon, CloseIcon } from '../common/Icons';
 import { LoadingSpinner } from '../common/LoadingSpinner';
@@ -27,11 +27,7 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadCards();
-  }, [patientId]);
-
-  const loadCards = async () => {
+  const loadCards = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiClient.get(`/api/v1/payment-methods/patient/${patientId}`);
@@ -42,7 +38,11 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [patientId]);
+
+  useEffect(() => {
+    loadCards();
+  }, [loadCards]);
 
   const handleAddCard = async (paymentMethodId: string) => {
     setError(null);

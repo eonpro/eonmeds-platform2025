@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../config/database";
+import { logger } from "../utils/logger";
 
 // Get all invoices for a patient
 export const getPatientInvoices = async (
@@ -50,7 +51,7 @@ export const getPatientInvoices = async (
       total: result.rows.length,
     });
   } catch (error) {
-    console.error("Error fetching patient invoices:", error);
+    logger.error("Error fetching patient invoices:", error);
     res.status(500).json({ error: "Failed to fetch invoices" });
   }
 };
@@ -61,14 +62,14 @@ export const createInvoice = async (
   res: Response,
 ): Promise<void> => {
   try {
-    console.log("Invoice creation request body:", req.body);
+    logger.info("Invoice creation request body:", req.body);
     
     const { patient_id, amount, total_amount, description, due_date, status = "draft", items = [] } = req.body;
     
     // Support both 'amount' and 'total_amount' for backwards compatibility
     const invoiceAmount = amount || total_amount;
     
-    console.log("Creating invoice with data:", { patient_id, amount, total_amount, invoiceAmount });
+    logger.info("Creating invoice with data:", { patient_id, amount, total_amount, invoiceAmount });
     
     // Validate required fields
     if (!patient_id) {
@@ -130,7 +131,7 @@ export const createInvoice = async (
       message: "Invoice created successfully"
     });
   } catch (error) {
-    console.error("Error creating invoice:", error);
+    logger.error("Error creating invoice:", error);
     res.status(500).json({ 
       error: "Failed to create invoice",
       message: error instanceof Error ? error.message : "Unknown error"
@@ -190,7 +191,7 @@ export const updateInvoice = async (
       invoice: updateResult.rows[0]
     });
   } catch (error) {
-    console.error("Error updating invoice:", error);
+    logger.error("Error updating invoice:", error);
     res.status(500).json({ error: "Failed to update invoice" });
   }
 };
@@ -218,7 +219,7 @@ export const deleteInvoice = async (
       message: "Invoice deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting invoice:", error);
+    logger.error("Error deleting invoice:", error);
     res.status(500).json({ error: "Failed to delete invoice" });
   }
 };
@@ -255,7 +256,7 @@ export const chargeInvoice = async (
       invoice: result.rows[0],
     });
   } catch (error) {
-    console.error("Error charging invoice:", error);
+    logger.error("Error charging invoice:", error);
     res.status(500).json({ error: "Failed to charge invoice" });
   }
 };
@@ -292,7 +293,7 @@ export const chargeInvoiceManual = async (
       invoice: result.rows[0],
     });
   } catch (error) {
-    console.error("Error manually charging invoice:", error);
+    logger.error("Error manually charging invoice:", error);
     res.status(500).json({ error: "Failed to charge invoice" });
   }
 };

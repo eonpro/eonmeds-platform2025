@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { pool } from "../config/database";
 import { getStateAbbreviation } from "../utils/states";
 import { normalizeName } from "../utils/normalize-name";
+import { logger } from "../utils/logger";
 
 /**
  * Verify HeyFlow webhook signature
@@ -31,24 +32,24 @@ export const handleHeyFlowWebhook = async (
   delete req.headers.Authorization;
 
   const requestId = crypto.randomBytes(8).toString("hex");
-  console.log(`\n=== HeyFlow Webhook Received [${requestId}] ===`);
-  console.log("Timestamp:", new Date().toISOString());
-  console.log("Headers:", JSON.stringify(req.headers, null, 2));
-  console.log("Body:", JSON.stringify(req.body, null, 2));
+  logger.info(`\n=== HeyFlow Webhook Received [${requestId}] ===`);
+  logger.info("Timestamp:", new Date().toISOString());
+  logger.info("Headers:", JSON.stringify(req.headers, null, 2));
+  logger.info("Body:", JSON.stringify(req.body, null, 2));
 
   try {
     // 1. Verify webhook signature for security
     const webhookSecret = process.env.HEYFLOW_WEBHOOK_SECRET;
 
     if (webhookSecret && webhookSecret !== "SKIP") {
-      console.log(
+      logger.info(
         `[${requestId}] Webhook secret configured, verifying signature...`,
       );
       const signature = req.headers["x-heyflow-signature"] as string;
 
       if (!signature) {
-        console.error(`[${requestId}] Missing signature header`);
-        console.log(
+        logger.error(`[${requestId}] Missing signature header`);
+        logger.info(
           `[${requestId}] To skip signature verification, set HEYFLOW_WEBHOOK_SECRET=SKIP`,
         );
         res.status(401).json({ error: "Missing signature" });
@@ -59,18 +60,18 @@ export const handleHeyFlowWebhook = async (
       const isValid = verifyHeyFlowSignature(payload, signature, webhookSecret);
 
       if (!isValid) {
-        console.error(`[${requestId}] Invalid signature`);
+        logger.error(`[${requestId}] Invalid signature`);
         res.status(401).json({ error: "Invalid signature" });
         return;
       }
-      console.log(`[${requestId}] Signature verified successfully`);
+      logger.info(`[${requestId}] Signature verified successfully`);
     } else {
       if (webhookSecret === "SKIP") {
-        console.warn(
+        logger.warn(
           `[${requestId}] ⚠️  WEBHOOK SIGNATURE VERIFICATION SKIPPED (HEYFLOW_WEBHOOK_SECRET=SKIP)`,
         );
       } else {
-        console.warn(
+        logger.warn(
           `[${requestId}] ⚠️  WEBHOOK SECRET NOT SET - Bypassing signature verification`,
         );
       }
@@ -87,15 +88,15 @@ export const handleHeyFlowWebhook = async (
       // Process the webhook if database is available
       await processHeyFlowSubmission(webhookEventId, req.body);
 
-      console.log("✅ Webhook processed and stored in database");
+      logger.info("✅ Webhook processed and stored in database");
     } catch (dbError) {
       // Database not available - log to console instead
-      console.error("Database error in webhook:", dbError);
-      console.warn(
+      logger.error("Database error in webhook:", dbError);
+      logger.warn(
         "⚠️  Database not available - logging webhook data to console",
       );
-      console.log("=== WEBHOOK DATA TO PROCESS LATER ===");
-      console.log(
+      logger.info("=== WEBHOOK DATA TO PROCESS LATER ===");
+      logger.info(
         JSON.stringify(
           {
             timestamp: new Date().toISOString(),
@@ -105,7 +106,7 @@ export const handleHeyFlowWebhook = async (
           2,
         ),
       );
-      console.log("=== END WEBHOOK DATA ===");
+      logger.info("=== END WEBHOOK DATA ===");
     }
 
     // 4. Always acknowledge receipt quickly (< 200ms requirement)
@@ -117,7 +118,7 @@ export const handleHeyFlowWebhook = async (
         : "Webhook received (database offline)",
     });
   } catch (error) {
-    console.error("Webhook processing error:", error);
+    logger.error("Webhook processing error:", error);
     // Return 200 to prevent retries if it's our error
     res.status(200).json({ received: true, error: "Processing failed" });
   }
@@ -161,8 +162,8 @@ async function storeWebhookEvent(payload: any) {
  */
 async function processHeyFlowSubmission(eventId: string, payload: any) {
   const requestId = crypto.randomBytes(4).toString("hex");
-  console.log(`\n[${requestId}] === Processing HeyFlow Submission ===`);
-  console.log(`[${requestId}] Event ID: ${eventId}`);
+  logger.info(`\n[${requestId}] === Processing HeyFlow Submission ===`);
+  logger.info(`[${requestId}] Event ID: ${eventId}`);
 
   const client = await pool.connect();
 
@@ -170,20 +171,20 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     await client.query("BEGIN");
 
     // Debug: Log the payload structure
-    console.log(`[${requestId}] Analyzing payload structure:`);
-    console.log(
+    logger.info(`[${requestId}] Analyzing payload structure:`);
+    logger.info(
       `[${requestId}] - Has fields array?`,
       Array.isArray(payload.fields),
     );
-    console.log(
+    logger.info(
       `[${requestId}] - Has fields object?`,
       typeof payload.fields === "object" && !Array.isArray(payload.fields),
     );
-    console.log(
+    logger.info(
       `[${requestId}] - Has data object?`,
       typeof payload.data === "object",
     );
-    console.log(`[${requestId}] - Payload keys:`, Object.keys(payload));
+    logger.info(`[${requestId}] - Payload keys:`, Object.keys(payload));
 
     // Helper function to get field value by variable name
     const getFieldValue = (variableName: string): any => {
@@ -193,7 +194,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
           (f: any) => f.variable === variableName,
         );
         const value = field?.values?.[0]?.answer || null;
-        console.log(
+        logger.info(
           `[${requestId}] - Field '${variableName}':`,
           value ? `"${value}"` : "null",
         );
@@ -208,7 +209,7 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
 
     // Format 1: Direct data object (most common for HeyFlow)
     if (payload.data && typeof payload.data === "object") {
-      console.log(`[${requestId}] Using Format 1: Direct data object`);
+      logger.info(`[${requestId}] Using Format 1: Direct data object`);
       extractedData = payload.data;
     }
     // Format 2: Fields object (current HeyFlow format - July 2025)
@@ -217,14 +218,14 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
       typeof payload.fields === "object" &&
       !Array.isArray(payload.fields)
     ) {
-      console.log(
+      logger.info(
         `[${requestId}] Using Format 2: Fields object (current format)`,
       );
       extractedData = payload.fields;
     }
     // Format 3: Fields array (older format)
     else if (Array.isArray(payload.fields)) {
-      console.log(`[${requestId}] Using Format 3: Fields array (older format)`);
+      logger.info(`[${requestId}] Using Format 3: Fields array (older format)`);
 
       // Extract each field using the helper function
       extractedData = {
@@ -243,23 +244,23 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
     }
     // Format 4: Direct properties on payload
     else if (payload.firstname || payload.email || payload.lastname) {
-      console.log("Using Format 4: Direct properties");
+      logger.info("Using Format 4: Direct properties");
       extractedData = payload;
     }
     // Format 5: Nested in submission object
     else if (payload.submission && typeof payload.submission === "object") {
-      console.log("Using Format 5: Submission object");
+      logger.info("Using Format 5: Submission object");
       extractedData = payload.submission.data || payload.submission;
     } else {
       // Log the entire payload for debugging
-      console.error(
+      logger.error(
         "Unknown payload format. Full payload:",
         JSON.stringify(payload, null, 2),
       );
       throw new Error("Unable to extract data from webhook payload");
     }
 
-    console.log("Extracted data:", JSON.stringify(extractedData, null, 2));
+    logger.info("Extracted data:", JSON.stringify(extractedData, null, 2));
 
     // Map HeyFlow fields to patient data with multiple possible field names
     const rawFirstName =
@@ -393,20 +394,20 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
         hashtags.push(repHashtag, "internalrep");
 
         // Log rep assignment
-        console.log(`📋 Rep-assisted form: ${repName}`);
+        logger.info(`📋 Rep-assisted form: ${repName}`);
       } else {
         // Internal form but no rep specified - shouldn't happen
-        console.warn("⚠️  Internal Espanol form submitted without rep name");
+        logger.warn("⚠️  Internal Espanol form submitted without rep name");
         hashtags.push("internalrep"); // Still mark as internal
       }
     } else if (formType && formType.toLowerCase().includes('external-english')) {
       // External English form
       hashtags.push('externalenglish');
-      console.log(`🌐 External English form detected`);
+      logger.info(`🌐 External English form detected`);
     } else if (formType && formType.toLowerCase().includes('external-spanish')) {
       // External Spanish form
       hashtags.push('externalspanish');
-      console.log(`🌐 External Spanish form detected`);
+      logger.info(`🌐 External Spanish form detected`);
     } else {
       // Regular direct form
       hashtags.push("webdirect");
@@ -553,10 +554,10 @@ async function processHeyFlowSubmission(eventId: string, payload: any) {
 
     await client.query("COMMIT");
 
-    console.log(
+    logger.info(
       `Successfully processed HeyFlow submission for patient ${patientId}`,
     );
-    console.log("Patient email:", patientData.email);
+    logger.info("Patient email:", patientData.email);
 
     // TODO: Send notifications, trigger other workflows
   } catch (error) {
@@ -649,7 +650,7 @@ export const webhookHealthCheck = async (
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Webhook health check error:", error);
+    logger.error("Webhook health check error:", error);
     res.status(500).json({
       status: "error",
       message: "Health check failed",

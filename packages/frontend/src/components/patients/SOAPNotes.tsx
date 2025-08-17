@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import BeccaAIModal from '../ai/BeccaAIModal';
@@ -45,7 +45,7 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
     user?.role === 'admin' || user?.role === 'doctor' || user?.role === 'superadmin';
 
   // Fetch existing SOAP notes
-  const fetchSOAPNotes = async () => {
+  const fetchSOAPNotes = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get(`/api/v1/ai/soap-notes/${patientId}`);
@@ -57,11 +57,11 @@ export const SOAPNotes: React.FC<SOAPNotesProps> = ({ patientId, patientName, on
     } finally {
       setLoading(false);
     }
-  };
+  }, [patientId, api]);
 
   useEffect(() => {
     fetchSOAPNotes();
-  }, [patientId]);
+  }, [fetchSOAPNotes]);
 
   // Generate new SOAP note
   const handleGenerateSOAP = async () => {

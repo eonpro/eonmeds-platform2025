@@ -1,11 +1,12 @@
 import { Pool } from "pg";
 import dotenv from "dotenv";
+import { logger } from "../utils/logger";
 
 // Load environment variables
 dotenv.config();
 
 // Debug log the configuration
-console.log("Database configuration:", {
+logger.info("Database configuration:", {
   hasDbUrl: !!process.env.DATABASE_URL,
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -41,11 +42,11 @@ export const pool = process.env.DATABASE_URL
 
 // Test database connection with timeout
 pool.on("connect", () => {
-  console.log("Connected to PostgreSQL database");
+  logger.info("Connected to PostgreSQL database");
 });
 
 pool.on("error", (err) => {
-  console.error("Database pool error:", err);
+  logger.error("Database pool error:", err);
   // Don't exit the process - let the service continue running
   // This allows health checks to report the issue without crashing
 });
@@ -62,14 +63,14 @@ export async function testDatabaseConnection() {
       const client = await pool.connect();
       const result = await client.query("SELECT NOW()");
       client.release();
-      console.log("Database connection test successful:", result.rows[0]);
+      logger.info("Database connection test successful:", result.rows[0]);
       return true;
     })();
 
     // Race between connection and timeout
     return await Promise.race([connectionPromise, timeoutPromise]);
   } catch (error) {
-    console.error("Database connection test failed:", error);
+    logger.error("Database connection test failed:", error);
     return false;
   }
 }
@@ -80,10 +81,10 @@ export async function query(text: string, params?: any[]) {
   try {
     const res = await pool.query(text, params);
     const duration = Date.now() - start;
-    console.log("Executed query", { text, duration, rows: res.rowCount });
+    logger.debug("Executed query", { text, duration, rows: res.rowCount });
     return res;
   } catch (error) {
-    console.error("Database query error:", error);
+    logger.error("Database query error:", error);
     throw error;
   }
 }
@@ -99,7 +100,7 @@ export async function ensureSOAPNotesTable() {
     `);
 
     if (!tableCheck.rows[0].exists) {
-      console.log("Creating soap_notes table...");
+      logger.info("Creating soap_notes table...");
 
       await pool.query(`
         CREATE TABLE soap_notes (
@@ -136,11 +137,11 @@ export async function ensureSOAPNotesTable() {
         "CREATE INDEX idx_soap_notes_status ON soap_notes(status)",
       );
 
-      console.log(
-        "✅ Created soap_notes table with correct schema for BECCA AI",
+      logger.info(
+        "✅ Created soap_notes table with correct schema for BECCA AI"
       );
     }
   } catch (error) {
-    console.error("Error ensuring soap_notes table:", error);
+    logger.error("Error ensuring soap_notes table:", error);
   }
 }

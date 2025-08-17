@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { StripePaymentForm } from './StripePaymentForm';
 import './PaymentModal.css';
@@ -25,15 +25,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [paymentSucceeded, setPaymentSucceeded] = useState(false);
 
-  useEffect(() => {
-    if (stripeCustomerId && invoice.patient_id) {
-      loadSavedCards();
-    } else {
-      setPaymentMethod('new');
-    }
-  }, [stripeCustomerId, invoice.patient_id]);
-
-  const loadSavedCards = async () => {
+  const loadSavedCards = useCallback(async () => {
     try {
       setLoadingCards(true);
       // Try to load saved cards, but don't fail if the endpoint doesn't exist
@@ -55,7 +47,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     } finally {
       setLoadingCards(false);
     }
-  };
+  }, [invoice.patient_id, apiClient]);
+
+  useEffect(() => {
+    if (stripeCustomerId && invoice.patient_id) {
+      loadSavedCards();
+    } else {
+      setPaymentMethod('new');
+    }
+  }, [stripeCustomerId, invoice.patient_id, loadSavedCards]);
 
   const handlePaymentSuccess = () => {
     setPaymentSucceeded(true);

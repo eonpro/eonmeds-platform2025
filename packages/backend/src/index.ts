@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { testDatabaseConnection, ensureSOAPNotesTable } from './config/database';
+import { logger } from './utils/logger';
 // Remove the audit middleware import for now since it's not used
 
 // Import routes
@@ -36,7 +37,7 @@ const corsOrigins = process.env.CORS_ORIGIN
     'https://eonmeds-platform2025-production.up.railway.app'
   ];
 
-console.log("🔒 CORS Origins configured:", corsOrigins);
+logger.info("🔒 CORS Origins configured:", corsOrigins);
 
 app.use(cors({
   origin: corsOrigins,
@@ -48,7 +49,7 @@ app.use(cors({
 
 // Request logging middleware (before body parsing)
 app.use((req, _res, next) => {
-  console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
+  logger.info(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
 });
 
@@ -86,7 +87,7 @@ app.get('/api/v1', (_req, res) => {
 // Webhook routes (always available - no auth required)
 // IMPORTANT: This must be before any auth middleware
 app.use("/api/v1/webhooks", webhookRoutes);
-console.log("✅ Webhook routes loaded (always available - no auth required)");
+logger.info("✅ Webhook routes loaded (always available - no auth required)");
 
 // Register all routes (with database check inside each route)
 app.use("/api/v1/auth", authRoutes);
@@ -113,21 +114,21 @@ app.use('/api/v1/financial-dashboard', financialDashboardRoutes);
 if (process.env.NODE_ENV !== 'production') {
   const stripeTestRoutes = require('./routes/stripe-test.routes').default;
   app.use('/api/v1/stripe-test', stripeTestRoutes);
-  console.log('✅ Stripe test routes loaded (development only)');
+  logger.info('✅ Stripe test routes loaded (development only)');
 }
 
-console.log('✅ All routes registered (database check happens per route)');
+logger.info('✅ All routes registered (database check happens per route)');
 
 // Start server
 app.listen(PORT, async () => {
-  console.log('🚀 Server is running!');
-  console.log(`📡 Listening on port ${PORT}`);
-  console.log('🏥 EONMeds Backend API');
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Database Host: ${process.env.DB_HOST ? '✓ Configured' : '✗ Missing'}`);
-  console.log(`Database Name: ${process.env.DB_NAME ? '✓ Configured' : '✗ Missing'}`);
-  console.log(`JWT Secret: ${process.env.JWT_SECRET ? '✓ Configured' : '✗ Missing'}`);
-  console.log(`Port: ${PORT}`);
+  logger.info('🚀 Server is running!');
+  logger.info(`📡 Listening on port ${PORT}`);
+  logger.info('🏥 EONMeds Backend API');
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`Database Host: ${process.env.DB_HOST ? '✓ Configured' : '✗ Missing'}`);
+  logger.info(`Database Name: ${process.env.DB_NAME ? '✓ Configured' : '✗ Missing'}`);
+  logger.info(`JWT Secret: ${process.env.JWT_SECRET ? '✓ Configured' : '✗ Missing'}`);
+  logger.info(`Port: ${PORT}`);
 
   await testDatabaseConnection();
   await ensureSOAPNotesTable();
@@ -137,13 +138,13 @@ app.listen(PORT, async () => {
 let databaseConnected = false;
 
 async function initializeDatabase() {
-  console.log('Attempting database connection...');
+  logger.info('Attempting database connection...');
   
   try {
     const isConnected = await testDatabaseConnection();
 
     if (isConnected) {
-      console.log("✅ Database connected successfully");
+      logger.info("✅ Database connected successfully");
       databaseConnected = true;
 
       // Ensure critical tables exist
@@ -248,20 +249,20 @@ async function initializeDatabase() {
         const { ensureSOAPNotesTable } = await import("./config/database");
         await ensureSOAPNotesTable();
         
-        console.log('✅ Database tables verified/created');
+        logger.info('✅ Database tables verified/created');
       } catch (tableError) {
-        console.log(
+        logger.info(
           "Note: Could not verify/create tables:",
           (tableError as Error).message,
         );
       }
     } else {
-      console.log(
+      logger.info(
         "⚠️  Database connection failed - some functionality may be limited",
       );
     }
   } catch (error) {
-    console.error("❌ Error during database initialization:", error);
+    logger.error("❌ Error during database initialization:", error);
   }
 }
 
@@ -282,7 +283,7 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Error:', err);
+  logger.error('Error:', err);
 
   // Always include useful debugging info in output
   const responseBody: any = {
@@ -300,7 +301,7 @@ app.use((err: any, req: express.Request, res: express.Response, _next: express.N
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
-  console.log("SIGTERM signal received: closing HTTP server");
+  logger.info("SIGTERM signal received: closing HTTP server");
   process.exit(0);
 });
 
