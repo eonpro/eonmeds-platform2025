@@ -34,7 +34,7 @@ export class PHIEncryption {
     try {
       const key = this.getKey();
       const iv = crypto.randomBytes(16);
-      const cipher = crypto.createCipheriv(this.algorithm, key, iv);
+      const cipher = crypto.createCipheriv(this.algorithm, key, iv) as crypto.CipherGCM;
       
       let encrypted = cipher.update(text, 'utf8', 'hex');
       encrypted += cipher.final('hex');
@@ -62,7 +62,7 @@ export class PHIEncryption {
         this.algorithm, 
         key, 
         Buffer.from(data.iv, 'hex')
-      );
+      ) as crypto.DecipherGCM;
       decipher.setAuthTag(Buffer.from(data.tag, 'hex'));
       
       let decrypted = decipher.update(data.encrypted, 'hex', 'utf8');
