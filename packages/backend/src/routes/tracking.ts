@@ -46,13 +46,13 @@ router.post('/import',
 
       if (existingResult.rows.length > 0) {
         // Update existing record
-        await pool.query(\`
+        await pool.query(`
           UPDATE patient_tracking 
           SET status = $2, 
               delivery_date = $3,
               updated_at = CURRENT_TIMESTAMP
           WHERE tracking_number = $1
-        \`, [
+        `, [
           req.body.tracking_number,
           req.body.status || 'In Transit',
           req.body.delivery_date
@@ -65,14 +65,14 @@ router.post('/import',
       }
 
       // Insert new tracking record
-      const result = await pool.query(\`
+      const result = await pool.query(`
         INSERT INTO patient_tracking (
           tracking_number, carrier, recipient_name, delivery_address,
           delivery_date, ship_date, weight, service_type, status,
           tracking_url, created_at, updated_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING id
-      \`, [
+      `, [
         req.body.tracking_number,
         req.body.carrier,
         req.body.recipient_name,
@@ -83,8 +83,8 @@ router.post('/import',
         req.body.service,
         req.body.status || 'In Transit',
         req.body.carrier === 'FedEx' 
-          ? \`https://www.fedex.com/fedextrack/?trknbr=\${req.body.tracking_number}\`
-          : \`https://www.ups.com/track?tracknum=\${req.body.tracking_number}\`
+          ? `https://www.fedex.com/fedextrack/?trknbr=\${req.body.tracking_number}`
+          : `https://www.ups.com/track?tracknum=\${req.body.tracking_number}`
       ]);
 
       res.status(201).json({ 
@@ -126,29 +126,29 @@ router.get('/search',
 
       if (q) {
         paramCount++;
-        whereClause += \` AND (
+        whereClause += ` AND (
           tracking_number ILIKE \$\${paramCount} OR 
           recipient_name ILIKE \$\${paramCount} OR 
           delivery_address ILIKE \$\${paramCount}
-        )\`;
-        params.push(\`%\${q}%\`);
+        )`;
+        params.push(`%\${q}%`);
       }
 
       if (carrier) {
         paramCount++;
-        whereClause += \` AND carrier = \$\${paramCount}\`;
+        whereClause += ` AND carrier = \$\${paramCount}`;
         params.push(carrier);
       }
 
       if (status) {
         paramCount++;
-        whereClause += \` AND status = \$\${paramCount}\`;
+        whereClause += ` AND status = \$\${paramCount}`;
         params.push(status);
       }
 
       // Get total count
       const countResult = await pool.query(
-        \`SELECT COUNT(*) as total FROM patient_tracking \${whereClause}\`,
+        `SELECT COUNT(*) as total FROM patient_tracking \${whereClause}`,
         params
       );
 
@@ -158,7 +158,7 @@ router.get('/search',
       paramCount++;
       params.push(offset);
       
-      const results = await pool.query(\`
+      const results = await pool.query(`
         SELECT 
           id, patient_id, tracking_number, carrier, recipient_name,
           delivery_address, delivery_date, ship_date, weight,
@@ -167,7 +167,7 @@ router.get('/search',
         \${whereClause}
         ORDER BY created_at DESC
         LIMIT \$\${paramCount - 1} OFFSET \$\${paramCount}
-      \`, params);
+      `, params);
 
       res.json({
         data: results.rows,
@@ -199,7 +199,7 @@ router.get('/patient/:patientId',
     }
 
     try {
-      const results = await pool.query(\`
+      const results = await pool.query(`
         SELECT 
           id, tracking_number, carrier, recipient_name,
           delivery_date, status, tracking_url, created_at
@@ -207,7 +207,7 @@ router.get('/patient/:patientId',
         WHERE patient_id = $1
         ORDER BY created_at DESC
         LIMIT 10
-      \`, [req.params.patientId]);
+      `, [req.params.patientId]);
 
       res.json(results.rows);
 
