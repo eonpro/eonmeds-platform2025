@@ -145,3 +145,4 @@ env.local
 # Database dumps
 *.sql.backup
 *.dumpeonmeds-n8n/
+eonmeds-n8n/

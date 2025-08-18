@@ -5,7 +5,7 @@
  */
 
 // ===== CONFIGURATION =====
-const EONMEDS_API_URL = 'https://eonmeds-backend-production.up.railway.app/api/v1/tracking/import';
+const EONMEDS_API_URL = 'https://eonmeds-platform2025-production.up.railway.app/api/v1/tracking/import';
 const EONMEDS_API_KEY = '8f372a1ac2c1721be6c8549178cddeb56d3a690b8bd08be5fc14f3157c669f19';
 const LABEL_NAME = 'Processed_Tracking_EONMeds';
 
