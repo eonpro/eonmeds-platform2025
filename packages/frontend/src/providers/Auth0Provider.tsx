@@ -17,7 +17,7 @@ export const Auth0ProviderWithNavigate = ({ children }: Auth0ProviderWithNavigat
   const redirectUri = process.env.REACT_APP_AUTH0_REDIRECT_URI || 
     (process.env.NODE_ENV === 'production'
       ? window.location.origin + '/callback'
-      : 'http://localhost:3000/callback');
+      : 'http://localhost:3001/callback');
 
   if (!domain || !clientId || !audience) {
     throw new Error('Auth0 configuration is missing. Please check your environment variables.');
