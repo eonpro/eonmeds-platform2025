@@ -83,8 +83,8 @@ router.post('/import',
         req.body.service,
         req.body.status || 'In Transit',
         req.body.carrier === 'FedEx' 
-          ? `https://www.fedex.com/fedextrack/?trknbr=\${req.body.tracking_number}`
-          : `https://www.ups.com/track?tracknum=\${req.body.tracking_number}`
+          ? `https://www.fedex.com/fedextrack/?trknbr=${req.body.tracking_number}`
+          : `https://www.ups.com/track?tracknum=${req.body.tracking_number}`
       ]);
 
       res.status(201).json({ 
@@ -127,28 +127,28 @@ router.get('/search',
       if (q) {
         paramCount++;
         whereClause += ` AND (
-          tracking_number ILIKE \$\${paramCount} OR 
-          recipient_name ILIKE \$\${paramCount} OR 
-          delivery_address ILIKE \$\${paramCount}
+          tracking_number ILIKE $${paramCount} OR 
+          recipient_name ILIKE $${paramCount} OR 
+          delivery_address ILIKE $${paramCount}
         )`;
-        params.push(`%\${q}%`);
+        params.push(`%${q}%`);
       }
 
       if (carrier) {
         paramCount++;
-        whereClause += ` AND carrier = \$\${paramCount}`;
+        whereClause += ` AND carrier = $${paramCount}`;
         params.push(carrier);
       }
 
       if (status) {
         paramCount++;
-        whereClause += ` AND status = \$\${paramCount}`;
+        whereClause += ` AND status = $${paramCount}`;
         params.push(status);
       }
 
       // Get total count
       const countResult = await pool.query(
-        `SELECT COUNT(*) as total FROM patient_tracking \${whereClause}`,
+        `SELECT COUNT(*) as total FROM patient_tracking ${whereClause}`,
         params
       );
 
@@ -164,9 +164,9 @@ router.get('/search',
           delivery_address, delivery_date, ship_date, weight,
           service_type, status, tracking_url, created_at
         FROM patient_tracking 
-        \${whereClause}
+        ${whereClause}
         ORDER BY created_at DESC
-        LIMIT \$\${paramCount - 1} OFFSET \$\${paramCount}
+        LIMIT $${paramCount - 1} OFFSET $${paramCount}
       `, params);
 
       res.json({
