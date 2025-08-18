@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
-import { getRepository } from 'typeorm';
+import { pool } from '../config/database';
 import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
@@ -38,23 +38,21 @@ router.post('/import',
     }
 
     try {
-      const db = getRepository('patient_tracking');
-      
       // Check if tracking number already exists
-      const existing = await db.query(
+      const existingResult = await pool.query(
         'SELECT id FROM patient_tracking WHERE tracking_number = $1',
         [req.body.tracking_number]
       );
 
-      if (existing.length > 0) {
+      if (existingResult.rows.length > 0) {
         // Update existing record
-        await db.query(`
+        await pool.query(\`
           UPDATE patient_tracking 
           SET status = $2, 
               delivery_date = $3,
               updated_at = CURRENT_TIMESTAMP
           WHERE tracking_number = $1
-        `, [
+        \`, [
           req.body.tracking_number,
           req.body.status || 'In Transit',
           req.body.delivery_date
@@ -67,14 +65,14 @@ router.post('/import',
       }
 
       // Insert new tracking record
-      const result = await db.query(`
+      const result = await pool.query(\`
         INSERT INTO patient_tracking (
           tracking_number, carrier, recipient_name, delivery_address,
           delivery_date, ship_date, weight, service_type, status,
           tracking_url, created_at, updated_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING id
-      `, [
+      \`, [
         req.body.tracking_number,
         req.body.carrier,
         req.body.recipient_name,
@@ -85,13 +83,13 @@ router.post('/import',
         req.body.service,
         req.body.status || 'In Transit',
         req.body.carrier === 'FedEx' 
-          ? `https://www.fedex.com/fedextrack/?trknbr=${req.body.tracking_number}`
-          : `https://www.ups.com/track?tracknum=${req.body.tracking_number}`
+          ? \`https://www.fedex.com/fedextrack/?trknbr=\${req.body.tracking_number}\`
+          : \`https://www.ups.com/track?tracknum=\${req.body.tracking_number}\`
       ]);
 
       res.status(201).json({ 
         message: 'Tracking created',
-        id: result[0].id,
+        id: result.rows[0].id,
         tracking_number: req.body.tracking_number 
       });
 
@@ -128,31 +126,29 @@ router.get('/search',
 
       if (q) {
         paramCount++;
-        whereClause += ` AND (
-          tracking_number ILIKE $${paramCount} OR 
-          recipient_name ILIKE $${paramCount} OR 
-          delivery_address ILIKE $${paramCount}
-        )`;
-        params.push(`%${q}%`);
+        whereClause += \` AND (
+          tracking_number ILIKE \$\${paramCount} OR 
+          recipient_name ILIKE \$\${paramCount} OR 
+          delivery_address ILIKE \$\${paramCount}
+        )\`;
+        params.push(\`%\${q}%\`);
       }
 
       if (carrier) {
         paramCount++;
-        whereClause += ` AND carrier = $${paramCount}`;
+        whereClause += \` AND carrier = \$\${paramCount}\`;
         params.push(carrier);
       }
 
       if (status) {
         paramCount++;
-        whereClause += ` AND status = $${paramCount}`;
+        whereClause += \` AND status = \$\${paramCount}\`;
         params.push(status);
       }
 
-      const db = getRepository('patient_tracking');
-      
       // Get total count
-      const countResult = await db.query(
-        `SELECT COUNT(*) as total FROM patient_tracking ${whereClause}`,
+      const countResult = await pool.query(
+        \`SELECT COUNT(*) as total FROM patient_tracking \${whereClause}\`,
         params
       );
 
@@ -162,24 +158,24 @@ router.get('/search',
       paramCount++;
       params.push(offset);
       
-      const results = await db.query(`
+      const results = await pool.query(\`
         SELECT 
           id, patient_id, tracking_number, carrier, recipient_name,
           delivery_address, delivery_date, ship_date, weight,
           service_type, status, tracking_url, created_at
         FROM patient_tracking 
-        ${whereClause}
+        \${whereClause}
         ORDER BY created_at DESC
-        LIMIT $${paramCount - 1} OFFSET $${paramCount}
-      `, params);
+        LIMIT \$\${paramCount - 1} OFFSET \$\${paramCount}
+      \`, params);
 
       res.json({
-        data: results,
+        data: results.rows,
         pagination: {
           page,
           limit,
-          total: parseInt(countResult[0].total),
-          pages: Math.ceil(countResult[0].total / limit)
+          total: parseInt(countResult.rows[0].total),
+          pages: Math.ceil(countResult.rows[0].total / limit)
         }
       });
 
@@ -203,9 +199,7 @@ router.get('/patient/:patientId',
     }
 
     try {
-      const db = getRepository('patient_tracking');
-      
-      const results = await db.query(`
+      const results = await pool.query(\`
         SELECT 
           id, tracking_number, carrier, recipient_name,
           delivery_date, status, tracking_url, created_at
@@ -213,9 +207,9 @@ router.get('/patient/:patientId',
         WHERE patient_id = $1
         ORDER BY created_at DESC
         LIMIT 10
-      `, [req.params.patientId]);
+      \`, [req.params.patientId]);
 
-      res.json(results);
+      res.json(results.rows);
 
     } catch (error) {
       console.error('Patient tracking error:', error);
