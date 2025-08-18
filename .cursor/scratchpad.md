@@ -11623,3 +11623,501 @@ The key is to build incrementally, test each phase thoroughly, and ensure the ba
 - Still need to install the actual Stripe npm package for the backend
 - Database is PostgreSQL on AWS RDS (not local)
 - Use Railway for deployment and environment variables
+
+---
+
+## PLANNER MODE - N8N Integration Architecture Options
+
+### Background and Motivation
+User has successfully deployed N8N workflow automation on Railway as a separate service and confirmed database connectivity. Now questioning:
+1. Why N8N doesn't have a visible logo option in the UI
+2. Why N8N was deployed as a separate app instead of being integrated within the EONMeds platform
+
+### Key Challenges and Analysis
+
+#### 1. N8N Logo/Branding Options
+**Current State**: User doesn't see logo option in N8N UI
+
+**Analysis**:
+- N8N's white-labeling in open-source version is limited
+- Logo replacement requires Docker-level configuration (which we attempted)
+- Full UI customization requires:
+  - Enterprise license OR
+  - Custom build from source OR
+  - CSS override hacks (limited effectiveness)
+
+**Options**:
+1. **Docker-based approach** (Already attempted):
+   - Copy logo into container
+   - Set env vars for custom logo path
+   - Limited by N8N's open-source restrictions
+
+2. **CSS Override approach**:
+   - Hide N8N logo with CSS
+   - Add custom logo via CSS background
+   - Works but feels hacky
+
+3. **Enterprise License**:
+   - Full white-label support
+   - Custom branding throughout
+   - Additional cost
+
+#### 2. Integration Architecture - Separate vs Embedded
+
+**Why N8N is Currently Separate**:
+1. **Technical Constraints**:
+   - N8N is a full Node.js application with its own server
+   - Requires its own port (5678)
+   - Has complex dependencies and runtime requirements
+   - Needs its own database schema/tables
+
+2. **Best Practice Separation**:
+   - Workflow automation often separate from main app
+   - Easier to scale independently
+   - Updates don't affect main platform
+   - Resource isolation
+
+**Integration Options**:
+
+**Option A: Keep Separate (Current) - RECOMMENDED**
+- ✅ Pros:
+  - Clean separation of concerns
+  - Independent scaling
+  - No performance impact on EHR
+  - Easy updates/maintenance
+  - Standard industry practice
+- ❌ Cons:
+  - Separate login (can be mitigated with SSO)
+  - Different subdomain
+  - Separate deployment
+
+**Option B: Embed via iFrame**
+- ✅ Pros:
+  - Appears integrated in UI
+  - Single domain appearance
+  - Shared navigation
+- ❌ Cons:
+  - Security concerns (iFrame restrictions)
+  - Complex authentication passthrough
+  - UI/UX limitations
+  - Not recommended for production
+
+**Option C: Deep Integration (Complex)**
+- ✅ Pros:
+  - Fully integrated experience
+  - Shared authentication
+  - Unified UI
+- ❌ Cons:
+  - Extremely complex implementation
+  - Requires modifying N8N source
+  - Maintenance nightmare
+  - Performance impacts
+  - Not recommended
+
+**Option D: API Integration Only**
+- ✅ Pros:
+  - Use N8N as backend service
+  - Build custom UI in EONMeds
+  - Full control over UX
+- ❌ Cons:
+  - Lose N8N's workflow builder UI
+  - Significant development effort
+  - Recreating existing functionality
+
+### High-level Task Breakdown
+
+#### Path 1: Improve Current Separate Deployment (Recommended)
+1. **Add SSO Integration**:
+   - Configure N8N to use Auth0
+   - Share authentication with EONMeds
+   - Single sign-on experience
+
+2. **Add Navigation Link**:
+   - Add "Automations" menu item in EONMeds
+   - Opens N8N in new tab
+   - Pass user context if needed
+
+3. **Improve Branding**:
+   - Implement CSS overrides properly
+   - Add "Powered by EON" header
+   - Match color scheme better
+
+4. **Document Integration Points**:
+   - How EONMeds triggers N8N workflows
+   - How N8N updates EONMeds data
+   - API endpoints for communication
+
+#### Path 2: iFrame Integration (Quick but Limited)
+1. **Create Automation Page**:
+   - New route in EONMeds: /automations
+   - Full-page iFrame to N8N
+   - Handle authentication passthrough
+
+2. **Handle Security**:
+   - Configure CORS properly
+   - Set up postMessage communication
+   - Handle session management
+
+3. **UI Polish**:
+   - Hide duplicate navigation
+   - Seamless visual integration
+   - Loading states
+
+### Recommended Approach
+
+**Keep N8N Separate** but improve the integration:
+
+1. **Immediate Actions**:
+   - Add "Workflow Automation" link in EONMeds sidebar
+   - Configure to open `https://splendid-abundance-production.up.railway.app/`
+   - Style as external tool indicator
+
+2. **Phase 2 Improvements**:
+   - Implement Auth0 SSO for N8N
+   - Create API endpoints for programmatic workflow triggers
+   - Build status dashboard in EONMeds showing workflow metrics
+
+3. **Logo Workaround**:
+   - Use CSS to add "EON Medical Solutions" text header
+   - Add favicon matching EONMeds
+   - Document as "EON Workflow Engine"
+
+### Lessons
+- Enterprise software often uses separate services for different functions (CRM + Email + Automation)
+- N8N's value is in its powerful UI - trying to deeply integrate reduces that value
+- Better to have excellent API integration than poor UI integration
+- Users accept separate tools if the handoff is smooth
+
+### Current Status / Progress Tracking
+- ✅ N8N deployed successfully on Railway
+- ✅ Database connection verified
+- ✅ Can query patient data
+- ⏳ Logo/branding partially implemented
+- ❌ Not integrated into main platform UI
+- ❌ No SSO configuration
+
+### Executor's Feedback or Assistance Requests
+- Need user decision on integration approach
+- If iFrame desired, need to test security implications
+- For SSO, need Auth0 application configuration
+- For better branding, may need N8N enterprise license pricing
+
+---
+
+## PLANNER MODE - Tracking Integration: Google Apps Script → N8N → EONMeds
+
+### Background and Motivation
+User currently has a sophisticated Google Apps Script that:
+- Extracts FedEx/UPS tracking info from emails to tracking@eonmedicalcenter.com
+- Parses tracking numbers, recipient names, addresses, delivery dates
+- Stores data in Google Sheets with hyperlinks
+- Runs automatically every 10 minutes
+
+**New Requirements**:
+1. Match tracking numbers to patients in EONMeds database
+2. Add tracking info to patient profiles (placeholder exists)
+3. Create searchable tracking tab in EONMeds
+4. Maintain real-time synchronization
+
+### Key Challenges and Analysis
+
+#### Current System Strengths
+- ✅ Already parsing emails successfully
+- ✅ Extracting all relevant data (tracking #, recipient, address, dates)
+- ✅ Handling both FedEx and UPS formats
+- ✅ Duplicate detection working
+- ✅ Automatic processing every 10 minutes
+
+#### Integration Challenges
+1. **Name Matching**: Recipients in tracking emails may not match patient names exactly
+2. **Address Matching**: Multiple patients might share addresses
+3. **Data Flow**: Google Sheets → N8N → PostgreSQL
+4. **Real-time Updates**: Keep EONMeds synchronized with tracking updates
+5. **Search Interface**: Build tracking search within EONMeds
+
+### High-level Task Breakdown
+
+#### Phase 1: Database Schema Setup
+1. **Create Tracking Tables**:
+   ```sql
+   -- Main tracking table
+   CREATE TABLE patient_tracking (
+     id SERIAL PRIMARY KEY,
+     patient_id INTEGER REFERENCES patients(id),
+     tracking_number VARCHAR(100) UNIQUE NOT NULL,
+     carrier VARCHAR(20) NOT NULL,
+     recipient_name VARCHAR(255),
+     delivery_address TEXT,
+     delivery_date TIMESTAMP,
+     ship_date TIMESTAMP,
+     weight VARCHAR(50),
+     service_type VARCHAR(100),
+     status VARCHAR(50) DEFAULT 'In Transit',
+     tracking_url TEXT,
+     raw_email_data JSONB,
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   );
+
+   -- Index for fast searching
+   CREATE INDEX idx_tracking_number ON patient_tracking(tracking_number);
+   CREATE INDEX idx_patient_tracking ON patient_tracking(patient_id);
+   CREATE INDEX idx_tracking_status ON patient_tracking(status);
+   
+   -- Matching history for audit trail
+   CREATE TABLE tracking_match_log (
+     id SERIAL PRIMARY KEY,
+     tracking_number VARCHAR(100),
+     match_method VARCHAR(50), -- 'exact_name', 'address', 'phone', 'manual'
+     confidence_score DECIMAL(3,2),
+     matched_patient_id INTEGER,
+     operator_id INTEGER,
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
+
+2. **Add to Patient Profile**:
+   ```sql
+   -- Add tracking widget placeholder
+   ALTER TABLE patients ADD COLUMN IF NOT EXISTS 
+     active_shipments_count INTEGER DEFAULT 0;
+   ```
+
+#### Phase 2: N8N Workflow Architecture
+
+**Workflow 1: Email → Database Sync**
+1. **Webhook Trigger**: Google Apps Script sends data to N8N
+2. **Data Validation**: Ensure all required fields present
+3. **Patient Matching**: Smart algorithm to find patient
+4. **Database Insert**: Add to patient_tracking table
+5. **Status Update**: Update patient's active shipment count
+
+**Workflow 2: Patient Matching Algorithm**
+```javascript
+// Intelligent matching logic
+function matchPatientToTracking(trackingData) {
+  // Priority 1: Exact name match
+  const exactNameMatch = await searchByName(trackingData.recipient_name);
+  if (exactNameMatch) return { patient_id: exactNameMatch.id, confidence: 1.0 };
+  
+  // Priority 2: Address match with fuzzy name
+  const addressMatch = await searchByAddress(trackingData.address);
+  if (addressMatch.length === 1) return { patient_id: addressMatch[0].id, confidence: 0.8 };
+  
+  // Priority 3: Recent appointment + partial name
+  const recentPatients = await getRecentAppointments();
+  const fuzzyMatch = fuzzyNameMatch(trackingData.recipient_name, recentPatients);
+  if (fuzzyMatch) return { patient_id: fuzzyMatch.id, confidence: 0.6 };
+  
+  // Priority 4: Manual review queue
+  return { patient_id: null, confidence: 0, needs_review: true };
+}
+```
+
+**Workflow 3: Delivery Status Updates**
+1. **Schedule Trigger**: Every 30 minutes
+2. **Check In-Transit Items**: Query undelivered packages
+3. **Update Status**: Call FedEx/UPS APIs or parse update emails
+4. **Notify Patient**: Send delivery notifications
+
+#### Phase 3: Google Apps Script Modification
+
+**Modified Script to Send to N8N**:
+```javascript
+// Add to existing extractTrackingEmails function
+function sendToN8N(trackingData) {
+  const N8N_WEBHOOK_URL = 'https://splendid-abundance-production.up.railway.app/webhook/tracking-sync';
+  
+  const payload = {
+    source: 'google_apps_script',
+    timestamp: new Date().toISOString(),
+    tracking_data: trackingData,
+    sheet_id: SPREADSHEET_ID
+  };
+  
+  UrlFetchApp.fetch(N8N_WEBHOOK_URL, {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify(payload)
+  });
+}
+
+// Modify addRowsToTop to also send to N8N
+function addRowsToTop(sheet, newRows) {
+  // ... existing code ...
+  
+  // Send each new row to N8N
+  newRows.forEach(row => {
+    sendToN8N({
+      tracking_number: row.trackingId,
+      carrier: row.carrier,
+      recipient_name: row.recipientName,
+      address: row.address,
+      delivery_date: row.deliveryDate,
+      ship_date: row.shipDate,
+      weight: row.weight,
+      service: row.service,
+      status: row.status,
+      date_received: row.dateReceived
+    });
+  });
+}
+```
+
+#### Phase 4: EONMeds Frontend Integration
+
+**1. Patient Profile Component**:
+```typescript
+// TrackingWidget.tsx
+const PatientTrackingWidget = ({ patientId }) => {
+  const [trackingData, setTrackingData] = useState([]);
+  
+  useEffect(() => {
+    fetchPatientTracking(patientId).then(setTrackingData);
+  }, [patientId]);
+  
+  return (
+    <Card title="Active Shipments">
+      {trackingData.map(item => (
+        <TrackingItem
+          key={item.tracking_number}
+          carrier={item.carrier}
+          number={item.tracking_number}
+          status={item.status}
+          deliveryDate={item.delivery_date}
+        />
+      ))}
+    </Card>
+  );
+};
+```
+
+**2. Global Tracking Search Page**:
+```typescript
+// TrackingSearch.tsx
+const TrackingSearch = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [results, setResults] = useState([]);
+  
+  const handleSearch = async () => {
+    const data = await api.searchTracking(searchTerm);
+    setResults(data);
+  };
+  
+  return (
+    <div>
+      <SearchBar 
+        placeholder="Enter tracking number..."
+        onSearch={handleSearch}
+      />
+      <TrackingResultsTable results={results} />
+    </div>
+  );
+};
+```
+
+**3. Backend API Endpoints**:
+```typescript
+// tracking.controller.ts
+@Get('/api/v1/tracking/search')
+async searchTracking(@Query('q') query: string) {
+  return this.trackingService.search(query);
+}
+
+@Get('/api/v1/patients/:id/tracking')
+async getPatientTracking(@Param('id') patientId: number) {
+  return this.trackingService.getByPatientId(patientId);
+}
+
+@Post('/api/v1/tracking/match/:trackingNumber')
+async manualMatch(
+  @Param('trackingNumber') trackingNumber: string,
+  @Body() { patientId }: { patientId: number }
+) {
+  return this.trackingService.manualMatch(trackingNumber, patientId);
+}
+```
+
+#### Phase 5: Advanced Features
+
+**1. Bulk Import from Google Sheets**:
+- One-time import of historical data
+- N8N workflow to read Google Sheets API
+- Process all existing tracking numbers
+
+**2. Smart Notifications**:
+- "Your medical supplies will arrive today"
+- "Package delivered - please check your door"
+- Appointment reminders if supplies needed
+
+**3. Analytics Dashboard**:
+- Average delivery times by carrier
+- Most common shipping addresses
+- Delivery success rates
+
+**4. Automated Matching Improvements**:
+- Learn from manual matches
+- Improve algorithm over time
+- Confidence scoring system
+
+### Implementation Timeline
+
+**Week 1**:
+- Create database schema
+- Set up N8N webhook endpoint
+- Modify Google Apps Script
+
+**Week 2**:
+- Build patient matching workflow
+- Create tracking search API
+- Add patient profile widget
+
+**Week 3**:
+- Import historical data
+- Build admin matching interface
+- Test end-to-end flow
+
+**Week 4**:
+- Add notifications
+- Performance optimization
+- Staff training
+
+### Benefits of This Approach
+
+1. **Preserves Existing Work**: Your Google Apps Script continues working
+2. **Gradual Migration**: Can run both systems in parallel
+3. **Intelligent Matching**: Reduces manual work over time
+4. **Searchable History**: All tracking data in one place
+5. **Patient Experience**: Patients see their deliveries in profile
+6. **Scalable**: Handles growth in shipment volume
+
+### Technical Considerations
+
+1. **Matching Accuracy**:
+   - Start with conservative matching
+   - Queue uncertain matches for review
+   - Learn from corrections
+
+2. **Performance**:
+   - Index all search fields
+   - Cache frequently accessed data
+   - Paginate large result sets
+
+3. **Privacy**:
+   - Only show tracking to authorized users
+   - Audit trail for all access
+   - Comply with HIPAA for medical supplies
+
+### Current Status / Progress Tracking
+- ✅ Google Apps Script working perfectly
+- ✅ N8N deployed and connected to database
+- ⏳ Database schema needs creation
+- ❌ Patient matching algorithm not built
+- ❌ Frontend components not created
+- ❌ API endpoints not implemented
+
+### Executor's Feedback or Assistance Requests
+- Need confirmation on database schema design
+- Should we preserve Google Sheets as backup?
+- What's the matching priority for duplicate addresses?
+- Do you want real-time delivery notifications?
