@@ -51,7 +51,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
       ),
       label: 'Billing Center',
     },
-    },
     {
       path: '/clients',
       icon: (
