@@ -19,3 +19,4 @@ EXPOSE 3000
 
 # Start the application
 CMD ["node", "dist/index.js"]
+# Force rebuild at Tue Aug 19 10:45:14 EDT 2025
