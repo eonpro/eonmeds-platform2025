@@ -15,6 +15,8 @@ export const Dashboard: React.FC = () => {
   const { t } = useTranslation(['dashboard', 'common']);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  console.log('🚨🚨🚨 DASHBOARD UPDATED AT:', new Date().toISOString(), '🚨🚨🚨');
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -65,6 +67,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard-page">
+      <h1 style={{ color: 'red', fontSize: '48px' }}>🚨 UPDATED DASHBOARD - {new Date().toLocaleString()} 🚨</h1>
       <h1>{t('title')}</h1>
       <p>{t('welcome', { name: user?.name || user?.email })}</p>
 

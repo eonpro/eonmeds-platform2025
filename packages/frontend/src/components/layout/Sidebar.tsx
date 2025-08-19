@@ -26,6 +26,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   // Debug logging
   console.log('Sidebar - User roles:', roles);
   console.log('Sidebar - Is Admin?:', isAdmin);
+  
+  // BILLING CENTER MENU ADDED - Aug 17, 2025
 
   const menuItems: SidebarItem[] = [
     {

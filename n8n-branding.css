@@ -1,0 +1,63 @@
+/* EON Medical Solutions N8N White Label Styling */
+
+/* Hide N8N branding */
+.n8n-logo,
+.n8n-text-logo,
+[data-test-id="n8n-logo"],
+.sidebar-header-brand-name {
+  display: none !important;
+}
+
+/* Custom brand colors */
+:root {
+  --color-primary: #14a97b;
+  --color-primary-shade-1: #0e8662;
+  --color-primary-shade-2: #0a6349;
+  --color-primary-tint-1: #3cb693;
+  --color-primary-tint-2: #64c4aa;
+  --color-secondary: #aee548;
+  --color-success: #aee548;
+  --color-warning: #ffce57;
+  --color-danger: #e77c35;
+}
+
+/* Override primary button colors */
+.el-button--primary {
+  background-color: #14a97b !important;
+  border-color: #14a97b !important;
+}
+
+.el-button--primary:hover {
+  background-color: #0e8662 !important;
+  border-color: #0e8662 !important;
+}
+
+/* Sidebar styling */
+.sidebar {
+  background-color: #f8f9fa !important;
+}
+
+/* Header customization */
+.header {
+  background-color: #14a97b !important;
+}
+
+/* Workflow canvas background */
+.workflow-canvas {
+  background-color: #fafbfc !important;
+}
+
+/* Custom welcome message */
+.welcome-modal h1:after {
+  content: " to EON Automation Platform";
+}
+
+/* Add EON branding text */
+.sidebar-header:before {
+  content: "EON Automation";
+  font-size: 20px;
+  font-weight: bold;
+  color: #14a97b;
+  padding: 10px 20px;
+  display: block;
+}

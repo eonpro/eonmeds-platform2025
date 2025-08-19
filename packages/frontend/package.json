@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.1.0",
+  "version": "0.1.2-deploy-test-20250818",
   "private": true,
   "dependencies": {
     "@auth0/auth0-react": "^2.3.0",
@@ -35,6 +35,7 @@
   "scripts": {
     "start": "serve -s build -l ${PORT:-3000}",
     "start:prod": "serve -s build -l $PORT",
+    "_rebuild": "force-rebuild-with-billing-center",
     "dev": "react-scripts start",
     "build": "REACT_APP_BUILD_TIME=$(date -u \"%Y-%m-%dT%H:%M:%SZ\") CI=false DISABLE_ESLINT_PLUGIN=true TSC_COMPILE_ON_ERROR=true react-scripts build",
     "test": "react-scripts test",

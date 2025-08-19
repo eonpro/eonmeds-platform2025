@@ -1,0 +1,15 @@
+Railway Deploy Trigger
+=====================
+
+This file forces Railway to rebuild with the latest code.
+
+Deployment Issues Fixed:
+- TypeScript compilation errors in billing.controller.ts
+- Missing express-validator dependency
+- Merge conflict files removed
+
+Current HEAD: 531b25da01cc3dc8f631647fe4b264be3926c374
+Date: August 16, 2025, 12:30 PM
+
+All TypeScript fixes have been applied and are in the main branch.
+Railway should build successfully with these changes.

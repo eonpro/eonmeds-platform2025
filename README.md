@@ -1,136 +1,46 @@
-# EONMeds Backend API
+# N8N for EONMeds
 
-HIPAA-compliant telehealth platform backend for the Hispanic community.
+This is the N8N workflow automation service for EONMeds platform.
 
-## Features
+## Access
 
-- 🔐 JWT-based authentication with refresh tokens
-- 👥 Role-based access control (RBAC) with 5 user roles
-- 📝 Comprehensive audit logging for HIPAA compliance
-- 🏷️ Patient hashtag system for status tracking
-- 🔒 Security-first design with helmet, CORS, and rate limiting
-- 📊 PostgreSQL database with UUID primary keys
+Once deployed, N8N will be accessible at your Railway URL with:
+- Username: `admin`
+- Password: `398Xakf$57`
 
-## Prerequisites
+## Key Features
 
-- Node.js >= 18.0.0
-- PostgreSQL >= 15
-- npm or yarn
+- Patient onboarding automation from Heyflow
+- Stripe payment processing workflows
+- Automated billing and invoicing
+- Email/SMS notifications
+- Financial reporting
 
-## Setup
+## Environment Variables
 
-1. **Install dependencies:**
+All environment variables are set in Railway:
+- `N8N_BASIC_AUTH_ACTIVE`: Enable basic authentication
+- `N8N_BASIC_AUTH_USER`: Admin username
+- `N8N_BASIC_AUTH_PASSWORD`: Admin password
+- `N8N_ENCRYPTION_KEY`: For encrypting credentials
+- `N8N_PROTOCOL`: HTTPS for production
+- `GENERIC_TIMEZONE`: America/New_York
 
-   ```bash
-   npm install
-   ```
+## Deployment
 
-2. **Set up environment variables:**
-
-   ```bash
-   cp env.example .env
-   # Edit .env with your configuration
-   ```
-
-3. **Set up the database:**
-
-   ```bash
-   # Create database
-   createdb eonmeds
-
-   # Run schema
-   psql -d eonmeds -f src/config/schema.sql
-   ```
-
-4. **Start development server:**
-   ```bash
-   npm run dev
-   ```
-
-## Available Scripts
-
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build TypeScript to JavaScript
-- `npm start` - Start production server
-- `npm test` - Run tests
-- `npm run lint` - Run ESLint
-
-## API Endpoints
-
-### Authentication
-
-- `POST /api/v1/auth/register` - Register new user
-- `POST /api/v1/auth/login` - Login user
-- `POST /api/v1/auth/refresh-token` - Refresh access token
-- `POST /api/v1/auth/logout` - Logout user
-- `GET /api/v1/auth/me` - Get current user
-
-## User Roles
-
-1. **superadmin** - Full system access
-2. **admin** - Administrative access
-3. **provider** - Healthcare provider access
-4. **sales_rep** - Sales and marketing access
-5. **patient** - Patient portal access
-
-## Security Features
-
-- Password hashing with bcrypt (10 rounds)
-- Account lockout after 5 failed attempts
-- JWT tokens with 7-day expiration
-- Refresh tokens with 30-day expiration
-- Comprehensive audit logging
-- Input validation and sanitization
-- CORS protection
-- Helmet.js security headers
-
-## Database Schema
-
-Key tables:
-
-- `users` - User accounts with RBAC
-- `roles` - User roles and permissions
-- `patients` - Patient records with hashtags
-- `audit_logs` - HIPAA-compliant audit trail
-- `hashtag_configs` - Hashtag visual configuration
-
-## Development
-
-### Project Structure
-
-```
-src/
-├── config/         # Database and app configuration
-├── controllers/    # Route controllers
-├── middleware/     # Express middleware
-├── routes/         # API routes
-├── services/       # Business logic
-├── types/          # TypeScript types
-└── utils/          # Helper functions
-```
-
-### Testing API
-
+Deploy to Railway with:
 ```bash
-# Register a new user
-curl -X POST http://localhost:3000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "SecurePassword123!",
-    "firstName": "Test",
-    "lastName": "User"
-  }'
-
-# Login
-curl -X POST http://localhost:3000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "SecurePassword123!"
-  }'
+railway up
 ```
 
-## License
+## First Workflow
 
-Copyright © 2024 EONMeds. All rights reserved.
+After deployment, create your first workflow:
+1. Login to N8N
+2. Create new workflow
+3. Add Webhook trigger
+4. Test with Heyflow integration
+
+## Support
+
+For issues, check the N8N logs in Railway dashboard.

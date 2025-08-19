@@ -19,6 +19,7 @@ import packageRoutes from './routes/package.routes';
 import aiRoutes from './routes/ai.routes';
 import invoiceRoutes from './routes/invoice.routes';
 import invoicePaymentRoutes from './routes/invoice-payment.routes';
+import trackingRoutes from './routes/tracking';
 
 // Force redeployment - Auth0 configuration update
 // Force Railway rebuild - TypeScript fixes applied - August 16, 2025
@@ -30,8 +31,8 @@ dotenv.config();
 const PORT = Number(process.env.PORT) || 3000;
 
 // CORS must be before all routes
-const corsOrigins = process.env.CORS_ORIGIN 
-  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+const corsOrigins = process.env.CORS_ORIGINS || process.env.CORS_ORIGIN 
+  ? (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN).split(',').map(origin => origin.trim())
   : [
     'http://localhost:3000',
     'http://localhost:3001', 
@@ -42,10 +43,19 @@ const corsOrigins = process.env.CORS_ORIGIN
 console.info("🔒 CORS Origins configured:", corsOrigins);
 
 app.use(cors({
-  origin: corsOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like Google Apps Script)
+    if (!origin) return callback(null, true);
+    if (corsOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key'],
   exposedHeaders: ['X-Total-Count']
 }));
 
@@ -55,6 +65,9 @@ app.use((req, _res, next) => {
   next();
 });
 
+// Trust proxy - required for Railway
+app.set('trust proxy', true);
+
 // Body parsing middleware for all routes
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -62,9 +75,35 @@ app.use(express.urlencoded({ extended: true }));
 // Health check endpoint
 app.get('/health', (_req, res) => {
   res.json({ 
-    status: 'ok', 
+    status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Version endpoint for deployment verification
+app.get('/version', (_req, res) => {
+  res.json({
+    version: '1.0.2-tracking-force-deploy',
+    commit: process.env.RAILWAY_GIT_COMMIT_SHA || 'unknown',
+    deployedAt: new Date().toISOString(),
+    trackingEnabled: true,
+    features: {
+      tracking: 'ENABLED',
+      n8n: 'ENABLED',
+      stripe: 'DISABLED'
+    }
+  });
+});
+
+// Version endpoint for deployment verification
+app.get('/version', (_req, res) => {
+  res.json({
+    version: '1.0.2-tracking-routes-FIXED',
+    commit: process.env.RAILWAY_GIT_COMMIT_SHA || 'unknown',
+    deployedAt: new Date().toISOString(),
+    trackingEnabled: true,
+    message: 'TRACKING ROUTES ARE INCLUDED IN THIS BUILD'
   });
 });
 
@@ -104,6 +143,7 @@ app.use('/api/v1/payments/invoices', invoiceRoutes);
 app.use('/api/v1/payments', invoicePaymentRoutes);
 app.use('/api/v1/packages', packageRoutes);
 app.use('/api/v1/ai', aiRoutes);
+app.use('/api/v1/tracking', trackingRoutes);
 
 // Payment methods routes (Phase 2)
 const paymentMethodsRoutes = require('./routes/payment-methods.routes').default;
