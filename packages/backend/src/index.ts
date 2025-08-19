@@ -64,6 +64,7 @@ app.use((req, _res, next) => {
 // Stripe webhook route (must be before body parsing middleware)
 // Stripe requires raw body for webhook signature verification
 app.use("/api/v1/webhooks/stripe", stripeWebhookRoutes);
+app.use("/api/v1/payments/webhook/stripe", stripeWebhookRoutes); stripeWebhookRoutes);
 logger.info("✅ Stripe webhook route loaded (requires raw body)");
 
 // Body parsing middleware for all routes
@@ -321,3 +322,8 @@ process.on("SIGTERM", () => {
 export default app;
 // Force Railway deployment Mon Aug 18 19:57:57 EDT 2025
 // Force deployment Mon Aug 18 20:26:51 EDT 2025
+
+// NOTE: If express-jwt is applied globally, exclude these paths:
+// app.use(jwt({ secret, algorithms: ['HS256'] }).unless({
+//   path: ['/health','/version','/api/v1/tracking/test','/api/v1/webhooks/stripe','/api/v1/payments/webhook/stripe']
+// }));
