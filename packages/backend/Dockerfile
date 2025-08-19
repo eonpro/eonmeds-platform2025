@@ -1,23 +1,16 @@
 FROM node:20-alpine
-
 WORKDIR /app
 
-# Copy package files
+# Bust cache per commit
+ARG BUILD_ID
+ENV BUILD_ID=${BUILD_ID}
+
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy source code
 COPY . .
 
-# Build the application
 RUN npm run build
 
-# Expose port
-EXPOSE 3000
-
-# Start the application
+EXPOSE 8080
 CMD ["node", "dist/index.js"]
-# Force rebuild at Tue Aug 19 10:45:14 EDT 2025
-# Force rebuild: 20250819115338

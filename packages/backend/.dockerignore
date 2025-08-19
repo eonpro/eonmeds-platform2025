@@ -1,10 +1,7 @@
 node_modules
-.git
-Dockerfile
-npm-debug.log
-# DO NOT ignore src/
-# If your repo commits old dist/, keep it out of the context:
 dist
+.git
+npm-debug.log
 .env
 .env.*
 *.log
