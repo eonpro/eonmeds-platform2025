@@ -87,7 +87,7 @@ app.use((req, _res, next) => {
 // Stripe webhook route (must be before body parsing middleware)
 // Stripe requires raw body for webhook signature verification
 app.use("/api/v1/webhooks/stripe", stripeWebhookRoutes);
-app.use("/api/v1/payments/webhook/stripe", stripeWebhookRoutes); stripeWebhookRoutes);
+app.use("/api/v1/payments/webhook/stripe", stripeWebhookRoutes);
 logger.info(" Stripe webhook route loaded (requires raw body)");
 
 // Body parsing middleware for all routes
