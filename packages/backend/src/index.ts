@@ -7,6 +7,22 @@ import { logger } from './utils/logger';
 import { applySecurityMiddleware, corsOptions } from './config/security.config';
 // Remove the audit middleware import for now since it's not used
 
+// Version endpoint (no auth)
+app.get('/version', (_req, res) => {
+  res.json({
+    commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
+    buildId: process.env.BUILD_ID || null,
+    ts: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Tracking test endpoint (no auth)
+app.get('/api/v1/tracking/test', (_req, res) => {
+  res.json({ ok: true, ts: new Date().toISOString() });
+});
+
+
 // Import routes
 import authRoutes from './routes/auth.routes';
 import patientRoutes from './routes/patient.routes';
@@ -23,6 +39,13 @@ import invoiceRoutes from './routes/invoice.routes';
 
 // Force redeployment - Auth0 configuration update
 const app = express();
+
+// Trust Railway proxy BEFORE any IP/rate-limit/security middleware
+app.set('trust proxy', 1);
+
+// Stamp running build/commit (visible in Deploy Logs)
+console.info('DEPLOY_VERSION:', process.env.BUILD_ID || process.env.RAILWAY_GIT_COMMIT_SHA || 'unknown');
+
 
 // Load environment variables
 dotenv.config();
@@ -44,7 +67,7 @@ if (process.env.NODE_ENV === 'production') {
       'https://eonmeds-platform2025-production.up.railway.app'
     ];
   
-  logger.info("🔒 CORS Origins configured:", corsOrigins);
+  logger.info(" CORS Origins configured:", corsOrigins);
   
   app.use(cors({
     origin: corsOrigins,
@@ -65,7 +88,7 @@ app.use((req, _res, next) => {
 // Stripe requires raw body for webhook signature verification
 app.use("/api/v1/webhooks/stripe", stripeWebhookRoutes);
 app.use("/api/v1/payments/webhook/stripe", stripeWebhookRoutes); stripeWebhookRoutes);
-logger.info("✅ Stripe webhook route loaded (requires raw body)");
+logger.info(" Stripe webhook route loaded (requires raw body)");
 
 // Body parsing middleware for all routes
 app.use(express.json({ limit: "10mb" }));
@@ -101,7 +124,7 @@ app.get('/api/v1', (_req, res) => {
 // Webhook routes (always available - no auth required)
 // IMPORTANT: This must be before any auth middleware
 app.use("/api/v1/webhooks", webhookRoutes);
-logger.info("✅ Webhook routes loaded (always available - no auth required)");
+logger.info(" Webhook routes loaded (always available - no auth required)");
 
 // Register all routes (with database check inside each route)
 app.use("/api/v1/auth", authRoutes);
@@ -128,20 +151,20 @@ app.use('/api/v1/financial-dashboard', financialDashboardRoutes);
 if (process.env.NODE_ENV !== 'production') {
   const stripeTestRoutes = require('./routes/stripe-test.routes').default;
   app.use('/api/v1/stripe-test', stripeTestRoutes);
-  logger.info('✅ Stripe test routes loaded (development only)');
+  logger.info(' Stripe test routes loaded (development only)');
 }
 
-logger.info('✅ All routes registered (database check happens per route)');
+logger.info(' All routes registered (database check happens per route)');
 
 // Start server
 app.listen(PORT, async () => {
-  logger.info('🚀 Server is running!');
-  logger.info(`📡 Listening on port ${PORT}`);
-  logger.info('🏥 EONMeds Backend API');
+  logger.info(' Server is running!');
+  logger.info(` Listening on port ${PORT}`);
+  logger.info(' EONMeds Backend API');
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  logger.info(`Database Host: ${process.env.DB_HOST ? '✓ Configured' : '✗ Missing'}`);
-  logger.info(`Database Name: ${process.env.DB_NAME ? '✓ Configured' : '✗ Missing'}`);
-  logger.info(`JWT Secret: ${process.env.JWT_SECRET ? '✓ Configured' : '✗ Missing'}`);
+  logger.info(`Database Host: ${process.env.DB_HOST ? ' Configured' : ' Missing'}`);
+  logger.info(`Database Name: ${process.env.DB_NAME ? ' Configured' : ' Missing'}`);
+  logger.info(`JWT Secret: ${process.env.JWT_SECRET ? ' Configured' : ' Missing'}`);
   logger.info(`Port: ${PORT}`);
 
   await testDatabaseConnection();
@@ -158,7 +181,7 @@ async function initializeDatabase() {
     const isConnected = await testDatabaseConnection();
 
     if (isConnected) {
-      logger.info("✅ Database connected successfully");
+      logger.info(" Database connected successfully");
       databaseConnected = true;
 
       // Ensure critical tables exist
@@ -263,7 +286,7 @@ async function initializeDatabase() {
         const { ensureSOAPNotesTable } = await import("./config/database");
         await ensureSOAPNotesTable();
         
-        logger.info('✅ Database tables verified/created');
+        logger.info(' Database tables verified/created');
       } catch (tableError) {
         logger.info(
           "Note: Could not verify/create tables:",
@@ -272,11 +295,11 @@ async function initializeDatabase() {
       }
     } else {
       logger.info(
-        "⚠️  Database connection failed - some functionality may be limited",
+        "  Database connection failed - some functionality may be limited",
       );
     }
   } catch (error) {
-    logger.error("❌ Error during database initialization:", error);
+    logger.error(" Error during database initialization:", error);
   }
 }
 
