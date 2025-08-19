@@ -1,4 +1,207 @@
-# EONPRO 2025 - Complete Codebase Restoration Plan
+# EONPRO 2025 - Railway Deployment Reset Plan
+
+## PLANNER MODE — Railway Backend Deployment Analysis
+
+### Current Situation Analysis
+
+Based on my investigation, here's what's happening:
+
+1. **Deployment Stuck on Old Code**
+   - Railway is not deploying your new code changes
+   - Test endpoints (tracking routes, version endpoint) return 404
+   - Multiple deployment attempts have failed
+   - Railway seems cached on an older version
+
+2. **Git State Issues**
+   - Local and remote branches have diverged significantly (9 vs 49 commits)
+   - Many uncommitted changes in working directory
+   - This may be preventing proper deployment
+
+3. **Evidence of Deployment Problems**
+   - Test script shows new endpoints are missing
+   - Build commands include debug messages ("TRACKING ROUTES INCLUDED") to verify deployment
+   - Multiple "fix" commits attempting to trigger rebuilds
+
+### Root Cause Analysis
+
+The deployment failure is likely due to:
+1. **Git synchronization issues** - Railway may be deploying from the remote branch, which is 49 commits ahead
+2. **Build cache** - Railway might be using cached builds
+3. **Configuration conflicts** - Multiple railway.json files and configurations
+4. **Uncommitted changes** - Critical code not pushed to remote
+
+### Should We "Nuke" the Railway Backend?
+
+**YES** - A complete reset is the most efficient path forward because:
+1. Clean slate eliminates cache issues
+2. Forces Railway to rebuild from scratch
+3. Ensures deployment uses latest code
+4. Faster than debugging complex deployment issues
+
+## High-level Task Breakdown - Railway Backend Reset
+
+### Phase 1: Prepare for Reset (Critical Pre-work)
+1. **Backup Current Configuration**
+   - Export all Railway environment variables
+   - Document current service settings
+   - Save database connection strings
+   - Success criteria: All config backed up to local files
+
+2. **Commit and Push Code**
+   - Stage all necessary changes
+   - Commit with clear message
+   - Push to remote repository
+   - Resolve merge conflicts if needed
+   - Success criteria: Git status clean, branches synchronized
+
+3. **Document Current State**
+   - Record current deployment URL
+   - Note any custom domains
+   - Save webhook configurations
+   - Success criteria: Complete deployment documentation
+
+### Phase 2: Execute Railway Reset
+4. **Delete Railway Service**
+   - Remove the eonmeds-platform2025 service
+   - Keep the database service intact
+   - Do NOT delete the project
+   - Success criteria: Backend service removed, database preserved
+
+5. **Clear Local Railway Config**
+   - Remove `.railway` directory if exists
+   - Clear any local Railway cache
+   - Success criteria: No local Railway artifacts
+
+6. **Create New Railway Service**
+   - Create new service in same project
+   - Name it clearly (e.g., eonmeds-backend-v2)
+   - Connect to GitHub repository
+   - Success criteria: New service created and linked to repo
+
+### Phase 3: Configure and Deploy
+7. **Configure Build Settings**
+   - Set root directory to `/packages/backend`
+   - Configure build command: `npm install && npm run build`
+   - Set start command: `node dist/index.js`
+   - Success criteria: Build configuration matches requirements
+
+8. **Restore Environment Variables**
+   - Add all backed up environment variables
+   - Verify database connection strings
+   - Set NODE_ENV=production
+   - Add any API keys and secrets
+   - Success criteria: All env vars restored
+
+9. **Deploy and Verify**
+   - Trigger initial deployment
+   - Monitor build logs
+   - Test with the verification script
+   - Success criteria: All test endpoints return expected responses
+
+### Phase 4: Post-Deployment Tasks
+10. **Update External Configurations**
+    - Update any webhooks with new URL
+    - Update frontend API endpoints
+    - Update DNS if using custom domain
+    - Success criteria: All integrations pointing to new service
+
+11. **Verify Full Functionality**
+    - Test authentication endpoints
+    - Verify database connectivity
+    - Check all API routes
+    - Test billing endpoints
+    - Success criteria: All features working as expected
+
+### Alternative Approach (If Reset Fails)
+
+If the nuclear option doesn't work, we have a backup plan:
+
+1. **Create Completely New Railway Project**
+   - Start fresh with new project
+   - Migrate database separately
+   - Rebuild from ground up
+   - Success criteria: New project deployed successfully
+
+2. **Use Different Deployment Platform**
+   - Consider Render, Heroku, or Fly.io
+   - Railway might have account-level issues
+   - Success criteria: Backend deployed on alternative platform
+
+## Key Challenges and Analysis
+
+### Why Railway Deployments Fail
+1. **Git Sync Issues**: Railway deploys from GitHub, not local code
+2. **Build Cache**: Aggressive caching can prevent updates
+3. **Config Conflicts**: Multiple config files can confuse deployment
+4. **Branch Divergence**: Remote branch significantly ahead/behind
+
+### Critical Success Factors
+1. **Clean Git State**: All changes committed and pushed
+2. **Correct Branch**: Railway deploying from correct branch
+3. **Proper Config**: Single source of truth for Railway config
+4. **Environment Variables**: All required vars properly set
+
+## Project Status Board
+
+### Todo
+- [ ] Delete Railway backend service
+- [ ] Create new Railway service
+- [ ] Configure build settings
+- [ ] Restore environment variables
+- [ ] Deploy and verify with test script
+- [ ] Update webhook endpoints
+- [ ] Update frontend API configuration
+
+### In Progress
+- [ ] Railway backend reset process
+
+### Completed
+- [x] Investigated current deployment state
+- [x] Identified root causes of deployment failure
+- [x] Created comprehensive reset plan
+- [x] Backed up all 46 environment variables
+- [x] Exported database connection strings
+- [x] Created new branch 'railway-reset' to avoid conflicts
+- [x] Pushed branch to GitHub successfully
+- [x] Documented current deployment URL
+
+## Executor's Feedback or Assistance Requests
+
+Awaiting Planner approval to proceed with Railway backend reset. Key questions:
+
+1. Should we backup the database before proceeding?
+2. Do we have all environment variables documented? ✅ YES - Backed up to railway-env-backup.txt
+3. Is there a preferred time for the reset (minimal disruption)?
+4. Should we create a new branch for the clean deployment?
+
+### Environment Variables Backup (Complete)
+
+All Railway backend environment variables have been backed up. The backup includes:
+- **Auth0 Configuration**: AUTH0_AUDIENCE, AUTH0_CLIENT_ID, AUTH0_DOMAIN
+- **Database Configuration**: DATABASE_URL, DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_SSL, DB_USER
+- **Stripe Configuration**: All products, prices, keys, and webhook settings
+- **N8N Configuration**: Authentication, encryption, and connection settings
+- **API Keys**: OpenAI, Tracking API, Session secrets
+- **General Settings**: CORS origins, timezone, Node environment
+
+Total: 46 environment variables backed up and ready for restoration.
+
+### Git Strategy Update - Branch Created Successfully
+
+To avoid merge conflicts, we:
+1. Created new branch: `railway-reset` 
+2. Pushed to GitHub successfully
+3. Railway will deploy from this branch instead of main
+
+**Current Status**: Ready to proceed with Railway backend deletion and recreation.
+
+## Lessons
+
+1. **Always push changes before Railway deployment** - Railway deploys from GitHub, not local
+2. **Check git sync status** - Diverged branches cause deployment issues
+3. **Use deployment verification scripts** - Essential for confirming successful deployments
+4. **Document all environment variables** - Critical for service recreation
+5. **Railway caching is aggressive** - Sometimes full reset is faster than cache debugging
 
 ## PLANNER MODE — Clarification on Stripe Integration Approach
 
