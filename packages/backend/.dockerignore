@@ -1,0 +1,13 @@
+node_modules
+.git
+Dockerfile
+npm-debug.log
+# DO NOT ignore src/
+# If your repo commits old dist/, keep it out of the context:
+dist
+.env
+.env.*
+*.log
+coverage
+.nyc_output
+.DS_Store
