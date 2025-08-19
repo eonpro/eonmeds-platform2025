@@ -195,6 +195,41 @@ To avoid merge conflicts, we:
 
 **Current Status**: Ready to proceed with Railway backend deletion and recreation.
 
+### Code Fixes Completed Before Railway Reset
+
+1. **Backend Index.ts Cleanup**
+   - Removed duplicate version endpoints
+   - Fixed invoice route registration (now at `/api/v1/invoices`)
+   - Cleaned up route organization
+   - Added proper error handling
+   - Version: 2.0.0-clean-reset
+
+2. **Invoice Controller Rewrite**
+   - Complete rewrite with proper Stripe integration
+   - Added `getInvoiceById` endpoint
+   - Proper error handling and validation
+   - Stripe customer creation on first invoice
+   - Support for both Stripe and manual payments
+   - Database transactions for data integrity
+
+3. **Invoice Routes Updated**
+   - Added missing GET /:invoiceId endpoint
+   - Proper route structure at `/api/v1/invoices`
+   - All CRUD operations available
+
+4. **Database Migrations**
+   - Created stripe_webhook_events table
+   - Added stripe_customer_id to patients table
+   - All invoice-related tables properly defined
+
+5. **Stripe Integration**
+   - Webhook handler with signature verification
+   - Event processing for all payment events
+   - Proper error handling and logging
+   - Automatic invoice status updates
+
+**Code Status**: ✅ Clean, compiled, and pushed to GitHub
+
 ## Lessons
 
 1. **Always push changes before Railway deployment** - Railway deploys from GitHub, not local
