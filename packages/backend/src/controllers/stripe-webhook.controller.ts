@@ -2,11 +2,12 @@ import { Request, Response } from "express";
 import Stripe from "stripe";
 import { stripeConfig } from "../config/stripe.config";
 import { pool } from "../config/database";
+import { logger } from "../lib/logger";
 
 // Initialize Stripe with configuration
 const stripe = stripeConfig.apiKey
   ? new Stripe(stripeConfig.apiKey, {
-      apiVersion: "2024-06-20" as Stripe.LatestApiVersion,
+      apiVersion: "2025-07-30.basil" as Stripe.LatestApiVersion,
     })
   : null;
 
