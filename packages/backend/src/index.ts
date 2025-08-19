@@ -7,20 +7,6 @@ import { logger } from './utils/logger';
 import { applySecurityMiddleware, corsOptions } from './config/security.config';
 // Remove the audit middleware import for now since it's not used
 
-// Version endpoint (no auth)
-app.get('/version', (_req, res) => {
-  res.json({
-    commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
-    buildId: process.env.BUILD_ID || null,
-    ts: new Date().toISOString(),
-    env: process.env.NODE_ENV || 'development'
-  });
-});
-
-// Tracking test endpoint (no auth)
-app.get('/api/v1/tracking/test', (_req, res) => {
-  res.json({ ok: true, ts: new Date().toISOString() });
-});
 
 
 // Import routes
