@@ -293,7 +293,6 @@ async function initializeDatabase() {
 initializeDatabase();
 
 // Export database connection status for routes to check
-export { databaseConnected };
 
 // 404 handler
 app.use((req, res) => {
@@ -328,11 +327,12 @@ process.on("SIGTERM", () => {
   process.exit(0);
 });
 
-export default app;
-// Force Railway deployment Mon Aug 18 19:57:57 EDT 2025
-// Force deployment Mon Aug 18 20:26:51 EDT 2025
 
 // NOTE: If express-jwt is applied globally, exclude these paths:
 // app.use(jwt({ secret, algorithms: ['HS256'] }).unless({
 //   path: ['/health','/version','/api/v1/tracking/test','/api/v1/webhooks/stripe','/api/v1/payments/webhook/stripe']
 // }));
+
+// Fix: Ensure proper export for both ES modules and CommonJS
+export default app;
+export { databaseConnected };
