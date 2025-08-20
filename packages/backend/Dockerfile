@@ -28,3 +28,6 @@ CMD ["node", "dist/index.js"]
 # rebuild 20250820T183307Z
 # rebuild 20250820T184204Z
 # FORCE DEPLOY WITH DIAGNOSTICS - 20250820T185452Z
+
+# CRITICAL: Force new build with all Stripe routes - 20250820T213103Z
+# This build MUST include /version and /api/v1/billing/stripe/* endpoints
