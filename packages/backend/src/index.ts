@@ -87,6 +87,20 @@ app.get('/health', (_req, res) => {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
   });
+
+// --- Build/health probes (no auth) ---
+app.get("/version", (_req, res) => {
+  res.json({
+    commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
+    buildId: process.env.BUILD_ID || null,
+    ts: new Date().toISOString(),
+    env: process.env.NODE_ENV || "development",
+  });
+});
+
+app.get("/api/v1/tracking/test", (_req, res) => {
+  res.json({ ok: true, ts: new Date().toISOString() });
+});
 });
 
 // API version endpoint
