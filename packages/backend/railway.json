@@ -1,14 +1,11 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "npm install && npm run build && echo 'TRACKING ROUTES INCLUDED'",
-    "nixpacksPlan": {
-      "phases": {
-        "build": {
-          "cmds": ["npm install", "npm run build", "echo 'Build completed with tracking routes'"]
-        }
-      }
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "./Dockerfile",
+    "buildArgs": {
+      "BUILD_ID": "{{ RAILWAY_GIT_COMMIT_SHA }}",
+      "CACHE_BUST": "2025-08-20-v2"
     }
   },
   "deploy": {
@@ -16,7 +13,6 @@
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3,
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 10,
-    "region": "us-west1"
+    "healthcheckTimeout": 10
   }
 }

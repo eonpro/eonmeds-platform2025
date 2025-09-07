@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { 
-  getPatientInvoices, 
+  getPatientInvoices,
+  getInvoiceById,
   createInvoice, 
   updateInvoice,
   deleteInvoice, 
@@ -16,6 +17,9 @@ router.use(checkJwt);
 
 // Get all invoices for a patient
 router.get("/patient/:patientId", getPatientInvoices);
+
+// Get single invoice by ID
+router.get("/:invoiceId", getInvoiceById);
 
 // Create a new invoice
 router.post("/create", createInvoice);

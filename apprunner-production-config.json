@@ -1,0 +1,65 @@
+{
+  "ServiceName": "eonmeds-backend-production",
+  "SourceConfiguration": {
+    "ImageRepository": {
+      "ImageIdentifier": "147997129811.dkr.ecr.us-east-1.amazonaws.com/eonmeds-backend:production",
+      "ImageConfiguration": {
+        "Port": "8080",
+        "RuntimeEnvironmentSecrets": {
+          "DATABASE_URL": "arn:aws:secretsmanager:us-east-1:147997129811:secret:/eonmeds/api/database-OgVeTX:url::",
+          "STRIPE_SECRET_KEY": "arn:aws:secretsmanager:us-east-1:147997129811:secret:/eonmeds/api/stripe-ttx3kJ:secretKey::",
+          "STRIPE_WEBHOOK_SECRET": "arn:aws:secretsmanager:us-east-1:147997129811:secret:/eonmeds/api/stripe-ttx3kJ:webhookSecret::",
+          "JWT_SECRET": "arn:aws:secretsmanager:us-east-1:147997129811:secret:/eonmeds/api/jwt-Pplz7b:secret::",
+          "OPENAI_API_KEY": "arn:aws:secretsmanager:us-east-1:147997129811:secret:/eonmeds/api/openai-7tZYrQ:apiKey::"
+        },
+        "RuntimeEnvironmentVariables": {
+          "NODE_ENV": "production",
+          "PORT": "8080",
+          "AUTH0_AUDIENCE": "https://api.eonmeds.com",
+          "AUTH0_CLIENT_ID": "VPA89aq0Y7N05GvX5KqkDm5JLXPknG0L",
+          "AUTH0_DOMAIN": "dev-dvouayl22wlz8zwq.us.auth0.com",
+          "CORS_ORIGIN": "https://eonmeds.com,https://app.eonmeds.com,https://d3p4f8m2bxony8.cloudfront.net",
+          "DB_HOST": "eonmeds-dev-db.cxy4o6eyy4sq.us-west-2.rds.amazonaws.com",
+          "DB_PORT": "5432",
+          "DB_NAME": "eonmeds",
+          "DB_USER": "eonmeds_admin",
+          "DB_PASSWORD": "398Xakf$57",
+          "DB_SSL": "false",
+          "HEYFLOW_WEBHOOK_SECRET": "SKIP",
+          "SESSION_SECRET": "a32cd242439e04d262b03842d4ce6c2c22796b800f24baa7db4f180f50eef7be",
+          "TRACKING_API_KEY": "8f372a1ac2c1721be6c8549178cddeb56d3a690b8bd08be5fc14f3157c669f19",
+          "INVOICE_DUE_DAYS": "30",
+          "STRIPE_TRIAL_DAYS": "0",
+          "STRIPE_PRICE_TESTOSTERONE_MONTHLY": "price_1RvTbsGzKhM7c2eGmMxoKIm3",
+          "STRIPE_PRICE_TESTOSTERONE_QUARTERLY": "price_1RvTbsGzKhM7c2eGWieUqyyN",
+          "STRIPE_PRICE_WEIGHTLOSS_MONTHLY": "price_1RvTbrGzKhM7c2eG7qHrh6Ks",
+          "STRIPE_PRICE_WEIGHTLOSS_QUARTERLY": "price_1RvTbrGzKhM7c2eGA6msXYyV",
+          "STRIPE_PRODUCT_TESTOSTERONE_MONTHLY": "prod_SrBznfUE2z0Fgz",
+          "STRIPE_PRODUCT_TESTOSTERONE_QUARTERLY": "prod_SrBzVc6IchtTTH",
+          "STRIPE_PRODUCT_WEIGHTLOSS_MONTHLY": "prod_SrBz62W3CrfmUP",
+          "STRIPE_PRODUCT_WEIGHTLOSS_QUARTERLY": "prod_SrBzsGnJiNHmBC",
+          "BUILD_ID": "production-2025-01-05",
+          "DEPLOY_VERSION": "app-runner-production"
+        }
+      },
+      "ImageRepositoryType": "ECR"
+    },
+    "AutoDeploymentsEnabled": false,
+    "AuthenticationConfiguration": {
+      "AccessRoleArn": "arn:aws:iam::147997129811:role/AppRunnerECRAccessRole"
+    }
+  },
+  "InstanceConfiguration": {
+    "Cpu": "0.5 vCPU",
+    "Memory": "1 GB",
+    "InstanceRoleArn": "arn:aws:iam::147997129811:role/AppRunnerInstanceRole"
+  },
+  "HealthCheckConfiguration": {
+    "Protocol": "HTTP",
+    "Path": "/health",
+    "Interval": 10,
+    "Timeout": 5,
+    "HealthyThreshold": 1,
+    "UnhealthyThreshold": 3
+  }
+}

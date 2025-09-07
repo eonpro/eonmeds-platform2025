@@ -3,6 +3,7 @@ import { pool } from "../config/database";
 import { getStripeClient } from "../config/stripe.config";
 import { auditService, AuditAction, AuditSeverity } from "../services/audit.service";
 import Stripe from "stripe";
+import { ENV } from "../config/env";
 
 /**
  * Helper to resolve or create a Stripe customer
@@ -519,7 +520,7 @@ export const getStripeDiagnostics = async (req: Request, res: Response): Promise
       stripeVersion = (stripe as any).VERSION;
       
       // Determine if using test or live keys
-      const apiKey = process.env.STRIPE_SECRET_KEY || '';
+      const apiKey = ENV.STRIPE_SECRET_KEY;
       stripeMode = apiKey.startsWith('sk_test_') ? 'test' : 'live';
     } catch (error: any) {
       // Connection failed
@@ -527,7 +528,7 @@ export const getStripeDiagnostics = async (req: Request, res: Response): Promise
     }
     
     // Check webhook configuration
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const webhookSecret = ENV.STRIPE_WEBHOOK_SECRET;
     const webhookConfigured = !!webhookSecret && webhookSecret.startsWith('whsec_');
     
     // Check database tables
@@ -552,9 +553,9 @@ export const getStripeDiagnostics = async (req: Request, res: Response): Promise
         tablesExist: dbTablesExist
       },
       environment: {
-        nodeEnv: process.env.NODE_ENV,
-        hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
-        hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET
+        nodeEnv: ENV.NODE_ENV,
+        hasStripeKey: !!ENV.STRIPE_SECRET_KEY,
+        hasWebhookSecret: !!ENV.STRIPE_WEBHOOK_SECRET
       }
     });
   } catch (error: any) {

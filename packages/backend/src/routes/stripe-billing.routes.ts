@@ -3,7 +3,7 @@ import { ENV } from "../config/env";
 import { StripeBillingService } from "../services/stripe-billing.service";
 
 const r = Router();
-const billing = new StripeBillingService(process.env.STRIPE_SECRET_KEY || "");
+const billing = new StripeBillingService();
 
 function dollarsToCents(x: number) { return Math.round(x * 100); }
 

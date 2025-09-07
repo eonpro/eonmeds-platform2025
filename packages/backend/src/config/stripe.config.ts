@@ -1,35 +1,48 @@
 import Stripe from "stripe";
-import dotenv from "dotenv";
+import { ENV } from "./env";
+import { logger } from "../lib/logger";
 
-// Load environment variables
-dotenv.config();
+const KEY = process.env.STRIPE_SECRET_KEY || "";
+const MODE = process.env.STRIPE_MODE || (KEY.startsWith("sk_test_") ? "test" : "live");
+
+function mask(k?: string) {
+  if (!k) return "";
+  return k.length <= 12 ? "****" : k.slice(0, 8) + "..." + k.slice(-4);
+}
+
+// One-time masked log at boot
+console.info("STRIPE_BOOT", {
+  nodeEnv: process.env.NODE_ENV,
+  stripeMode: MODE,
+  keyMasked: mask(KEY),
+});
 
 // Stripe configuration
 export const stripeConfig = {
-  apiKey: process.env.STRIPE_SECRET_KEY || "",
-  webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
+  apiKey: ENV.STRIPE_SECRET_KEY,
+  webhookSecret: ENV.STRIPE_WEBHOOK_SECRET,
   apiVersion: "2024-11-20.acacia" as Stripe.LatestApiVersion,
 };
 
 // Validate Stripe configuration
 export function validateStripeConfig(): boolean {
   if (!stripeConfig.apiKey) {
-    console.error("❌ STRIPE_SECRET_KEY is not configured");
+    logger.error("❌ STRIPE_SECRET_KEY is not configured");
     return false;
   }
 
   // Webhook secret is optional for now (needed for Phase 4)
   if (!stripeConfig.webhookSecret) {
-    console.warn("⚠️  STRIPE_WEBHOOK_SECRET is not configured (needed for webhooks)");
+    logger.warn("⚠️  STRIPE_WEBHOOK_SECRET is not configured (needed for webhooks)");
   }
 
   // Check if using test keys (recommended for development)
   if (stripeConfig.apiKey.startsWith("sk_test_")) {
-    console.log("✅ Using Stripe TEST mode");
+    logger.info("✅ Using Stripe TEST mode");
   } else if (stripeConfig.apiKey.startsWith("sk_live_")) {
-    console.warn("⚠️  Using Stripe LIVE mode - be careful!");
+    logger.warn("⚠️  Using Stripe LIVE mode - be careful!");
   } else {
-    console.error("❌ Invalid Stripe API key format");
+    logger.error("❌ Invalid Stripe API key format");
     return false;
   }
 
@@ -41,11 +54,15 @@ let stripeClient: Stripe | null = null;
 
 export function getStripeClient(): Stripe {
   if (!stripeClient) {
+    if (!KEY) {
+      throw new Error("STRIPE_SECRET_KEY missing at runtime");
+    }
+    
     if (!validateStripeConfig()) {
       throw new Error("Stripe configuration is invalid");
     }
 
-    stripeClient = new Stripe(stripeConfig.apiKey, {
+    stripeClient = new Stripe(KEY, {
       apiVersion: stripeConfig.apiVersion,
       typescript: true,
       // Add telemetry metadata
@@ -55,7 +72,7 @@ export function getStripeClient(): Stripe {
       },
     });
 
-    console.log("✅ Stripe client initialized");
+    logger.info("✅ Stripe client initialized");
   }
 
   return stripeClient;

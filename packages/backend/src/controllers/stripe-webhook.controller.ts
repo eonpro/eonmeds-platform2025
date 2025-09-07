@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import Stripe from "stripe";
 import { pool } from "../config/database";
 import { getStripeClient } from "../config/stripe.config";
+import { ENV } from "../config/env";
+import { logger } from "../lib/logger";
 
 /**
  * Handle Stripe webhook events with signature verification
@@ -11,10 +13,10 @@ export const handleStripeWebhook = async (
   res: Response
 ): Promise<void> => {
   const sig = req.headers['stripe-signature'] as string;
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const endpointSecret = ENV.STRIPE_WEBHOOK_SECRET;
   
   if (!endpointSecret) {
-    console.error('❌ STRIPE_WEBHOOK_SECRET not configured');
+    logger.error('❌ STRIPE_WEBHOOK_SECRET not configured');
     res.status(500).json({ error: 'Webhook endpoint not configured' });
     return;
   }
@@ -30,13 +32,13 @@ export const handleStripeWebhook = async (
       endpointSecret
     );
   } catch (err: any) {
-    console.error(`❌ Webhook signature verification failed: ${err.message}`);
+    logger.error(`❌ Webhook signature verification failed: ${err.message}`);
     res.status(400).json({ error: 'Invalid signature' });
     return;
   }
 
   // Log the event
-  console.info(`✅ Stripe webhook received: ${event.type}`);
+  logger.info(`✅ Stripe webhook received: ${event.type}`);
   
   try {
     // Store webhook event for audit trail
@@ -77,12 +79,12 @@ export const handleStripeWebhook = async (
         break;
       
       default:
-        console.info(`Unhandled event type: ${event.type}`);
+        logger.info(`Unhandled event type: ${event.type}`);
     }
 
     res.json({ received: true });
   } catch (error: any) {
-    console.error(`Error processing webhook: ${error.message}`);
+    logger.error(`Error processing webhook: ${error.message}`);
     res.status(500).json({ error: 'Webhook processing failed' });
   }
 };
@@ -100,7 +102,7 @@ async function storeWebhookEvent(event: Stripe.Event): Promise<void> {
       [event.id, event.type, JSON.stringify(event)]
     );
   } catch (error) {
-    console.error('Failed to store webhook event:', error);
+    logger.error('Failed to store webhook event:', error);
     // Don't throw - continue processing even if storage fails
   }
 }
@@ -111,7 +113,7 @@ async function storeWebhookEvent(event: Stripe.Event): Promise<void> {
 async function handlePaymentIntentSucceeded(event: Stripe.Event): Promise<void> {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   
-  console.info(`💰 Payment successful: ${paymentIntent.id} for ${paymentIntent.amount / 100} ${paymentIntent.currency}`);
+  logger.info(`💰 Payment successful: ${paymentIntent.id} for ${paymentIntent.amount / 100} ${paymentIntent.currency}`);
   
   // Update invoice if this payment is associated with one
   if (paymentIntent.metadata?.invoice_id) {
@@ -132,11 +134,11 @@ async function handlePaymentIntentSucceeded(event: Stripe.Event): Promise<void> 
 async function handlePaymentIntentFailed(event: Stripe.Event): Promise<void> {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   
-  console.error(`❌ Payment failed: ${paymentIntent.id}`);
+  logger.error(`❌ Payment failed: ${paymentIntent.id}`);
   
   // Log failure reason
   if (paymentIntent.last_payment_error) {
-    console.error('Failure reason:', paymentIntent.last_payment_error.message);
+    logger.error('Failure reason:', paymentIntent.last_payment_error.message);
   }
   
   // Update invoice status if applicable
@@ -157,7 +159,7 @@ async function handlePaymentIntentFailed(event: Stripe.Event): Promise<void> {
 async function handleChargeSucceeded(event: Stripe.Event): Promise<void> {
   const charge = event.data.object as Stripe.Charge;
   
-  console.info(`💳 Charge successful: ${charge.id} for ${charge.amount / 100} ${charge.currency}`);
+  logger.info(`💳 Charge successful: ${charge.id} for ${charge.amount / 100} ${charge.currency}`);
   
   // Record charge in payment history
   if (charge.metadata?.invoice_id) {
@@ -176,8 +178,8 @@ async function handleChargeSucceeded(event: Stripe.Event): Promise<void> {
 async function handleChargeFailed(event: Stripe.Event): Promise<void> {
   const charge = event.data.object as Stripe.Charge;
   
-  console.error(`❌ Charge failed: ${charge.id}`);
-  console.error('Failure reason:', charge.failure_message);
+  logger.error(`❌ Charge failed: ${charge.id}`);
+  logger.error('Failure reason:', charge.failure_message);
 }
 
 /**
@@ -186,7 +188,7 @@ async function handleChargeFailed(event: Stripe.Event): Promise<void> {
 async function handleCustomerCreated(event: Stripe.Event): Promise<void> {
   const customer = event.data.object as Stripe.Customer;
   
-  console.info(`👤 Customer created: ${customer.id}`);
+  logger.info(`👤 Customer created: ${customer.id}`);
   
   // Update patient record if metadata includes patient_id
   if (customer.metadata?.patient_id) {
@@ -205,7 +207,7 @@ async function handleCustomerCreated(event: Stripe.Event): Promise<void> {
 async function handleInvoicePaymentSucceeded(event: Stripe.Event): Promise<void> {
   const invoice = event.data.object as Stripe.Invoice;
   
-  console.info(`📧 Invoice payment succeeded: ${invoice.id}`);
+  logger.info(`📧 Invoice payment succeeded: ${invoice.id}`);
   
   // Update subscription status if applicable
   if ((invoice as any).subscription && invoice.metadata?.patient_id) {
@@ -225,7 +227,7 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event): Promise<void>
 async function handleInvoicePaymentFailed(event: Stripe.Event): Promise<void> {
   const invoice = event.data.object as Stripe.Invoice;
   
-  console.error(`❌ Invoice payment failed: ${invoice.id}`);
+  logger.error(`❌ Invoice payment failed: ${invoice.id}`);
   
   // Update subscription status
   if ((invoice as any).subscription && invoice.metadata?.patient_id) {
@@ -244,7 +246,7 @@ async function handleInvoicePaymentFailed(event: Stripe.Event): Promise<void> {
 async function handlePaymentMethodAttached(event: Stripe.Event): Promise<void> {
   const paymentMethod = event.data.object as Stripe.PaymentMethod;
   
-  console.info(`💳 Payment method attached: ${paymentMethod.id} to customer ${paymentMethod.customer}`);
+  logger.info(`💳 Payment method attached: ${paymentMethod.id} to customer ${paymentMethod.customer}`);
   
   // Could store payment method details if needed
 }

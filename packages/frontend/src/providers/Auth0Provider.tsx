@@ -1,6 +1,7 @@
 import React from 'react';
 import { Auth0Provider } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
+import AUTH0_CONFIG from '../config/auth0.config';
 
 interface Auth0ProviderWithNavigateProps {
   children: React.ReactNode;
@@ -9,21 +10,10 @@ interface Auth0ProviderWithNavigateProps {
 export const Auth0ProviderWithNavigate = ({ children }: Auth0ProviderWithNavigateProps) => {
   const navigate = useNavigate();
 
-  const domain = process.env.REACT_APP_AUTH0_DOMAIN!;
-  const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID!;
-  const audience = process.env.REACT_APP_AUTH0_AUDIENCE!;
+  // Using centralized Auth0 configuration
+  const { domain, clientId, audience, redirectUri, scope, cacheLocation, useRefreshTokens } = AUTH0_CONFIG;
 
-  // Use the correct redirect URI based on environment
-  const redirectUri = process.env.REACT_APP_AUTH0_REDIRECT_URI || 
-    (process.env.NODE_ENV === 'production'
-      ? window.location.origin + '/callback'
-      : 'http://localhost:3000/callback');
-
-  if (!domain || !clientId || !audience) {
-    throw new Error('Auth0 configuration is missing. Please check your environment variables.');
-  }
-
-  console.log('🔐 Auth0 Configuration:', {
+  console.log('🔐 Auth0 Provider Initialized:', {
     domain,
     clientId,
     audience,
@@ -52,11 +42,11 @@ export const Auth0ProviderWithNavigate = ({ children }: Auth0ProviderWithNavigat
       authorizationParams={{
         redirect_uri: redirectUri,
         audience: audience,
-        scope: 'openid profile email offline_access',
+        scope: scope,
       }}
       onRedirectCallback={onRedirectCallback}
-      cacheLocation="localstorage"
-      useRefreshTokens={true}
+      cacheLocation={cacheLocation}
+      useRefreshTokens={useRefreshTokens}
     >
       {children}
     </Auth0Provider>

@@ -6,8 +6,11 @@ import { testDatabaseConnection, ensureSOAPNotesTable, pool } from './config/dat
 import { ENV } from './config/env';
 import { logger } from './lib/logger';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables only in local development
+if (!process.env.RAILWAY_STATIC_URL) {
+  // local dev only; Railway injects envs for us
+  dotenv.config();
+}
 
 const app = express();
 const PORT = ENV.PORT;
@@ -21,13 +24,15 @@ console.info(
   process.env.BUILD_ID || process.env.RAILWAY_GIT_COMMIT_SHA || "unknown"
 );
 
-// CORS configuration
+// CORS configuration - UPDATED to include CloudFront and S3
 const corsOrigins = process.env.CORS_ORIGINS || process.env.CORS_ORIGIN 
   ? (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN).split(',').map(origin => origin.trim())
   : [
     'http://localhost:3000',
     'http://localhost:3001', 
-    'https://eonmeds-platform2025-production.up.railway.app'
+    'https://eonmeds-platform2025-production.up.railway.app',
+    'https://d3p4f8m2bxony8.cloudfront.net',  // CloudFront URL
+    'http://eonmeds-frontend-staging.s3-website-us-east-1.amazonaws.com'  // S3 URL
   ];
 
 logger.info("🔒 CORS Origins configured:", corsOrigins);
@@ -134,6 +139,7 @@ import aiRoutes from './routes/ai.routes';
 import billingRoutes from './routes/billing.routes';
 import billingMetricsRoutes from './routes/billing-metrics.routes';
 import stripeBillingRoutes from './routes/stripe-billing.routes';
+import stripeDiagRoutes from './routes/stripe-diagnostics.routes';
 
 // General webhook routes (no auth) 
 app.use("/api/v1/webhooks/general", webhookRoutes);
@@ -155,6 +161,7 @@ app.use("/api/v1/ai", aiRoutes);
 app.use("/api/v1/billing", billingRoutes);
 app.use("/api/v1/billing-metrics", billingMetricsRoutes);
 app.use("/api/v1/billing/stripe", stripeBillingRoutes);
+app.use("/api/v1/billing/stripe/diagnostics", stripeDiagRoutes);
 
 logger.info('✅ All API routes registered');
 

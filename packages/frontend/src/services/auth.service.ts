@@ -3,7 +3,7 @@ import { Auth0ContextInterface } from '@auth0/auth0-react';
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL ||
-  'https://eonmeds-platform2025-production.up.railway.app/api/v1';
+  'https://eonmeds-backend-v2-production.up.railway.app/api/v1';
 
 class AuthService {
   private axiosInstance: AxiosInstance;

@@ -335,7 +335,7 @@ export async function createInvoiceAndPay({
  */
 export async function createSubscription({
   customerId,
-  priceId = process.env.STRIPE_PRICE_ID_DEFAULT,
+  priceId,
   idempotencyKey,
 }: {
   customerId: string;

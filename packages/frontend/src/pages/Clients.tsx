@@ -80,7 +80,8 @@ export const Clients: React.FC = () => {
         const response = await apiClient.get<PatientListResponse>('/api/v1/patients', {
           params: {
             search,
-            status: 'qualified', // Only fetch qualified patients (paying customers)
+            // Remove status filter to show ALL patients (including pending)
+            // status: 'qualified', // Commented out to show all patients
             limit: 100,
             offset: 0,
           },
