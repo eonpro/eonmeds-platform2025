@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from 'axios';
 import { useEffect, useRef } from 'react';
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_URL || 'https://eonmeds-backend-v2-production.up.railway.app';
+  process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app';
 
 // Create a single axios instance outside the hook
 const createApiClient = (): AxiosInstance => {

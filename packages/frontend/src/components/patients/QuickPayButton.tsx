@@ -6,7 +6,6 @@ interface QuickPayButtonProps {
 }
 
 export const QuickPayButton: React.FC<QuickPayButtonProps> = ({ invoice, onPay }) => {
-  // Always show pay button for unpaid invoices
   if (invoice.status === 'paid') {
     return <span style={{ color: 'green', fontWeight: 'bold' }}>✓ Paid</span>;
   }

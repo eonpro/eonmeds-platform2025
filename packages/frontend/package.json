@@ -1,12 +1,12 @@
 {
   "name": "frontend",
-  "version": "0.1.2-deploy-test-20250818",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@auth0/auth0-react": "^2.3.0",
     "@lottiefiles/dotlottie-react": "^0.14.3",
-    "@stripe/react-stripe-js": "^3.7.0",
-    "@stripe/stripe-js": "^7.5.0",
+    "@stripe/react-stripe-js": "^3.10.0",
+    "@stripe/stripe-js": "^7.9.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
@@ -17,11 +17,13 @@
     "@types/react-dom": "^19.1.6",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.10.0",
+    "date-fns": "^2.29.3",
     "i18next": "^23.7.6",
     "i18next-browser-languagedetector": "^7.2.0",
     "i18next-http-backend": "^2.4.2",
     "lodash": "^4.17.21",
     "lottie-react": "^2.4.1",
+    "lucide-react": "^0.544.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-i18next": "^13.5.0",
@@ -29,14 +31,14 @@
     "react-scripts": "5.0.1",
     "recharts": "^2.5.0",
     "serve": "^14.2.4",
+    "socket.io-client": "^4.8.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "PORT=3001 react-scripts start",
-    "start:prod": "serve -s build -l ${PORT:-3001}",
-    "_rebuild": "force-rebuild-with-billing-center",
-    "dev": "PORT=3001 react-scripts start",
+    "start": "serve -s build -l ${PORT:-3000}",
+    "start:prod": "serve -s build -l $PORT",
+    "dev": "react-scripts start",
     "build": "REACT_APP_BUILD_TIME=$(date -u \"%Y-%m-%dT%H:%M:%SZ\") CI=false DISABLE_ESLINT_PLUGIN=true TSC_COMPILE_ON_ERROR=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -82,7 +84,6 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.17.20",
-    "ajv": "^8.17.1",
     "prettier": "^3.6.2"
   },
   "engines": {

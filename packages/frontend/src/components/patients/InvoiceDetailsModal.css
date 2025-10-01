@@ -169,21 +169,9 @@
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  align-items: center;
   gap: 12px;
   padding: 20px 24px;
   border-top: 1px solid #e5e7eb;
-}
-
-@media (max-width: 640px) {
-  .modal-footer {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-  
-  .modal-footer button {
-    width: 100%;
-  }
 }
 
 .secondary-btn,

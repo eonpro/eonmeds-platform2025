@@ -154,7 +154,7 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                   <path d="M2.5 2.75a.75.75 0 0 0 0 1.5h11a.75.75 0 0 0 0-1.5h-11zM2.5 5.25a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-7zM2.5 8.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 0-1.5h-4z"/>
                   <path d="M13.5 7.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm.5 2.5a.5.5 0 0 1-.5.5h-.5a.5.5 0 0 1 0-1h.5a.5.5 0 0 1 .5.5z"/>
                 </svg>
-                Pay Now
+                Pay Invoice
               </button>
             </>
           )}
@@ -171,13 +171,6 @@ export const InvoiceDetailsModal: React.FC<InvoiceDetailsModalProps> = ({
                   <path d="M6.5 1.75a.25.25 0 0 1 .25-.25h2.5a.25.25 0 0 1 .25.25V3h-3V1.75zm4.5 0V3h2.25a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75zM4.496 6.675a.75.75 0 1 0-1.492.15l.66 6.6A1.75 1.75 0 0 0 5.405 15h5.19c.9 0 1.652-.681 1.741-1.576l.66-6.6a.75.75 0 0 0-1.492-.149l-.66 6.6a.25.25 0 0 1-.249.225h-5.19a.25.25 0 0 1-.249-.225l-.66-6.6z"/>
                 </svg>
                 Delete
-              </button>
-              <button className="primary-btn charge" onClick={onCharge}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style={{ marginRight: '6px', verticalAlign: 'middle' }}>
-                  <path d="M2.5 2.75a.75.75 0 0 0 0 1.5h11a.75.75 0 0 0 0-1.5h-11zM2.5 5.25a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-7zM2.5 8.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 0-1.5h-4z"/>
-                  <path d="M13.5 7.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm.5 2.5a.5.5 0 0 1-.5.5h-.5a.5.5 0 0 1 0-1h.5a.5.5 0 0 1 .5.5z"/>
-                </svg>
-                Pay Now
               </button>
             </>
           )}

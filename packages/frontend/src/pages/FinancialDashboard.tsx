@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../hooks/useApi';
 import { 
   LineChart, Line, AreaChart, Area, BarChart, Bar,
@@ -69,12 +69,7 @@ export const FinancialDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchDashboardData();
-    fetchChartData();
-  }, [dateRange]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setError(null);
       const response = await apiClient.get('/api/v1/financial-dashboard/overview', {
@@ -87,9 +82,9 @@ export const FinancialDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange, apiClient]);
 
-  const fetchChartData = async () => {
+  const fetchChartData = useCallback(async () => {
     try {
       const response = await apiClient.get('/api/v1/financial-dashboard/revenue-chart', {
         params: { days: dateRange.days },
@@ -98,7 +93,12 @@ export const FinancialDashboard: React.FC = () => {
     } catch (error) {
       console.error('Failed to fetch chart data:', error);
     }
-  };
+  }, [dateRange, apiClient]);
+
+  useEffect(() => {
+    fetchDashboardData();
+    fetchChartData();
+  }, [fetchDashboardData, fetchChartData]);
 
   if (loading) {
     return <div className="loading">Loading financial data...</div>;

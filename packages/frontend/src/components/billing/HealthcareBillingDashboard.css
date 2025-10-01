@@ -1,32 +1,9 @@
 /* Healthcare Billing Dashboard - Premium UI */
 .healthcare-billing-dashboard {
   background: #f8f9fa;
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
   padding: 24px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-}
-
-.healthcare-billing-dashboard.loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-}
-
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #4caf50;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Header */
@@ -82,10 +59,6 @@
   color: #495057;
 }
 
-.btn-secondary:hover {
-  background: #dee2e6;
-}
-
 /* Metrics Grid */
 .metrics-grid {
   display: grid;
@@ -115,10 +88,6 @@
   line-height: 1;
 }
 
-.metric-content {
-  flex: 1;
-}
-
 .metric-content h3 {
   margin: 0 0 8px 0;
   font-size: 14px;
@@ -144,10 +113,6 @@
   color: #4caf50;
 }
 
-.metric-trend.negative {
-  color: #f44336;
-}
-
 /* Dashboard Sections */
 .dashboard-sections {
   display: grid;
@@ -167,12 +132,9 @@
   font-size: 20px;
   font-weight: 700;
   color: #1a1a1a;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
-/* Insurance Claims Section */
+/* Insurance Claims */
 .claims-summary {
   display: flex;
   justify-content: space-between;
@@ -212,50 +174,6 @@
   font-weight: 600;
   cursor: pointer;
   padding: 0;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.btn-link:hover {
-  color: #45a049;
-  text-decoration: underline;
-}
-
-/* Revenue Breakdown */
-.revenue-chart {
-  display: flex;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  overflow: hidden;
-  height: 40px;
-}
-
-.chart-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 0 10px;
-}
-
-.chart-bar.insurance {
-  background: #2196F3;
-}
-
-.chart-bar.patient {
-  background: #4caf50;
-}
-
-.chart-bar.other {
-  background: #ff9800;
-}
-
-.revenue-details p {
-  margin: 8px 0;
-  font-size: 14px;
-  color: #495057;
 }
 
 /* Quick Actions */
@@ -286,135 +204,4 @@
 
 .action-btn .icon {
   font-size: 32px;
-}
-
-.action-btn span:last-child {
-  font-size: 14px;
-  font-weight: 600;
-  color: #495057;
-}
-
-/* Recent Activity */
-.activity-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.activity-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.activity-item:last-child {
-  border-bottom: none;
-}
-
-.activity-item .icon {
-  font-size: 24px;
-  flex-shrink: 0;
-}
-
-.activity-text {
-  flex: 1;
-  font-size: 14px;
-  color: #495057;
-}
-
-.time {
-  font-size: 12px;
-  color: #adb5bd;
-  flex-shrink: 0;
-}
-
-/* Footer */
-.dashboard-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 32px;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.dashboard-footer p {
-  margin: 0;
-  font-size: 14px;
-  color: #6c757d;
-}
-
-.btn-refresh {
-  padding: 8px 16px;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  background: white;
-  color: #495057;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-
-.btn-refresh:hover {
-  background: #f8f9fa;
-  border-color: #adb5bd;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .healthcare-billing-dashboard {
-    padding: 16px;
-  }
-
-  .dashboard-header {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
-  }
-
-  .metrics-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-sections {
-    grid-template-columns: 1fr;
-  }
-
-  .action-buttons {
-    grid-template-columns: 1fr;
-  }
-
-  .claims-summary {
-    flex-direction: column;
-    gap: 16px;
-  }
-}
-
-/* Print Styles */
-@media print {
-  .healthcare-billing-dashboard {
-    background: white;
-    padding: 0;
-  }
-
-  .header-actions,
-  .btn-link,
-  .btn-refresh {
-    display: none;
-  }
-
-  .metric-card,
-  .section {
-    box-shadow: none;
-    border: 1px solid #dee2e6;
-    break-inside: avoid;
-  }
 }

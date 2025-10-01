@@ -6,7 +6,6 @@ import './CreateInvoiceModal.css';
 interface CreateInvoiceModalProps {
   patientId: string;
   patientName: string;
-  patientEmail?: string;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -23,7 +22,6 @@ interface InvoiceItem {
 export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
   patientId,
   patientName,
-  patientEmail,
   onClose,
   onSuccess,
 }) => {
@@ -126,23 +124,13 @@ export const CreateInvoiceModal: React.FC<CreateInvoiceModalProps> = ({
         is_recurring: item.billing_type === 'recurring',
       }));
 
-      // Create invoice using the payments API with 'open' status
-      console.log('Creating invoice with data:', {
-        patient_id: patientId,
-        due_date: dueDate,
-        description,
-        items: invoiceItems,
-        total_amount: calculateTotal(),
-        status: 'open'
-      });
-      
       await apiClient.post('/api/v1/payments/invoices/create', {
         patient_id: patientId,
         due_date: dueDate,
         description,
         items: invoiceItems,
         total_amount: calculateTotal(),
-        status: 'open', // Create as open so it can be paid immediately
+        // Mark invoice as recurring if it contains any recurring items
         is_recurring: invoiceItems.some((item) => item.is_recurring),
       });
       onSuccess();

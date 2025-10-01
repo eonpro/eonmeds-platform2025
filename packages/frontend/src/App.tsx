@@ -18,15 +18,6 @@ import { DebugAuth } from './components/auth/DebugAuth';
 import { Auth0Callback } from './components/auth/Auth0Callback';
 import { FinancialDashboard } from './pages/FinancialDashboard';
 import { DebugDashboard } from './pages/DebugDashboard';
-import { BillingDebugPage } from './pages/BillingDebugPage';
-import { SimpleTest } from './pages/SimpleTest';
-// import { BillingTest } from './pages/BillingTest';
-// import { EnterpriseBillingDemo } from './pages/EnterpriseBillingDemo';
-import { HealthcareBillingDashboard } from './components/billing/HealthcareBillingDashboard';
-import { TestBillingDashboard } from './components/billing/TestBillingDashboard';
-import { SimpleBillingDashboard } from './components/billing/SimpleBillingDashboard';
-import { TestBillingDebug } from './components/billing/TestBillingDebug';
-// import { PatientPaymentPortal } from './components/billing/PatientPaymentPortal';
 import './i18n'; // Initialize i18n
 import './App.css';
 
@@ -54,53 +45,29 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 function App() {
-  console.log('🚨 APP VERSION: 0.1.2-deploy-test-20250818 🚨');
-  console.log('🚨 DEPLOYED AT:', new Date().toISOString(), '🚨');
-  
   return (
     <Router>
-      <Routes>
-        {/* Test routes completely outside Auth0 and everything */}
-        <Route path="/simple-test" element={
-          <div style={{ backgroundColor: 'purple', color: 'white', fontSize: '72px', padding: '100px' }}>
-            PURPLE TEST - COMPLETELY OUTSIDE
-          </div>
-        } />
-        <Route path="/billing-direct" element={<SimpleBillingDashboard />} />
-        
-        {/* All other routes wrapped in Auth0 */}
-        <Route path="*" element={
-          <Auth0ProviderWithNavigate>
-            <LanguageProvider>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/callback" element={<Auth0Callback />} />
-                <Route path="/simple" element={<SimpleTest />} />
-                <Route path="/test-auth" element={<TestAuth />} />
-                <Route path="/debug-auth" element={<DebugAuth />} />
-                <Route path="/billing-debug" element={<BillingDebugPage />} />
-                <Route path="/test-red" element={
-                  <div style={{ backgroundColor: 'red', color: 'white', fontSize: '72px', padding: '100px' }}>
-                    TEST RED PAGE - NO IMPORTS
-                  </div>
-                } />
-                {/* <Route path="/billing-test" element={<BillingTest />} /> */}
-                {/* <Route path="/billing-demo" element={<EnterpriseBillingDemo />} /> */}
+      <Auth0ProviderWithNavigate>
+        <LanguageProvider>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/callback" element={<Auth0Callback />} />
+            <Route path="/test-auth" element={<TestAuth />} />
+            <Route path="/debug-auth" element={<DebugAuth />} />
             <Route
               path="/*"
               element={
                 <ProtectedRoute>
                   <AppLayout>
                     <Routes>
-                      <Route path="dashboard" element={<Dashboard />} />
-                      {/* <Route path="payment-portal" element={<PatientPaymentPortal />} /> */}
-                      <Route path="clients" element={<Clients />} />
-                      <Route path="qualifications" element={<Qualifications />} />
-                      <Route path="clients/:id" element={<PatientProfile />} />
-                      <Route path="patients/:id" element={<PatientProfile />} />
-                      <Route path="profile" element={<UserProfile />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/clients" element={<Clients />} />
+                      <Route path="/qualifications" element={<Qualifications />} />
+                      <Route path="/clients/:id" element={<PatientProfile />} />
+                      <Route path="/patients/:id" element={<PatientProfile />} />
+                      <Route path="/profile" element={<UserProfile />} />
                       <Route
-                        path="income-report"
+                        path="/income-report"
                         element={
                           <ProtectedRoute requiredRoles={['admin']}>
                             <IncomeReport />
@@ -108,7 +75,7 @@ function App() {
                         }
                       />
                       <Route
-                        path="packages"
+                        path="/packages"
                         element={
                           <ProtectedRoute requiredRoles={['admin']}>
                             <Packages />
@@ -116,7 +83,7 @@ function App() {
                         }
                       />
                       <Route
-                        path="financial-dashboard"
+                        path="/financial-dashboard"
                         element={
                           <ProtectedRoute requiredRoles={['admin', 'superadmin']}>
                             <FinancialDashboard />
@@ -124,7 +91,7 @@ function App() {
                         }
                       />
                       <Route
-                        path="debug-dashboard"
+                        path="/debug-dashboard"
                         element={
                           <ProtectedRoute>
                             <DebugDashboard />
@@ -132,27 +99,32 @@ function App() {
                         }
                       />
                       <Route
-                        path="patients"
+                        path="/patients"
                         element={
                           <ProtectedRoute requiredPermissions={['patients:read']}>
                             <div>Patients Page - Coming Soon</div>
                           </ProtectedRoute>
                         }
                       />
-                      <Route path="billing" element={<SimpleBillingDashboard />} />
                     </Routes>
                   </AppLayout>
                 </ProtectedRoute>
               }
             />
-              </Routes>
-            </LanguageProvider>
-          </Auth0ProviderWithNavigate>
-        } />
-      </Routes>
+          </Routes>
+        </LanguageProvider>
+      </Auth0ProviderWithNavigate>
     </Router>
   );
 }
 
 export default App;
-// FORCE REBUILD: Sun Aug 17 17:58:00 EDT 2025 - WITH SIMPLEBILLINGTEST
+// Force rebuild Fri Aug 15 22:34:29 EDT 2025
+// Force rebuild: Fixed frontend imports - Sun Aug 17 10:03:44 EDT 2025
+// Updated: Sun Aug 17 15:16:14 EDT 2025
+
+// Updated: Sun Aug 17 17:26:57 EDT 2025
+// CRITICAL: SimpleBillingTest MUST be deployed Sun Aug 17 18:20:00 EDT 2025
+// FORCE RAILWAY REBUILD: Sun Aug 17 21:57:38 EDT 2025
+// FORCE RAILWAY REBUILD: Sun Aug 17 21:58:21 EDT 2025
+// Build version: 1757280548

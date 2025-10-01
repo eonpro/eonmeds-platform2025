@@ -251,7 +251,7 @@ export const PatientProfile: React.FC = () => {
   const downloadPDF = async () => {
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'https://eonmeds-backend-v2-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
+        `${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
         {
           method: 'GET',
           headers: {
@@ -637,7 +637,7 @@ export const PatientProfile: React.FC = () => {
                             className="view-form-btn"
                             onClick={() =>
                               window.open(
-                                `${process.env.REACT_APP_API_URL || 'https://eonmeds-backend-v2-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
+                                `${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
                                 '_blank'
                               )
                             }
@@ -1607,7 +1607,7 @@ export const PatientProfile: React.FC = () => {
                             className="view-pdf-btn"
                             onClick={() =>
                               window.open(
-                                `${process.env.REACT_APP_API_URL || 'https://eonmeds-backend-v2-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
+                                `${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
                                 '_blank'
                               )
                             }
@@ -1656,7 +1656,7 @@ export const PatientProfile: React.FC = () => {
                           className="view-pdf-btn"
                           onClick={() =>
                             window.open(
-                              `${process.env.REACT_APP_API_URL || 'https://eonmeds-backend-v2-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
+                              `${process.env.REACT_APP_API_URL || 'https://eonmeds-platform2025-production.up.railway.app'}/api/v1/patients/${id}/intake-pdf`,
                               '_blank'
                             )
                           }
@@ -1702,7 +1702,6 @@ export const PatientProfile: React.FC = () => {
                   <PatientInvoices
                     patientId={patient.patient_id}
                     patientName={`${patient.first_name} ${patient.last_name}`}
-                    patientEmail={patient.email}
                     stripeCustomerId={patient.stripe_customer_id}
                   />
                 </div>
@@ -1738,11 +1737,7 @@ export const PatientProfile: React.FC = () => {
 
               {activeTab === 'cards' && (
                 <div className="cards-tab">
-                  <PatientCards 
-                    patientId={patient.patient_id} 
-                    patientEmail={patient.email}
-                    patientName={`${patient.first_name} ${patient.last_name}`}
-                  />
+                  <PatientCards patientId={patient.patient_id} />
                 </div>
               )}
             </div>

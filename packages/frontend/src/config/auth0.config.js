@@ -1,6 +1,8 @@
 // Unified Auth0 Configuration - Single Source of Truth
 // Created: January 6, 2025
+// Updated: January 7, 2025 - Production-ready configuration
 // This file centralizes all Auth0 configuration to prevent scattered values
+// IMPORTANT: SPAs should NOT use client secrets - using PKCE flow instead
 
 export const AUTH0_CONFIG = {
   // Auth0 Tenant Configuration

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { CardIcon, CloseIcon } from '../common/Icons';
 import { LoadingSpinner } from '../common/LoadingSpinner';
@@ -17,24 +17,17 @@ interface SavedCard {
 
 interface PatientCardsProps {
   patientId: string;
-  patientEmail?: string;
-  patientName?: string;
 }
 
-export const PatientCards: React.FC<PatientCardsProps> = ({ patientId, patientEmail, patientName }) => {
+export const PatientCards: React.FC<PatientCardsProps> = ({ patientId }) => {
   const apiClient = useApi();
   const [cards, setCards] = useState<SavedCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddCard, setShowAddCard] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [setupIntentSecret, setSetupIntentSecret] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadCards();
-  }, [patientId]);
-
-  const loadCards = async () => {
+  const loadCards = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiClient.get(`/api/v1/payment-methods/patient/${patientId}`);
@@ -45,7 +38,11 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId, patientEm
     } finally {
       setLoading(false);
     }
-  };
+  }, [patientId]);
+
+  useEffect(() => {
+    loadCards();
+  }, [loadCards]);
 
   const handleAddCard = async (paymentMethodId: string) => {
     setError(null);
@@ -62,7 +59,7 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId, patientEm
       await loadCards();
     } catch (err: any) {
       console.error('Error adding card:', err);
-      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to add card');
+      setError(err.response?.data?.error || 'Failed to add card');
     } finally {
       setSaving(false);
     }
@@ -110,14 +107,10 @@ export const PatientCards: React.FC<PatientCardsProps> = ({ patientId, patientEm
           {error && <div className="error-message">{error}</div>}
 
           <StripePaymentForm
-            patientId={patientId}
-            patientEmail={patientEmail}
-            patientName={patientName}
             onPaymentMethodCreated={handleAddCard}
             onCancel={() => {
               setShowAddCard(false);
               setError(null);
-              setSetupIntentSecret(null);
             }}
             saveCard={true}
             processing={saving}
