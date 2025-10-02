@@ -145,3 +145,25 @@ env.local
 # Database dumps
 *.sql.backup
 *.dump
+# Security and sensitive files - Added Wed Oct  1 20:27:23 EDT 2025
+.sensitive-scripts/
+*credentials*
+*password*
+*.pem
+*.key
+*.crt
+
+# Test files with potential credentials
+test-db-*.js
+test-ssl*.js
+verify-*.js
+monitor-*.js
+check-*.js
+
+# AWS credential files
+rds-credentials-*.txt
+aws-credentials.txt
+
+# Backup files
+*.bak
+*.backup
