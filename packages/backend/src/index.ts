@@ -6,6 +6,13 @@ import { testDatabaseConnection, ensureSOAPNotesTable, pool } from './config/dat
 import { ENV } from './config/env';
 import { logger } from './lib/logger';
 
+// HIPAA SECURITY: Initialize log sanitization FIRST
+import { initializeHIPAALogging } from './utils/log-sanitizer';
+initializeHIPAALogging();
+
+// HIPAA SECURITY: Import emergency auth middleware
+import { emergencyAuthCheck } from './middleware/emergency-auth';
+
 // Load environment variables only in local development
 if (!process.env.RAILWAY_STATIC_URL) {
   // local dev only; Railway injects envs for us
@@ -131,7 +138,8 @@ import documentRoutes from './routes/document.routes';
 import webhookRoutes from './routes/webhook.routes';
 import auditRoutes from './routes/audit.routes';
 import paymentRoutes from './routes/payment.routes';
-import invoiceRoutes from './routes/invoice.routes';
+// Import invoice routes with initialization
+import { initializeInvoiceRoutes } from './routes/invoice.routes';
 import invoicePaymentRoutes from './routes/invoice-payment.routes';
 import trackingRoutes from './routes/tracking';
 import packageRoutes from './routes/package.routes';
@@ -145,7 +153,22 @@ import stripeDiagRoutes from './routes/stripe-diagnostics.routes';
 app.use("/api/v1/webhooks/general", webhookRoutes);
 logger.info("✅ General webhook routes loaded at /api/v1/webhooks/general (no auth required)");
 
-// All other API routes
+// Public payment routes (no auth required) - Simple implementation
+import publicPaymentRoutes from './routes/public-payment.routes';
+app.use("/api/v1/public", publicPaymentRoutes);
+logger.info("✅ Public payment routes loaded at /api/v1/public (no auth required)");
+
+// Checkout routes (no auth required) - Customer-facing checkout
+import checkoutRoutes from './routes/checkout.routes';
+app.use("/api/v1/checkout", checkoutRoutes);
+logger.info("✅ Checkout routes loaded at /api/v1/checkout (no auth required)");
+
+// 🚨 HIPAA SECURITY: Apply emergency auth check to ALL routes below this point
+// This middleware will protect all PHI endpoints from unauthorized access
+app.use(emergencyAuthCheck);
+logger.info("🔒 HIPAA Emergency Auth Check enabled - All routes below require authentication");
+
+// All other API routes (now protected by emergencyAuthCheck)
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/patients", patientRoutes);
 app.use("/api/v1/practitioners", practitionerRoutes);
@@ -153,6 +176,17 @@ app.use("/api/v1/appointments", appointmentRoutes);
 app.use("/api/v1/documents", documentRoutes);
 app.use("/api/v1/audit", auditRoutes);
 app.use("/api/v1/payments", paymentRoutes);
+// Initialize and mount invoice routes with database and stripe
+const stripeClient = (() => {
+  try {
+    const { getStripeClient } = require('./config/stripe.config');
+    return getStripeClient();
+  } catch {
+    logger.warn('Stripe not configured for invoice module');
+    return null;
+  }
+})();
+const invoiceRoutes = initializeInvoiceRoutes(pool, stripeClient);
 app.use("/api/v1/invoices", invoiceRoutes); // Direct invoice routes
 app.use("/api/v1/invoice-payments", invoicePaymentRoutes);
 app.use("/api/v1/tracking", trackingRoutes);
@@ -193,6 +227,27 @@ try {
   logger.info('✅ Comprehensive billing system routes loaded');
 } catch (error) {
   logger.warn('Billing system routes not found, skipping...');
+}
+
+// NEW: Enhanced Stripe Payment Routes
+try {
+  const stripePaymentRoutes = require('./routes/stripe-payments.routes').default;
+  app.use('/api/v1', stripePaymentRoutes);
+  logger.info('✅ Enhanced Stripe payment routes loaded');
+} catch (error) {
+  logger.warn('Enhanced Stripe payment routes not found, skipping...');
+}
+
+// NEW: Stripe Webhook Routes (MUST be before body parser for raw body)
+// Note: This is actually mounted earlier in the file, before body parser middleware
+try {
+  const stripeWebhookRoutes = require('./routes/stripe-webhook-raw.routes').default;
+  const { getRawBody } = require('./routes/stripe-webhook-raw.routes');
+  // Mount webhook route with raw body handler
+  app.use('/api', stripeWebhookRoutes);
+  logger.info('✅ Stripe webhook routes with raw body handling loaded');
+} catch (error) {
+  logger.warn('Stripe webhook routes not found, skipping...');
 }
 
 // Serve static files in production
