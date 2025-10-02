@@ -24,7 +24,7 @@
           "DB_NAME": "eonmeds",
           "DB_USER": "eonmeds_admin",
           "DB_PASSWORD": "398Xakf$57",
-          "DB_SSL": "false",
+          "DB_SSL": "true",
           "HEYFLOW_WEBHOOK_SECRET": "SKIP",
           "SESSION_SECRET": "a32cd242439e04d262b03842d4ce6c2c22796b800f24baa7db4f180f50eef7be",
           "TRACKING_API_KEY": "8f372a1ac2c1721be6c8549178cddeb56d3a690b8bd08be5fc14f3157c669f19",
