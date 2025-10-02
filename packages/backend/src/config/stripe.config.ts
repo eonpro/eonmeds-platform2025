@@ -1,14 +1,26 @@
 import Stripe from "stripe";
-import dotenv from "dotenv";
+import { ENV } from "./env";
 import { logger } from "../utils/logger";
 
-// Load environment variables
-dotenv.config();
+const KEY = process.env.STRIPE_SECRET_KEY || "";
+const MODE = process.env.STRIPE_MODE || (KEY.startsWith("sk_test_") ? "test" : "live");
+
+function mask(k?: string) {
+  if (!k) return "";
+  return k.length <= 12 ? "****" : k.slice(0, 8) + "..." + k.slice(-4);
+}
+
+// One-time masked log at boot
+console.info("STRIPE_BOOT", {
+  nodeEnv: process.env.NODE_ENV,
+  stripeMode: MODE,
+  keyMasked: mask(KEY),
+});
 
 // Stripe configuration
 export const stripeConfig = {
-  apiKey: process.env.STRIPE_SECRET_KEY || "",
-  webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
+  apiKey: ENV.STRIPE_SECRET_KEY,
+  webhookSecret: ENV.STRIPE_WEBHOOK_SECRET,
   apiVersion: "2024-11-20.acacia" as Stripe.LatestApiVersion,
 };
 
@@ -42,11 +54,15 @@ let stripeClient: Stripe | null = null;
 
 export function getStripeClient(): Stripe {
   if (!stripeClient) {
+    if (!KEY) {
+      throw new Error("STRIPE_SECRET_KEY missing at runtime");
+    }
+    
     if (!validateStripeConfig()) {
       throw new Error("Stripe configuration is invalid");
     }
 
-    stripeClient = new Stripe(stripeConfig.apiKey, {
+    stripeClient = new Stripe(KEY, {
       apiVersion: stripeConfig.apiVersion,
       typescript: true,
       // Add telemetry metadata

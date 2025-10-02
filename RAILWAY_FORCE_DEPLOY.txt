@@ -1,0 +1,23 @@
+Force Railway Deployment - August 16, 2025
+==========================================
+
+This file forces Railway to pull the latest code from GitHub.
+
+TypeScript fixes are already present in the codebase:
+- billing.controller.ts has all return type fixes
+- Type assertions added for Stripe properties
+- express-validator dependency is installed
+
+Railway is trying to build from commit ec44955 which doesn't exist.
+This deployment should use the latest main branch code.
+
+Current fixes verified:
+✓ Line 290: res.status(402).json() followed by return;
+✓ Line 359: res.json() followed by return;
+✓ Line 363: (invoice as any).charge
+✓ Line 390: (customer as any).invoice_settings
+✓ Line 391: res.status(402).json() followed by return;
+✓ Line 424: (paidInvoice as any).charge
+✓ Line 446: res.status(400).json() followed by return;
+
+All TypeScript compilation errors have been resolved.

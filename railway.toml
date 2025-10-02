@@ -1,12 +1,10 @@
 [build]
-builder = "nixpacks"
-buildCommand = "cd packages/backend && npm install && npm run build"
+builder = "dockerfile"
+dockerfilePath = "./Dockerfile"
 
 [deploy]
-startCommand = "cd packages/backend && npm start"
-restartPolicyType = "always"
-restartPolicyMaxRetries = 10
-
-[[services]]
-name = "backend"
-root = "packages/backend"
+startCommand = "n8n start"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3

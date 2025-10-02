@@ -1,0 +1,491 @@
+/* Billing System Demo - Comprehensive Showcase */
+
+.billing-system-demo {
+  min-height: 100vh;
+  background: #F5F7FA;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* Header */
+.bsd-header {
+  background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+  color: white;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.bsd-header-content h1 {
+  font-size: 48px;
+  font-weight: 800;
+  margin: 0 0 16px 0;
+  letter-spacing: -0.03em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bsd-header-content p {
+  font-size: 20px;
+  opacity: 0.9;
+  margin: 0 0 32px 0;
+}
+
+.bsd-header-badges {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.bsd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Navigation */
+.bsd-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 24px;
+  padding: 32px 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.bsd-nav-item {
+  background: white;
+  border: 2px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: left;
+  display: flex;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bsd-nav-item:hover {
+  border-color: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.bsd-nav-item.active {
+  border-color: var(--accent-color);
+  background: #FAFBFC;
+}
+
+.bsd-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--accent-color);
+}
+
+.bsd-nav-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bsd-nav-content {
+  flex: 1;
+}
+
+.bsd-nav-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 6px 0;
+}
+
+.bsd-nav-content p {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.bsd-nav-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bsd-feature-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #059669;
+  background: #D1FAE5;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.bsd-nav-status {
+  display: flex;
+  align-items: flex-start;
+}
+
+.bsd-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bsd-status-badge.complete {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+/* Component Container */
+.bsd-component-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+
+.bsd-component-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.bsd-component-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.bsd-component-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.bsd-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bsd-action-btn:hover {
+  background: #F9FAFB;
+  border-color: #D1D5DB;
+}
+
+.bsd-action-btn.primary {
+  background: #8B5CF6;
+  border-color: #8B5CF6;
+  color: white;
+}
+
+.bsd-action-btn.primary:hover {
+  background: #7C3AED;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+}
+
+.bsd-component-wrapper {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  min-height: 600px;
+}
+
+/* Features Summary */
+.bsd-features-summary {
+  background: white;
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.bsd-features-summary h2 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 48px 0;
+}
+
+.bsd-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.bsd-feature-card {
+  text-align: left;
+  padding: 32px;
+  background: #F9FAFB;
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.bsd-feature-card:hover {
+  background: #F3F4F6;
+  transform: translateY(-4px);
+}
+
+.bsd-feature-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 20px 0;
+}
+
+.bsd-feature-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bsd-feature-card li {
+  position: relative;
+  padding-left: 24px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.bsd-feature-card li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #10B981;
+  font-weight: bold;
+}
+
+/* Business Impact */
+.bsd-impact {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.bsd-impact h2 {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0 0 48px 0;
+}
+
+.bsd-impact-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 48px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.bsd-metric {
+  text-align: center;
+}
+
+.bsd-metric-value {
+  font-size: 56px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bsd-metric-label {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+/* Call to Action */
+.bsd-cta {
+  background: white;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.bsd-cta h2 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+.bsd-cta p {
+  font-size: 18px;
+  color: #6B7280;
+  margin: 0 0 32px 0;
+}
+
+.bsd-cta-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.bsd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.bsd-btn-primary {
+  background: #3B82F6;
+  color: white;
+}
+
+.bsd-btn-primary:hover {
+  background: #2563EB;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
+}
+
+.bsd-btn-secondary {
+  background: white;
+  color: #374151;
+  border: 2px solid #E5E7EB;
+}
+
+.bsd-btn-secondary:hover {
+  background: #F9FAFB;
+  border-color: #D1D5DB;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .bsd-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .bsd-features-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .bsd-header-content h1 {
+    font-size: 32px;
+  }
+
+  .bsd-header-content p {
+    font-size: 16px;
+  }
+
+  .bsd-nav {
+    padding: 24px 16px;
+  }
+
+  .bsd-nav-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .bsd-component-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bsd-component-actions {
+    flex-direction: column;
+  }
+
+  .bsd-impact-metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+
+  .bsd-metric-value {
+    font-size: 40px;
+  }
+
+  .bsd-cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .bsd-btn {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+}
+
+/* Loading Animation */
+@keyframes bsd-shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.bsd-loading {
+  height: 400px;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 1000px 100%;
+  animation: bsd-shimmer 2s infinite;
+}
+
+/* Print Styles */
+@media print {
+  .bsd-header-badges,
+  .bsd-component-actions,
+  .bsd-cta {
+    display: none;
+  }
+
+  .billing-system-demo {
+    background: white;
+  }
+
+  .bsd-nav-item {
+    break-inside: avoid;
+  }
+}

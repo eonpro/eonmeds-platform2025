@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { validateStripeConfig } from "../config/stripe.config";
 import { stripeService } from "../services/stripe.service";
+import { ENV } from "../config/env";
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.get("/health", async (_req: Request, res: Response) => {
     res.json({
       status: isValid ? "healthy" : "unhealthy",
       configured: isValid,
-      mode: process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_") ? "test" : "live",
+      mode: ENV.STRIPE_SECRET_KEY.startsWith("sk_test_") ? "test" : "live",
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
@@ -79,9 +80,10 @@ router.post("/payment-intent", async (req: Request, res: Response) => {
     }
 
     const paymentIntent = await stripeService.createPaymentIntent({
-      customerId,
+      customer: customerId,
       amount,
-      description: description || "Test payment",
+      currency: 'usd',
+      metadata: { description: description || "Test payment" }
     });
 
     res.json({

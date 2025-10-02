@@ -1,0 +1,327 @@
+.billing-dashboard {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.billing-dashboard.loading,
+.billing-dashboard.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #333;
+}
+
+.date-range-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-range-selector input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.date-range-selector span {
+  color: #666;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.metric-card {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.metric-card h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 36px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.metric-card.mrr .metric-value {
+  color: #4CAF50;
+}
+
+.metric-card.total-revenue .metric-value {
+  color: #2196F3;
+}
+
+.metric-card.net-revenue .metric-value {
+  color: #9C27B0;
+}
+
+.metric-label,
+.metric-period,
+.metric-detail {
+  font-size: 14px;
+  color: #999;
+}
+
+/* Revenue Breakdown */
+.revenue-breakdown {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.revenue-breakdown h2 {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+.breakdown-item {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.breakdown-item .label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.breakdown-item .value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.breakdown-item .percentage {
+  font-size: 14px;
+  color: #999;
+}
+
+/* Revenue by Plan */
+.revenue-by-plan {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.revenue-by-plan h2 {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.revenue-by-plan table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.revenue-by-plan th,
+.revenue-by-plan td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.revenue-by-plan th {
+  font-weight: 600;
+  color: #666;
+  background: #f8f9fa;
+}
+
+.revenue-by-plan tr:hover {
+  background: #f8f9fa;
+}
+
+/* Payment Status */
+.payment-status {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.payment-status h2 {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.status-item {
+  padding: 16px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.status-item.succeeded {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-item.pending {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status-item.failed {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-label {
+  font-size: 14px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.status-value {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Quick Actions */
+.quick-actions {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.quick-actions h2 {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  padding: 12px 24px;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.action-buttons button:hover {
+  background: #1976D2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .billing-dashboard {
+    padding: 16px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .date-range-selector {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .date-range-selector input {
+    width: 100%;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .metric-value {
+    font-size: 28px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-buttons button {
+    width: 100%;
+  }
+}

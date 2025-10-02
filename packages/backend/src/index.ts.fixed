@@ -1,0 +1,393 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+import { testDatabaseConnection, ensureSOAPNotesTable, pool } from './config/database';
+import { ENV } from './config/env';
+import { logger } from './lib/logger';
+
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const PORT = ENV.PORT;
+
+// Trust Railway's reverse proxy *before* any middleware that reads IPs
+app.set('trust proxy', 1);
+
+// Stamp current build/commit for verification
+console.info(
+  "DEPLOY_VERSION:",
+  process.env.BUILD_ID || process.env.RAILWAY_GIT_COMMIT_SHA || "unknown"
+);
+
+// CORS configuration
+const corsOrigins = process.env.CORS_ORIGINS || process.env.CORS_ORIGIN 
+  ? (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN).split(',').map(origin => origin.trim())
+  : [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'https://eonmeds-platform2025-production.up.railway.app'
+  ];
+
+logger.info("🔒 CORS Origins configured:", corsOrigins);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps)
+    if (!origin) return callback(null, true);
+    if (corsOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      logger.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-API-Key'],
+  exposedHeaders: ['X-Total-Count']
+}));
+
+// Request logging middleware
+app.use((req, _res, next) => {
+  logger.info(`${new Date().toISOString()} ${req.method} ${req.path}`);
+  next();
+});
+
+// Import Stripe webhook route early (needs raw body)
+import stripeWebhookRoutes from './routes/stripe-webhook.routes';
+
+// Stripe webhook MUST come before body parsing middleware  
+app.use("/api/v1/webhooks", stripeWebhookRoutes);
+logger.info("✅ Stripe webhook route loaded at /api/v1/webhooks/stripe (requires raw body)");
+
+// Compat alias → forward to the actual stripe webhook router
+app.use('/api/v1/payments/webhook/stripe', stripeWebhookRoutes);
+
+// Body parsing middleware for all other routes
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// Health check endpoint
+app.get('/health', (_req, res) => {
+  res.json({ 
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Simple version check (no auth)
+app.get('/version', (_req, res) => {
+  res.json({
+    commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
+    buildId: ENV.BUILD_ID,
+    ts: new Date().toISOString(),
+    env: ENV.NODE_ENV,
+  });
+});
+
+// Simple tracking test (no auth)
+app.get('/api/v1/tracking/test', (_req, res) => {
+  res.json({ ok: true, ts: new Date().toISOString() });
+});
+
+// API root endpoint
+app.get('/api/v1', (_req, res) => {
+  res.json({ 
+    version: '1.0.0',
+    endpoints: {
+      webhooks: '/api/v1/webhooks',
+      auth: '/api/v1/auth',
+      patients: '/api/v1/patients',
+      practitioners: '/api/v1/practitioners',
+      appointments: '/api/v1/appointments',
+      documents: '/api/v1/documents',
+      audit: '/api/v1/audit',
+      payments: '/api/v1/payments',
+      invoices: '/api/v1/invoices',
+      packages: '/api/v1/packages',
+      ai: '/api/v1/ai',
+      billing: '/api/v1/billing',
+      'billing-metrics': '/api/v1/billing-metrics'
+    }
+  });
+});
+
+// Import other routes
+import authRoutes from './routes/auth.routes';
+import patientRoutes from './routes/patient.routes';
+import practitionerRoutes from './routes/practitioner.routes';
+import appointmentRoutes from './routes/appointment.routes';
+import documentRoutes from './routes/document.routes';
+import auditRoutes from './routes/audit.routes';
+import paymentRoutes from './routes/payment.routes';
+import invoiceRoutes from './routes/invoice.routes';
+import packageRoutes from './routes/package.routes';
+import aiRoutes from './routes/ai.routes';
+import webhookRoutes from './routes/webhook.routes';
+import billingRoutes from './routes/billing.routes';
+import billingMetricsRoutes from './routes/billing-metrics.routes';
+
+// General webhook routes (no auth) 
+app.use("/api/v1/webhooks/general", webhookRoutes);
+logger.info("✅ General webhook routes loaded at /api/v1/webhooks/general (no auth required)");
+
+// All other API routes
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/patients", patientRoutes);
+app.use("/api/v1/practitioners", practitionerRoutes);
+app.use("/api/v1/appointments", appointmentRoutes);
+app.use("/api/v1/documents", documentRoutes);
+app.use("/api/v1/audit", auditRoutes);
+app.use("/api/v1/payments", paymentRoutes);
+app.use("/api/v1/invoices", invoiceRoutes);
+app.use("/api/v1/packages", packageRoutes);
+app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1/billing", billingRoutes);
+app.use("/api/v1/billing-metrics", billingMetricsRoutes);
+
+logger.info('✅ All API routes registered');
+
+// Payment methods routes
+try {
+  const paymentMethodsRoutes = require('./routes/payment-methods.routes').default;
+  app.use('/api/v1/payment-methods', paymentMethodsRoutes);
+} catch (error) {
+  logger.warn('Payment methods routes not found, skipping...');
+}
+
+// Financial dashboard routes
+try {
+  const financialDashboardRoutes = require('./routes/financial-dashboard.routes').default;
+  app.use('/api/v1/financial-dashboard', financialDashboardRoutes);
+} catch (error) {
+  logger.warn('Financial dashboard routes not found, skipping...');
+}
+
+// Comprehensive Billing System routes (if available)
+try {
+  const { createBillingSystemRoutes } = require('./routes/billing-system.routes');
+  const { BillingSystemService } = require('./services/billing-system.service');
+  const { getStripeClient } = require('./config/stripe.config');
+  
+  const billingSystemService = new BillingSystemService(pool, getStripeClient());
+  const billingSystemRoutes = createBillingSystemRoutes(billingSystemService);
+  app.use('/api/v1/billing-system', billingSystemRoutes);
+  logger.info('✅ Comprehensive billing system routes loaded');
+} catch (error) {
+  logger.warn('Billing system routes not found, skipping...');
+}
+
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../public')));
+  
+  // Handle React routing
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(__dirname, '../public', 'index.html'));
+  });
+  logger.info('✅ Serving frontend static files');
+}
+
+// Database initialization
+let databaseConnected = false;
+
+async function initializeDatabase() {
+  logger.info('Attempting database connection...');
+  
+  try {
+    const isConnected = await testDatabaseConnection();
+    
+    if (isConnected) {
+      logger.info("✅ Database connected successfully");
+      databaseConnected = true;
+
+      // Ensure critical tables exist
+      await ensureSOAPNotesTable();
+      await ensureInvoiceTables();
+      await ensureTrackingTables();
+      
+      logger.info('✅ Database tables verified/created');
+    } else {
+      logger.info("⚠️  Database connection failed - some functionality may be limited");
+    }
+  } catch (error) {
+    logger.error("❌ Error during database initialization:", error);
+  }
+}
+
+async function ensureInvoiceTables() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS invoices (
+        invoice_id VARCHAR(255) PRIMARY KEY,
+        invoice_number VARCHAR(50) UNIQUE NOT NULL,
+        patient_id VARCHAR(255) NOT NULL,
+        practitioner_id VARCHAR(255),
+        amount_total DECIMAL(10,2) NOT NULL,
+        amount_paid DECIMAL(10,2) DEFAULT 0,
+        currency VARCHAR(3) DEFAULT 'USD',
+        status VARCHAR(50) DEFAULT 'draft',
+        due_date TIMESTAMP,
+        paid_date TIMESTAMP,
+        stripe_invoice_id VARCHAR(255),
+        stripe_payment_intent_id VARCHAR(255),
+        stripe_charge_id VARCHAR(255),
+        metadata JSONB DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS invoice_items (
+        item_id VARCHAR(255) PRIMARY KEY,
+        invoice_id VARCHAR(255) NOT NULL REFERENCES invoices(invoice_id) ON DELETE CASCADE,
+        description TEXT NOT NULL,
+        quantity INTEGER DEFAULT 1,
+        unit_price DECIMAL(10,2) NOT NULL,
+        amount DECIMAL(10,2) NOT NULL,
+        appointment_id VARCHAR(255),
+        service_code VARCHAR(50),
+        metadata JSONB DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS invoice_payments (
+        payment_id VARCHAR(255) PRIMARY KEY,
+        invoice_id VARCHAR(255) NOT NULL REFERENCES invoices(invoice_id),
+        amount DECIMAL(10,2) NOT NULL,
+        currency VARCHAR(3) DEFAULT 'USD',
+        payment_method VARCHAR(50),
+        payment_type VARCHAR(50),
+        reference_number VARCHAR(255),
+        stripe_payment_intent_id VARCHAR(255),
+        stripe_charge_id VARCHAR(255),
+        processor_response JSONB,
+        notes TEXT,
+        payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS stripe_webhook_events (
+        event_id VARCHAR(255) PRIMARY KEY,
+        type VARCHAR(100) NOT NULL,
+        data JSONB NOT NULL,
+        processed BOOLEAN DEFAULT false,
+        processed_at TIMESTAMP,
+        error TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tracking_forms (
+        id VARCHAR(255) PRIMARY KEY,
+        patient_id VARCHAR(255) NOT NULL,
+        tracking_data JSONB NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create indexes
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_invoice_patient ON invoices(patient_id);
+      CREATE INDEX IF NOT EXISTS idx_invoice_status ON invoices(status);
+      CREATE INDEX IF NOT EXISTS idx_invoice_stripe ON invoices(stripe_invoice_id);
+      CREATE INDEX IF NOT EXISTS idx_payment_invoice ON invoice_payments(invoice_id);
+      CREATE INDEX IF NOT EXISTS idx_payment_date ON invoice_payments(payment_date);
+      CREATE INDEX IF NOT EXISTS idx_invoice_patient ON invoices(patient_id);
+      CREATE INDEX IF NOT EXISTS idx_invoice_status ON invoices(status);
+    `);
+
+    logger.info('✅ Invoice tables created/verified');
+  } catch (error) {
+    logger.error('Error creating invoice tables:', error);
+  }
+}
+
+async function ensureTrackingTables() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tracking_forms (
+        id VARCHAR(255) PRIMARY KEY,
+        patient_id VARCHAR(255) NOT NULL,
+        tracking_data JSONB NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create indexes
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_tracking_patient ON tracking_forms(patient_id);
+      CREATE INDEX IF NOT EXISTS idx_tracking_created ON tracking_forms(created_at);
+    `);
+
+    logger.info('✅ Tracking tables created/verified');
+  } catch (error) {
+    logger.error('Error creating tracking tables:', error);
+  }
+}
+
+// Start server
+app.listen(PORT, async () => {
+  logger.info('🚀 Server is running!');
+  logger.info(`📡 Listening on port ${PORT}`);
+  logger.info('🏥 EONMeds Backend API v2.0');
+  logger.info(`Environment: ${ENV.NODE_ENV}`);
+  logger.info(`Database: ${process.env.DB_HOST ? '✓ Configured' : '✗ Missing'}`);
+  
+  await initializeDatabase();
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.path} not found`,
+    database: databaseConnected ? 'connected' : 'not connected'
+  });
+});
+
+// Error handling middleware
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error('Error:', err);
+
+  const responseBody: any = {
+    error: err?.message || 'Internal Server Error',
+    status: err?.status || 500,
+    path: _req.path,
+    method: _req.method,
+  };
+
+  if (process.env.NODE_ENV === 'development' && err?.stack) {
+    responseBody.stack = err.stack;
+  }
+
+  res.status(responseBody.status).json(responseBody);
+});
+
+// Graceful shutdown
+process.on("SIGTERM", () => {
+  logger.info("SIGTERM signal received: closing HTTP server");
+  process.exit(0);
+});
+
+export default app;
+export { databaseConnected };
+
+// NOTE: If express-jwt is applied globally, exclude these paths:
+// app.use(jwt({ secret, algorithms: ['HS256'] }).unless({
+//   path: ['/health','/version','/api/v1/tracking/test','/api/v1/webhooks/stripe','/api/v1/payments/webhook/stripe']
+// }));
+
+# Temporary change to force git

@@ -1,0 +1,54 @@
+# DNS Records to Add in Cloudflare Dashboard
+
+## 1. Root Domain (Frontend)
+Type: CNAME
+Name: @
+Target: d3p4f8m2bxony8.cloudfront.net
+Proxy Status: Proxied (Orange Cloud ON)
+TTL: Auto
+
+## 2. WWW Subdomain
+Type: CNAME  
+Name: www
+Target: d3p4f8m2bxony8.cloudfront.net
+Proxy Status: Proxied (Orange Cloud ON)
+TTL: Auto
+
+## 3. API Backend
+Type: CNAME
+Name: api
+Target: qm6dnecfhp.us-east-1.awsapprunner.com
+Proxy Status: Proxied (Orange Cloud ON)
+TTL: Auto
+
+## 4. Auth0 Domain
+Type: CNAME
+Name: auth
+Target: dev-dvouayl22wlz8zwq.us.auth0.com
+Proxy Status: DNS Only (Gray Cloud OFF)
+TTL: Auto
+
+## 5. Email - MX Records (if using Google Workspace)
+Type: MX
+Name: @
+Mail server: aspmx.l.google.com
+Priority: 1
+TTL: Auto
+
+Type: MX
+Name: @
+Mail server: alt1.aspmx.l.google.com
+Priority: 5
+TTL: Auto
+
+## 6. SPF Record (Email Authentication)
+Type: TXT
+Name: @
+Content: v=spf1 include:_spf.google.com ~all
+TTL: Auto
+
+## 7. DMARC Record (Email Security)
+Type: TXT
+Name: _dmarc
+Content: v=DMARC1; p=quarantine; rua=mailto:admin@eonpro.app
+TTL: Auto

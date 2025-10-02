@@ -1,0 +1,671 @@
+/* Insurance Claims Manager - Healthcare Professional Design */
+
+.insurance-claims-manager {
+  min-height: 100vh;
+  background: #F8FAFC;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* Loading State */
+.icm-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+}
+
+.icm-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #E5E7EB;
+  border-top-color: #3B82F6;
+  border-radius: 50%;
+  animation: icm-spin 1s linear infinite;
+}
+
+@keyframes icm-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Header */
+.icm-header {
+  background: white;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 32px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.icm-header-content h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.icm-header-content p {
+  font-size: 16px;
+  color: #6B7280;
+  margin: 0;
+}
+
+.icm-header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Buttons */
+.icm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.icm-btn-primary {
+  background: #3B82F6;
+  color: white;
+}
+
+.icm-btn-primary:hover {
+  background: #2563EB;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.icm-btn-secondary {
+  background: white;
+  color: #374151;
+  border: 1px solid #E5E7EB;
+}
+
+.icm-btn-secondary:hover {
+  background: #F9FAFB;
+  border-color: #D1D5DB;
+}
+
+.icm-btn-text {
+  background: none;
+  color: #3B82F6;
+  padding: 8px 12px;
+}
+
+.icm-btn-text:hover {
+  background: #EFF6FF;
+}
+
+/* Stats Grid */
+.icm-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 24px;
+  background: white;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.icm-stat-card {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.icm-stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icm-stat-icon.pending {
+  background: #FEF3C7;
+  color: #F59E0B;
+}
+
+.icm-stat-icon.approved {
+  background: #D1FAE5;
+  color: #10B981;
+}
+
+.icm-stat-icon.denied {
+  background: #FEE2E2;
+  color: #EF4444;
+}
+
+.icm-stat-icon.appeal {
+  background: #DBEAFE;
+  color: #3B82F6;
+}
+
+.icm-stat-content {
+  flex: 1;
+}
+
+.icm-stat-label {
+  font-size: 13px;
+  color: #6B7280;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.icm-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1;
+}
+
+.icm-stat-amount {
+  font-size: 16px;
+  color: #374151;
+  margin: 4px 0 0 0;
+  font-weight: 500;
+}
+
+/* Controls */
+.icm-controls {
+  padding: 24px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.icm-search {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 0 16px;
+  transition: all 0.2s;
+}
+
+.icm-search:focus-within {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.icm-search svg {
+  color: #6B7280;
+}
+
+.icm-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px;
+  font-size: 14px;
+  color: #111827;
+}
+
+.icm-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.icm-filter-select {
+  padding: 10px 16px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.icm-filter-select:hover {
+  border-color: #D1D5DB;
+}
+
+.icm-filter-select:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Claims Table */
+.icm-claims-table {
+  background: white;
+  margin: 0 24px 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.icm-claims-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.icm-claims-table thead {
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.icm-claims-table th {
+  padding: 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.icm-claims-table td {
+  padding: 16px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.icm-claims-table tbody tr:hover {
+  background: #F9FAFB;
+}
+
+.icm-claims-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.icm-claim-number a {
+  color: #3B82F6;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.icm-claim-number a:hover {
+  color: #2563EB;
+  text-decoration: underline;
+}
+
+.icm-patient-info p,
+.icm-insurance-info p {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 2px 0;
+}
+
+.icm-patient-info span,
+.icm-insurance-info span {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.icm-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.icm-status-badge.status-draft {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+.icm-status-badge.status-submitted,
+.icm-status-badge.status-pending {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.icm-status-badge.status-approved {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.icm-status-badge.status-denied {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.icm-status-badge.status-appeal {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.icm-amount {
+  font-weight: 600;
+  color: #111827;
+}
+
+.icm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icm-action-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.icm-action-btn:hover {
+  background: #F9FAFB;
+  border-color: #D1D5DB;
+  color: #374151;
+}
+
+/* Quick Actions */
+.icm-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  padding: 0 24px 24px;
+}
+
+.icm-quick-action-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.icm-quick-action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.icm-action-icon {
+  margin-bottom: 16px;
+}
+
+.icm-action-icon.warning {
+  color: #F59E0B;
+}
+
+.icm-action-icon.info {
+  color: #3B82F6;
+}
+
+.icm-action-icon.success {
+  color: #10B981;
+}
+
+.icm-quick-action-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.icm-quick-action-card p {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0 0 16px 0;
+}
+
+/* Claim Detail */
+.icm-claim-detail {
+  padding: 24px;
+}
+
+.icm-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.icm-back-btn {
+  background: none;
+  border: none;
+  color: #3B82F6;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 0;
+  transition: color 0.2s;
+}
+
+.icm-back-btn:hover {
+  color: #2563EB;
+}
+
+.icm-detail-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.icm-detail-content {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.icm-detail-section {
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.icm-detail-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.icm-detail-section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 20px 0;
+}
+
+.icm-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.icm-info-item label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6B7280;
+  margin-bottom: 4px;
+}
+
+.icm-info-item p {
+  font-size: 15px;
+  color: #111827;
+  margin: 0;
+}
+
+.icm-services-table {
+  margin-bottom: 20px;
+}
+
+.icm-services-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.icm-services-table th {
+  background: #F9FAFB;
+  padding: 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.icm-services-table td {
+  padding: 12px;
+  border-bottom: 1px solid #F3F4F6;
+  font-size: 14px;
+  color: #374151;
+}
+
+.icm-diagnosis label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6B7280;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.icm-diagnosis p {
+  font-size: 15px;
+  color: #111827;
+  margin: 0;
+}
+
+.icm-financial-summary {
+  background: #F9FAFB;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.icm-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  font-size: 15px;
+  color: #374151;
+}
+
+.icm-summary-item.total {
+  border-top: 2px solid #E5E7EB;
+  padding-top: 16px;
+  margin-top: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #111827;
+}
+
+.icm-denial-section {
+  background: #FEF3F3;
+  border-radius: 8px;
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.icm-denial-info {
+  display: flex;
+  gap: 12px;
+  background: white;
+  border: 1px solid #FCA5A5;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  color: #991B1B;
+}
+
+.icm-denial-info p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .icm-header {
+    padding: 24px 16px;
+  }
+
+  .icm-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .icm-controls {
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .icm-search {
+    min-width: auto;
+  }
+
+  .icm-filters {
+    flex-wrap: wrap;
+  }
+
+  .icm-claims-table {
+    margin: 0 16px 16px;
+    overflow-x: auto;
+  }
+
+  .icm-claims-table table {
+    min-width: 800px;
+  }
+
+  .icm-quick-actions {
+    padding: 0 16px 16px;
+  }
+
+  .icm-detail-content {
+    padding: 24px 16px;
+  }
+
+  .icm-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .icm-header-actions,
+  .icm-controls,
+  .icm-quick-actions,
+  .icm-action-btn,
+  .icm-back-btn,
+  .icm-detail-actions {
+    display: none;
+  }
+
+  .insurance-claims-manager {
+    background: white;
+  }
+
+  .icm-claims-table,
+  .icm-detail-content {
+    box-shadow: none;
+    border: 1px solid #E5E7EB;
+  }
+}

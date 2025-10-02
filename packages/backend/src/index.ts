@@ -2,12 +2,24 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { testDatabaseConnection, ensureSOAPNotesTable } from './config/database';
+import path from 'path';
+import { testDatabaseConnection, ensureSOAPNotesTable, pool } from './config/database';
+import { ENV } from './config/env';
 import { logger } from './utils/logger';
 import { applySecurityMiddleware, corsOptions } from './config/security.config';
-// Remove the audit middleware import for now since it's not used
 
+// HIPAA SECURITY: Initialize log sanitization FIRST
+import { initializeHIPAALogging } from './utils/log-sanitizer';
+initializeHIPAALogging();
 
+// HIPAA SECURITY: Import emergency auth middleware
+import { emergencyAuthCheck } from './middleware/emergency-auth';
+
+// Load environment variables only in local development
+if (!process.env.RAILWAY_STATIC_URL) {
+  // local dev only; Railway injects envs for us
+  dotenv.config();
+}
 
 // Import routes
 import authRoutes from './routes/auth.routes';
@@ -23,8 +35,8 @@ import packageRoutes from './routes/package.routes';
 import aiRoutes from './routes/ai.routes';
 import invoiceRoutes from './routes/invoice.routes';
 
-// Force redeployment - Auth0 configuration update
 const app = express();
+const PORT = ENV.PORT || process.env.PORT || 8080;
 
 // Trust Railway proxy BEFORE any IP/rate-limit/security middleware
 app.set('trust proxy', 1);

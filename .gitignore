@@ -144,5 +144,45 @@ env.local
 
 # Database dumps
 *.sql.backup
-*.dumpeonmeds-n8n/
+*.dump
+
+# Security and sensitive files - Added Wed Oct  1 20:27:23 EDT 2025
+.sensitive-scripts/
+*credentials*
+*password*
+*.pem
+*.key
+*.crt
+
+# Test files with potential credentials
+test-db-*.js
+test-ssl*.js
+verify-*.js
+monitor-*.js
+check-*.js
+
+# AWS credential files
+rds-credentials-*.txt
+aws-credentials.txt
+
+# Backup files
+*.bak
+*.backup
+*-backup.*
+*-backup.txt
+railway-env-*
+
+# Test outputs and temporary files
+test-output/
+test-results/
+*.tmp
+*.temp
+*-TEMP.*
+
+# IDE and tool files
+.trunk/
+.idea/
+.vscode/settings.json
+
+# N8N automation directories
 eonmeds-n8n/

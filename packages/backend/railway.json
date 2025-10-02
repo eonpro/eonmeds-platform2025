@@ -1,8 +1,12 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "npm install && npm run build"
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "./Dockerfile",
+    "buildArgs": {
+      "BUILD_ID": "{{ RAILWAY_GIT_COMMIT_SHA }}",
+      "CACHE_BUST": "2025-08-20-v2"
+    }
   },
   "deploy": {
     "startCommand": "node dist/index.js",

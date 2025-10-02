@@ -31,7 +31,7 @@ export class StripeService {
         },
       });
 
-      console.log(`✅ Created Stripe customer ${customer.id} for patient ${params.patientId}`);
+      console.info(`✅ Created Stripe customer ${customer.id} for patient ${params.patientId}`);
       return customer;
     } catch (error) {
       console.error(`❌ Failed to create Stripe customer for patient ${params.patientId}:`, error);
@@ -73,43 +73,10 @@ export class StripeService {
   ): Promise<Stripe.Customer> {
     try {
       const customer = await this.stripe.customers.update(customerId, updates);
-      console.log(`✅ Updated Stripe customer ${customer.id}`);
+      console.info(`✅ Updated Stripe customer ${customer.id}`);
       return customer;
     } catch (error) {
       console.error(`❌ Failed to update Stripe customer ${customerId}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Create a payment intent for an invoice
-   */
-  async createPaymentIntent(params: {
-    amount: number; // Amount in dollars (will be converted to cents)
-    customerId: string;
-    description: string;
-    metadata?: Record<string, string>;
-  }): Promise<Stripe.PaymentIntent> {
-    try {
-      const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: Math.round(params.amount * 100), // Convert to cents
-        currency: "usd",
-        customer: params.customerId,
-        description: params.description,
-        metadata: {
-          platform: "eonmeds",
-          ...params.metadata,
-        },
-        // Automatic payment methods for better conversion
-        automatic_payment_methods: {
-          enabled: true,
-        },
-      });
-
-      console.log(`✅ Created payment intent ${paymentIntent.id} for $${params.amount}`);
-      return paymentIntent;
-    } catch (error) {
-      console.error("❌ Failed to create payment intent:", error);
       throw error;
     }
   }
@@ -126,7 +93,7 @@ export class StripeService {
         payment_method: paymentMethodId,
       });
 
-      console.log(`✅ Confirmed payment intent ${paymentIntent.id}`);
+      console.info(`✅ Confirmed payment intent ${paymentIntent.id}`);
       return paymentIntent;
     } catch (error) {
       console.error(`❌ Failed to confirm payment intent ${paymentIntentId}:`, error);
@@ -150,7 +117,7 @@ export class StripeService {
         },
       });
 
-      console.log(`✅ Created setup intent ${setupIntent.id} for customer ${customerId}`);
+      console.info(`✅ Created setup intent ${setupIntent.id} for customer ${customerId}`);
       return setupIntent;
     } catch (error) {
       console.error(`❌ Failed to create setup intent for customer ${customerId}:`, error);
@@ -168,7 +135,7 @@ export class StripeService {
         type: 'card',
       });
 
-      console.log(`✅ Found ${paymentMethods.data.length} payment methods for customer ${customerId}`);
+      console.info(`✅ Found ${paymentMethods.data.length} payment methods for customer ${customerId}`);
       return paymentMethods.data;
     } catch (error) {
       console.error(`❌ Failed to list payment methods for customer ${customerId}:`, error);
@@ -188,7 +155,7 @@ export class StripeService {
         customer: customerId,
       });
 
-      console.log(`✅ Attached payment method ${paymentMethodId} to customer ${customerId}`);
+      console.info(`✅ Attached payment method ${paymentMethodId} to customer ${customerId}`);
       return paymentMethod;
     } catch (error) {
       console.error(`❌ Failed to attach payment method:`, error);
@@ -202,7 +169,7 @@ export class StripeService {
   async detachPaymentMethod(paymentMethodId: string): Promise<Stripe.PaymentMethod> {
     try {
       const paymentMethod = await this.stripe.paymentMethods.detach(paymentMethodId);
-      console.log(`✅ Detached payment method ${paymentMethodId}`);
+      console.info(`✅ Detached payment method ${paymentMethodId}`);
       return paymentMethod;
     } catch (error) {
       console.error(`❌ Failed to detach payment method ${paymentMethodId}:`, error);
@@ -224,7 +191,7 @@ export class StripeService {
         },
       });
 
-      console.log(`✅ Set default payment method ${paymentMethodId} for customer ${customerId}`);
+      console.info(`✅ Set default payment method ${paymentMethodId} for customer ${customerId}`);
       return customer;
     } catch (error) {
       console.error(`❌ Failed to set default payment method:`, error);
@@ -257,7 +224,7 @@ export class StripeService {
         },
       });
 
-      console.log(`✅ Charged ${params.paymentMethodId} for $${params.amount}`);
+      console.info(`✅ Charged ${params.paymentMethodId} for $${params.amount}`);
       return paymentIntent;
     } catch (error: any) {
       // Handle specific errors like card declined
@@ -266,6 +233,89 @@ export class StripeService {
       } else if (error.code === 'authentication_required') {
         console.error(`❌ Authentication required for payment method ${params.paymentMethodId}`);
       }
+      throw error;
+    }
+  }
+
+  /**
+   * Create a payment intent
+   */
+  async createPaymentIntent(params: {
+    amount: number;
+    currency: string;
+    customer?: string;
+    payment_method?: string;
+    metadata?: Record<string, string>;
+    setup_future_usage?: 'off_session' | 'on_session';
+    description?: string;
+    idempotencyKey?: string;
+  }): Promise<Stripe.PaymentIntent> {
+    try {
+      // Generate idempotency key if not provided
+      const idempotencyKey = params.idempotencyKey || 
+        `pi_${params.customer}_${params.metadata?.invoice_id}_${Date.now()}`;
+
+      const paymentIntent = await this.stripe.paymentIntents.create({
+        amount: params.amount,
+        currency: params.currency,
+        customer: params.customer,
+        payment_method: params.payment_method,
+        metadata: params.metadata,
+        setup_future_usage: params.setup_future_usage,
+        description: params.description,
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      }, {
+        idempotencyKey: idempotencyKey
+      });
+
+      console.info(`✅ Created payment intent ${paymentIntent.id} for amount ${params.amount} with idempotency key ${idempotencyKey}`);
+      return paymentIntent;
+    } catch (error: any) {
+      // Check if this is a duplicate request
+      if (error.type === 'idempotency_error') {
+        console.info(`ℹ️ Duplicate payment request detected, returning existing payment intent`);
+        // Return the existing payment intent from the error
+        return error.raw.payment_intent;
+      }
+      console.error(`❌ Failed to create payment intent:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a refund
+   */
+  async createRefund(params: {
+    payment_intent: string;
+    amount?: number;
+    reason?: Stripe.RefundCreateParams.Reason;
+  }): Promise<Stripe.Refund> {
+    try {
+      const refund = await this.stripe.refunds.create({
+        payment_intent: params.payment_intent,
+        amount: params.amount,
+        reason: params.reason,
+      });
+
+      console.info(`✅ Created refund ${refund.id} for payment intent ${params.payment_intent}`);
+      return refund;
+    } catch (error) {
+      console.error(`❌ Failed to create refund:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieve a payment intent
+   */
+  async retrievePaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
+    try {
+      const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+      return paymentIntent;
+    } catch (error) {
+      console.error(`❌ Failed to retrieve payment intent ${paymentIntentId}:`, error);
       throw error;
     }
   }

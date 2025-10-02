@@ -1,0 +1,72 @@
+.delete-confirm-dialog {
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  padding: 32px;
+}
+
+.delete-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.delete-icon {
+  width: 48px;
+  height: 48px;
+  color: #ef4444;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.dialog-message {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.dialog-actions button {
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.dialog-actions .cancel-btn {
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.dialog-actions .cancel-btn:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.dialog-actions .confirm-btn.destructive {
+  background: #ef4444;
+  color: white;
+}
+
+.dialog-actions .confirm-btn.destructive:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.dialog-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
