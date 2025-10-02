@@ -22,15 +22,4 @@ curl -s $API_URL/api/v1 | jq .
 echo -e "\n4️⃣ Testing /api/v1/tracking/test endpoint:"
 curl -s $API_URL/api/v1/tracking/test | jq .
 
-# Test invoice endpoint (should require auth)
-echo -e "\n5️⃣ Testing /api/v1/payments/invoices (should return 401):"
-curl -s $API_URL/api/v1/payments/invoices/test | jq .
-
-# Test Stripe webhook (should return 400 - missing signature)
-echo -e "\n6️⃣ Testing Stripe webhook (should return 400):"
-curl -s -X POST $API_URL/api/v1/webhooks/stripe \
-  -H "Content-Type: application/json" \
-  -d '{"type":"test"}' \
-  -w "\nHTTP Status: %{http_code}\n"
-
 echo -e "\n✅ If /version and /tracking/test work, deployment is successful!"

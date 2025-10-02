@@ -8,13 +8,11 @@ echo "=================================="
 
 # Test if version endpoint exists (NEW code)
 echo -e "\n📌 Testing /version endpoint (should exist in NEW code):"
-VERSION_RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" $API_URL/version)
-VERSION_BODY=$(echo "$VERSION_RESPONSE" | sed '$d')
-VERSION_CODE=$(echo "$VERSION_RESPONSE" | tail -1 | cut -d: -f2)
+VERSION_CODE=$(curl -s -o /dev/null -w "%{http_code}" $API_URL/version)
 
 if [ "$VERSION_CODE" = "200" ]; then
     echo "✅ VERSION ENDPOINT EXISTS - NEW CODE IS DEPLOYED!"
-    echo "$VERSION_BODY" | jq .
+    curl -s $API_URL/version | jq .
 else
     echo "❌ VERSION ENDPOINT NOT FOUND - OLD CODE IS DEPLOYED"
     echo "HTTP Status: $VERSION_CODE"
@@ -22,8 +20,7 @@ fi
 
 # Test if tracking endpoint exists (NEW code)
 echo -e "\n📌 Testing /api/v1/tracking/test endpoint (should exist in NEW code):"
-TRACKING_RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" $API_URL/api/v1/tracking/test)
-TRACKING_CODE=$(echo "$TRACKING_RESPONSE" | tail -1 | cut -d: -f2)
+TRACKING_CODE=$(curl -s -o /dev/null -w "%{http_code}" $API_URL/api/v1/tracking/test)
 
 if [ "$TRACKING_CODE" = "200" ]; then
     echo "✅ TRACKING ENDPOINT EXISTS - NEW CODE IS DEPLOYED!"

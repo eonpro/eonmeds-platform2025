@@ -44,3 +44,7 @@ After deployment, create your first workflow:
 ## Support
 
 For issues, check the N8N logs in Railway dashboard.
+
+---
+
+Copyright © 2025 EONMeds. All rights reserved.

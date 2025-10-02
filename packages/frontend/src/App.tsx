@@ -127,4 +127,3 @@ export default App;
 // CRITICAL: SimpleBillingTest MUST be deployed Sun Aug 17 18:20:00 EDT 2025
 // FORCE RAILWAY REBUILD: Sun Aug 17 21:57:38 EDT 2025
 // FORCE RAILWAY REBUILD: Sun Aug 17 21:58:21 EDT 2025
-// Build version: 1757280548

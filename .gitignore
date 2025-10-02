@@ -145,6 +145,7 @@ env.local
 # Database dumps
 *.sql.backup
 *.dump
+
 # Security and sensitive files - Added Wed Oct  1 20:27:23 EDT 2025
 .sensitive-scripts/
 *credentials*
@@ -167,17 +168,9 @@ aws-credentials.txt
 # Backup files
 *.bak
 *.backup
-
-# Security and backup files - Added for HIPAA compliance
-*.bak
 *-backup.*
 *-backup.txt
 railway-env-*
-*credentials*
-*secret*
-*.pem
-*.key
-*.crt
 
 # Test outputs and temporary files
 test-output/
@@ -190,3 +183,6 @@ test-results/
 .trunk/
 .idea/
 .vscode/settings.json
+
+# N8N automation directories
+eonmeds-n8n/

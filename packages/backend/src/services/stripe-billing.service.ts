@@ -1,11 +1,10 @@
 import Stripe from "stripe";
-import { getStripeClient } from "../config/stripe.config";
 
 export class StripeBillingService {
   private stripe: Stripe;
 
-  constructor() {
-    this.stripe = getStripeClient();
+  constructor(apiKey: string) {
+    this.stripe = new Stripe(apiKey, { apiVersion: "2025-07-30.basil" });
   }
 
   // ---------- Customers ----------

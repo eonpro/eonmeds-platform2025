@@ -7,10 +7,78 @@ export const createPaymentIntent = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  res.status(501).json({ 
-    error: "Payment processing not implemented",
-    message: "Payment system is being rebuilt" 
-  });
+  try {
+    const { invoiceId } = req.body;
+    
+    if (!invoiceId) {
+      res.status(400).json({ error: "Invoice ID is required" });
+      return;
+    }
+    
+    // Get invoice details with patient's Stripe customer ID
+    const invoiceResult = await pool.query(
+      `SELECT i.*, p.stripe_customer_id, p.first_name, p.last_name, p.email
+       FROM invoices i
+       JOIN patients p ON i.patient_id = p.patient_id
+       WHERE i.id = $1`,
+      [invoiceId]
+    );
+    
+    if (invoiceResult.rows.length === 0) {
+      res.status(404).json({ error: "Invoice not found" });
+      return;
+    }
+    
+    const invoice = invoiceResult.rows[0];
+    
+    if (invoice.status === 'paid') {
+      res.status(400).json({ error: "Invoice is already paid" });
+      return;
+    }
+    
+    if (!invoice.stripe_customer_id) {
+      res.status(400).json({ 
+        error: "Patient needs Stripe customer setup",
+        message: "Please contact support to set up payment processing"
+      });
+      return;
+    }
+    
+    // Create payment intent with Stripe
+    const paymentIntent = await stripeService.createPaymentIntent({
+      amount: Number(invoice.total_amount),
+      customerId: invoice.stripe_customer_id,
+      description: `Invoice ${invoice.invoice_number} for ${invoice.first_name} ${invoice.last_name}`,
+      metadata: {
+        invoice_id: invoiceId,
+        invoice_number: invoice.invoice_number,
+        patient_id: invoice.patient_id,
+        patient_email: invoice.email
+      }
+    });
+    
+    // Store payment intent ID with invoice for tracking
+    await pool.query(
+      `UPDATE invoices 
+       SET stripe_payment_intent_id = $2,
+           updated_at = NOW()
+       WHERE id = $1`,
+      [invoiceId, paymentIntent.id]
+    );
+    
+    res.json({
+      client_secret: paymentIntent.client_secret,
+      payment_intent_id: paymentIntent.id,
+      amount: invoice.total_amount,
+      invoice_number: invoice.invoice_number
+    });
+  } catch (error: any) {
+    console.error("Error creating payment intent:", error);
+    res.status(500).json({ 
+      error: "Failed to create payment intent",
+      message: error.message 
+    });
+  }
 };
 
 // Charge an invoice with a saved payment method

@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { ENV } from "./env";
-import { logger } from "../lib/logger";
+import { logger } from "../utils/logger";
 
 const KEY = process.env.STRIPE_SECRET_KEY || "";
 const MODE = process.env.STRIPE_MODE || (KEY.startsWith("sk_test_") ? "test" : "live");

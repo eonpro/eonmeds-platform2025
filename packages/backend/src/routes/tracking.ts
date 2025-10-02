@@ -5,26 +5,13 @@ import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
-// Test endpoint - no auth required
-router.get('/test', (req, res) => {
-  console.log('Tracking test endpoint hit!');
-  res.json({ 
-    message: 'Tracking API is working!',
-    timestamp: new Date().toISOString()
-  });
-});
-
 // Simple authentication for Google Apps Script
 const TRACKING_API_KEY = process.env.TRACKING_API_KEY || 'your-secure-api-key';
 
-const authenticateTracking = (req: any, res: any, next: any) => {
+const authenticateTracking = (req, res, next) => {
   const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
   
-  console.log('Tracking auth - API Key received:', apiKey ? 'Yes' : 'No');
-  console.log('Tracking auth - Headers:', req.headers);
-  
   if (apiKey !== TRACKING_API_KEY) {
-    console.log('Tracking auth failed - Expected:', TRACKING_API_KEY.substring(0, 8) + '...');
     return res.status(401).json({ error: 'Invalid API key' });
   }
   next();
@@ -45,8 +32,6 @@ router.post('/import',
     body('status').optional().trim()
   ],
   async (req, res) => {
-    console.log('Tracking import endpoint hit!');
-    console.log('Request body:', req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -61,14 +46,13 @@ router.post('/import',
 
       if (existingResult.rows.length > 0) {
         // Update existing record
-        const updateQuery = `
+        await pool.query(`
           UPDATE patient_tracking 
           SET status = $2, 
               delivery_date = $3,
               updated_at = CURRENT_TIMESTAMP
           WHERE tracking_number = $1
-        `;
-        await pool.query(updateQuery, [
+        `, [
           req.body.tracking_number,
           req.body.status || 'In Transit',
           req.body.delivery_date
@@ -81,19 +65,14 @@ router.post('/import',
       }
 
       // Insert new tracking record
-      const insertQuery = `
+      const result = await pool.query(`
         INSERT INTO patient_tracking (
           tracking_number, carrier, recipient_name, delivery_address,
           delivery_date, ship_date, weight, service_type, status,
           tracking_url, created_at, updated_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING id
-      `;
-      const trackingUrl = req.body.carrier === 'FedEx' 
-        ? `https://www.fedex.com/fedextrack/?trknbr=${req.body.tracking_number}`
-        : `https://www.ups.com/track?tracknum=${req.body.tracking_number}`;
-
-      const result = await pool.query(insertQuery, [
+      `, [
         req.body.tracking_number,
         req.body.carrier,
         req.body.recipient_name,
@@ -103,7 +82,9 @@ router.post('/import',
         req.body.weight,
         req.body.service,
         req.body.status || 'In Transit',
-        trackingUrl
+        req.body.carrier === 'FedEx' 
+          ? `https://www.fedex.com/fedextrack/?trknbr=${req.body.tracking_number}`
+          : `https://www.ups.com/track?tracknum=${req.body.tracking_number}`
       ]);
 
       res.status(201).json({ 
@@ -166,8 +147,10 @@ router.get('/search',
       }
 
       // Get total count
-      const countQuery = `SELECT COUNT(*) as total FROM patient_tracking ${whereClause}`;
-      const countResult = await pool.query(countQuery, params);
+      const countResult = await pool.query(
+        `SELECT COUNT(*) as total FROM patient_tracking ${whereClause}`,
+        params
+      );
 
       // Get paginated results
       paramCount++;
@@ -175,7 +158,7 @@ router.get('/search',
       paramCount++;
       params.push(offset);
       
-      const selectQuery = `
+      const results = await pool.query(`
         SELECT 
           id, patient_id, tracking_number, carrier, recipient_name,
           delivery_address, delivery_date, ship_date, weight,
@@ -184,8 +167,7 @@ router.get('/search',
         ${whereClause}
         ORDER BY created_at DESC
         LIMIT $${paramCount - 1} OFFSET $${paramCount}
-      `;
-      const results = await pool.query(selectQuery, params);
+      `, params);
 
       res.json({
         data: results.rows,
@@ -217,7 +199,7 @@ router.get('/patient/:patientId',
     }
 
     try {
-      const patientQuery = `
+      const results = await pool.query(`
         SELECT 
           id, tracking_number, carrier, recipient_name,
           delivery_date, status, tracking_url, created_at
@@ -225,8 +207,7 @@ router.get('/patient/:patientId',
         WHERE patient_id = $1
         ORDER BY created_at DESC
         LIMIT 10
-      `;
-      const results = await pool.query(patientQuery, [req.params.patientId]);
+      `, [req.params.patientId]);
 
       res.json(results.rows);
 
