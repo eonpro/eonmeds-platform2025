@@ -167,3 +167,26 @@ aws-credentials.txt
 # Backup files
 *.bak
 *.backup
+
+# Security and backup files - Added for HIPAA compliance
+*.bak
+*-backup.*
+*-backup.txt
+railway-env-*
+*credentials*
+*secret*
+*.pem
+*.key
+*.crt
+
+# Test outputs and temporary files
+test-output/
+test-results/
+*.tmp
+*.temp
+*-TEMP.*
+
+# IDE and tool files
+.trunk/
+.idea/
+.vscode/settings.json
